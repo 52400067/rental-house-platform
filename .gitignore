@@ -24,6 +24,7 @@
 
 # Instructions & Local Config
 CLAUDE.md
+.antigravity_chats/
 
 # Docker / system
 .DS_Store
