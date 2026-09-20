@@ -1,0 +1,30 @@
+# Laravel
+/backend/vendor/
+/backend/.env
+/backend/.env.*.local
+/backend/storage/*.key
+/backend/storage/app/
+/backend/storage/logs/*.log
+/backend/storage/framework/cache/data/*
+/backend/storage/framework/views/*.php
+/backend/storage/framework/sessions/*
+/backend/bootstrap/cache/*.php
+/backend/database/*.sqlite
+/backend/.phpunit.result.cache
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env
+
+# AI Service
+/ai-service/venv/
+/ai-service/__pycache__/
+/ai-service/.env
+
+# Instructions & Local Config
+CLAUDE.md
+
+# Docker / system
+.DS_Store
+*.log

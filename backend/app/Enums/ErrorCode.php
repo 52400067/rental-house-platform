@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Enums;
+
+enum ErrorCode: string
+{
+    // 400
+    case BAD_REQUEST = 'BAD_REQUEST';
+
+    // 401
+    case UNAUTHENTICATED = 'UNAUTHENTICATED';
+    case INVALID_CREDENTIALS = 'INVALID_CREDENTIALS';
+
+    // 403
+    case FORBIDDEN = 'FORBIDDEN';
+    case EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED';
+    case ACCOUNT_DISABLED = 'ACCOUNT_DISABLED';
+    case TENANCY_NOT_ELIGIBLE = 'TENANCY_NOT_ELIGIBLE';
+
+    // 404
+    case NOT_FOUND = 'NOT_FOUND';
+
+    // 409
+    case CONFLICT = 'CONFLICT';
+    case INVALID_STATUS_TRANSITION = 'INVALID_STATUS_TRANSITION';
+    case REVIEW_ALREADY_EXISTS = 'REVIEW_ALREADY_EXISTS';
+
+    // 413
+    case FILE_TOO_LARGE = 'FILE_TOO_LARGE';
+
+    // 419
+    case CSRF_MISMATCH = 'CSRF_MISMATCH';
+
+    // 422
+    case VALIDATION_ERROR = 'VALIDATION_ERROR';
+    case PROFILE_INCOMPLETE = 'PROFILE_INCOMPLETE';
+
+    // 429
+    case TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS';
+
+    // 500
+    case INTERNAL_ERROR = 'INTERNAL_ERROR';
+
+    // 502
+    case AI_BAD_RESPONSE = 'AI_BAD_RESPONSE';
+
+    // 503
+    case AI_UNAVAILABLE = 'AI_UNAVAILABLE';
+
+    // 504
+    case AI_TIMEOUT = 'AI_TIMEOUT';
+}
