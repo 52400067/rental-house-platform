@@ -1,0 +1,4 @@
+/* Barebone: Navbar relies on Bootstrap utilities + theme.css. */
+.navbar .badge {
+    font-size: 0.65rem;
+}

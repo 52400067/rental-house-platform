@@ -1,0 +1,91 @@
+/* =========================================================
+   TroO theme - barebone on purpose.
+   One brand color + minimal polish. Everything else stays
+   stock Bootstrap so it's easy to restyle later.
+   ========================================================= */
+
+:root {
+    --brand: #0f766e;        /* teal-700 - the single accent color */
+    --brand-dark: #115e59;   /* hover state */
+    --brand-soft: #ccfbf1;   /* tinted background */
+}
+
+/* Bootstrap color override: all btn-primary / text-primary / bg-primary
+   follow the brand color without touching any component markup. */
+.btn-primary {
+    --bs-btn-bg: var(--brand);
+    --bs-btn-border-color: var(--brand);
+    --bs-btn-hover-bg: var(--brand-dark);
+    --bs-btn-hover-border-color: var(--brand-dark);
+    --bs-btn-active-bg: var(--brand-dark);
+    --bs-btn-active-border-color: var(--brand-dark);
+    --bs-btn-disabled-bg: var(--brand);
+    --bs-btn-disabled-border-color: var(--brand);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--brand);
+    --bs-btn-border-color: var(--brand);
+    --bs-btn-hover-bg: var(--brand);
+    --bs-btn-hover-border-color: var(--brand);
+    --bs-btn-active-bg: var(--brand);
+    --bs-btn-active-border-color: var(--brand);
+    --bs-btn-disabled-color: var(--brand);
+    --bs-btn-disabled-border-color: var(--brand);
+}
+.text-primary {
+    color: var(--brand) !important;
+}
+.bg-primary {
+    background-color: var(--brand) !important;
+}
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--brand);
+}
+.form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+.nav-link {
+    color: var(--bs-body-color);
+}
+.nav-link:hover,
+.nav-link.active {
+    color: var(--brand);
+}
+.pagination .page-item.active .page-link {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+
+/* Layout: sticky footer */
+#root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Listing cards */
+.listing-cover {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+}
+.listing-card {
+    transition: box-shadow 0.15s ease;
+}
+.listing-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Hero */
+.hero-section {
+    background: linear-gradient(180deg, var(--brand-soft) 0%, #ffffff 100%);
+    padding: 4rem 0;
+}
+
+/* Auth pages keep their centered card look */
+.auth-page .auth-card {
+    /* the old auth.css is replaced by this barebone style */
+    max-width: 100%;
+}

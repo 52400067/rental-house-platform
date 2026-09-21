@@ -1,0 +1,8 @@
+/* Barebone: Map relies on Bootstrap utilities + Leaflet defaults. */
+
+/* Leaflet marker popups: make the listing link readable */
+.leaflet-popup-content a {
+    color: var(--brand);
+    font-weight: 600;
+    text-decoration: none;
+}

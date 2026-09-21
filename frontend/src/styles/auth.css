@@ -1,0 +1,23 @@
+/* Barebone: auth pages rely on Bootstrap utilities + theme.css. */
+.auth-page {
+    background: var(--brand-soft);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+.auth-card {
+    background: #ffffff;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    padding: 2rem;
+}
+.auth-logo-link {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brand);
+    text-decoration: none;
+}
+.auth-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
