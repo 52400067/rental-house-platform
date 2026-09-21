@@ -29,8 +29,8 @@ class ApiJsonErrorFormatTest extends TestCase
 
     public function test_unauthenticated_protected_route_returns_json_401(): void
     {
-        // /api/user is the default Sanctum route installed by install:api.
-        $response = $this->getJson('/api/user');
+        // /api/me requires auth and exists in the contract.
+        $response = $this->getJson('/api/me');
 
         $response->assertStatus(401)
             ->assertExactJson(['message' => 'Bạn chưa đăng nhập.']);
@@ -51,7 +51,7 @@ class ApiJsonErrorFormatTest extends TestCase
     public function test_invalid_token_returns_json_401(): void
     {
         $response = $this->withHeader('Authorization', 'Bearer invalid-token')
-            ->getJson('/api/user');
+            ->getJson('/api/me');
 
         $response->assertStatus(401)
             ->assertExactJson(['message' => 'Bạn chưa đăng nhập.']);

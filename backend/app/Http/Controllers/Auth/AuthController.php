@@ -31,7 +31,10 @@ class AuthController extends Controller
             'role' => ['required', Rule::in([User::ROLE_STUDENT, User::ROLE_LANDLORD])],
         ]);
 
-        $user = User::create([
+        // forceCreate: 'role' is deliberately NOT fillable (step 10 security —
+        // no endpoint may change roles through mass assignment), but the
+        // registration endpoint legitimately sets it at creation time.
+        $user = User::forceCreate([
             'name' => $data['name'],
             'email' => strtolower($data['email']),
             'password' => $data['password'], // hashed via the model cast

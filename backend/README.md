@@ -1,66 +1,62 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend — API nhà trọ cho sinh viên (Laravel 11)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API theo `docs/API_CONTRACT.md`. Lỗi trả JSON `{ message }` (+ `errors` cho 422), thông báo tiếng Việt.
 
-## About Laravel
+## Chạy nhanh
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Cách A: Docker (backend + PostgreSQL)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```bash
+cp backend/.env.example backend/.env
+docker compose up -d --build        # db + backend (+ ai-service nếu có thư mục)
+docker compose exec backend php artisan key:generate
+docker compose exec backend php artisan migrate --seed
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Backend chạy ở http://localhost:8000. Kiểm tra: `curl http://localhost:8000/api/districts`
 
-## Learning Laravel
+### Cách B: Không Docker
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Cần PHP 8.2+, Composer, PostgreSQL 16. Chạy `docker compose up -d db` để có database, rồi:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+cd backend
+composer install
+cp .env.example .env                # DB_HOST=127.0.0.1
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve                   # http://localhost:8000
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Test
 
-## Laravel Sponsors
+```bash
+cd backend
+php artisan test                    # toàn bộ suite
+vendor/bin/pint --test app tests    # check style
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Tài khoản demo (mật khẩu `password`):
+- Sinh viên: `student1@example.com` … `student10@example.com`
+- Chủ nhà: `landlord1@example.com` … `landlord3@example.com`
 
-### Premium Partners
+## Cấu trúc chính
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+| Thư mục | Nội dung |
+|---|---|
+| `app/Http/Controllers` | Auth/Profile, Reference (districts/schools/amenities), Listing (duyệt + chi tiết + đánh giá), LandlordListing (CRUD + ảnh), Favorite, Conversation (nhắn tin), Attachment (signed URL) |
+| `app/Http/Resources` | User, District, School, ListingSummary, ListingDetail, Review, Conversation, Message — shape đúng §3 hợp đồng |
+| `app/Http/Middleware` | `role:student|landlord` (EnsureRole), `throttle.api` (429 tiếng Việt) |
+| `lang/vi` | Thông báo lỗi validate tiếng Việt |
 
-## Contributing
+## Ghi chú kỹ thuật
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- `role` **không** nằm trong `$fillable` — chỉ được đặt khi tạo qua `register`/factory (`forceCreate`). Không endpoint nào đổi vai trò được.
+- Ảnh tin đăng: public disk `storage/app/public/listings`, tối đa 5 ảnh/tin, jpg/png/webp ≤ 2MB.
+- Tệp nhắn tin: **private** disk, chỉ mở qua signed URL 60 phút (không cần token, mở thẳng trong tab).
+- `Model::preventLazyLoading(!isProduction())` — N+1 sẽ ném exception trong dev/test.
+- Login throttle 10 lần/phút/IP. Mọi request guest thiếu `Accept: application/json` vẫn nhận JSON 401 (không redirect).
 
-## Code of Conduct
+## Khi AI service chưa có
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Các endpoint `/ai/*` chưa được route — bạn của nhóm phụ trách AI tạo `ai-service/` (FastAPI, biến `FAKE_MODE=true` trong docker-compose) rồi backend sẽ gọi qua `AI_URL`. Nếu AI service chết, backend trả 503 JSON `"Dịch vụ AI tạm thời không khả dụng."` theo hợp đồng.

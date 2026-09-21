@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         // 3 landlords.
         $landlordNames = ['Trần Văn Thành', 'Lê Thị Hồng', 'Phạm Minh Đức'];
         foreach ($landlordNames as $i => $name) {
-            User::create([
+            User::forceCreate([
                 'name' => $name,
                 'email' => 'landlord'.($i + 1).'@example.com',
                 'password' => $password,
@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
         for ($i = 1; $i <= 10; $i++) {
             $interests = array_slice($interestPool, ($i - 1) % 6, 3);
 
-            User::create([
+            User::forceCreate([
                 'name' => $studentNames[$i - 1],
                 'email' => "student{$i}@example.com",
                 'password' => $password,

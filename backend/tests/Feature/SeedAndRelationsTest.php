@@ -56,7 +56,8 @@ class SeedAndRelationsTest extends TestCase
     {
         $this->seed();
 
-        $conversation = Conversation::has('messages')->first();
+        // Eager load so preventLazyLoading (step 10) does not flag $message->conversation.
+        $conversation = Conversation::has('messages')->with('messages.conversation')->first();
 
         $this->assertGreaterThanOrEqual(1, $conversation->messages->count());
         $this->assertInstanceOf(Message::class, $conversation->messages->first());

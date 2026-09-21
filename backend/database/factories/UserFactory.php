@@ -19,6 +19,20 @@ class UserFactory extends Factory
     protected static ?string $password;
 
     /**
+     * 'role' is deliberately NOT fillable (step 10 security — no endpoint
+     * may change roles via mass assignment). The factory is the one place
+     * that legitimately sets it: default "student", or the role passed by
+     * the landlord() state / inline overrides.
+     */
+    public function newModel(array $attributes = []): User
+    {
+        $model = parent::newModel($attributes);
+        $model->forceFill(['role' => $attributes['role'] ?? User::ROLE_STUDENT]);
+
+        return $model;
+    }
+
+    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
@@ -26,12 +40,11 @@ class UserFactory extends Factory
     public function definition(): array
     {
         // Note: the users table (ERD §3) has no email_verified_at column.
-        // "student" is the default role; use student()/landlord() states.
+        // Role is handled in newModel() — see above.
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
-            'role' => 'student',
             'remember_token' => Str::random(10),
         ];
     }
@@ -42,7 +55,6 @@ class UserFactory extends Factory
     public function student(): static
     {
         return $this->state(fn () => [
-            'role' => 'student',
             'school_id' => School::factory(),
             'budget_min' => 1_500_000,
             'budget_max' => 3_000_000,
@@ -61,7 +73,7 @@ class UserFactory extends Factory
     public function landlord(): static
     {
         return $this->state(fn () => [
-            'role' => 'landlord',
+            'role' => User::ROLE_LANDLORD,
         ]);
     }
 }

@@ -7,12 +7,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ReferenceController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 // Authentication and profile (API_CONTRACT §4 — "Xác thực và hồ sơ").
 Route::post('/register', [AuthController::class, 'register']);
