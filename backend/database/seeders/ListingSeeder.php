@@ -6,12 +6,13 @@ use App\Models\Amenity;
 use App\Models\District;
 use App\Models\Listing;
 use App\Models\ListingImage;
+use App\Models\School;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class ListingSeeder extends Seeder
 {
@@ -20,14 +21,14 @@ class ListingSeeder extends Seeder
         $landlords = User::where('role', User::ROLE_LANDLORD)->orderBy('id')->get();
         $districts = District::orderBy('id')->get();
         $amenityIds = Amenity::orderBy('id')->pluck('id')->all();
-        $schools = \App\Models\School::orderBy('id')->get(); // 1: ĐHQG, 2: Bách Khoa, 3: SPKT
+        $schools = School::orderBy('id')->get(); // 1: ĐHQG, 2: Bách Khoa, 3: SPKT
 
         // Clean previously seeded images so repeated fresh seeds don't accumulate files.
         Storage::disk('public')->delete(Storage::disk('public')->files('listings'));
 
         $manager = null;
         if (extension_loaded('gd')) {
-            $manager = new ImageManager(new Driver()); // GD driver
+            $manager = new ImageManager(new Driver); // GD driver
         } else {
             // Demo images need GD (available in the Docker image). Without it,
             // seeding continues but no sample picture files are generated.

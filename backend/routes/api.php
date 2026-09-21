@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ReferenceController;
 use Illuminate\Http\Request;
@@ -32,3 +33,15 @@ Route::get('/listings/{listing}/reviews', [ListingController::class, 'reviews'])
 Route::post('/listings/{listing}/reviews', [ListingController::class, 'storeReview'])
     ->middleware(['auth:sanctum', 'role:student'])
     ->whereNumber('listing');
+
+// Landlord listing management (API_CONTRACT §4 — "Chủ nhà: quản lý tin đăng").
+Route::get('/my/listings', [LandlordListingController::class, 'index'])->middleware(['auth:sanctum', 'role:landlord']);
+Route::post('/listings', [LandlordListingController::class, 'store'])->middleware(['auth:sanctum', 'role:landlord']);
+Route::put('/listings/{listing}', [LandlordListingController::class, 'update'])
+    ->middleware(['auth:sanctum', 'role:landlord'])->whereNumber('listing');
+Route::delete('/listings/{listing}', [LandlordListingController::class, 'destroy'])
+    ->middleware(['auth:sanctum', 'role:landlord'])->whereNumber('listing');
+Route::post('/listings/{listing}/images', [LandlordListingController::class, 'uploadImages'])
+    ->middleware(['auth:sanctum', 'role:landlord'])->whereNumber('listing');
+Route::delete('/listings/{listing}/images/{image}', [LandlordListingController::class, 'deleteImage'])
+    ->middleware(['auth:sanctum', 'role:landlord'])->whereNumber(['listing', 'image']);
