@@ -338,7 +338,7 @@ export default function RoomDetail() {
                                                         {listing.ratings[key]}
                                                     </>
                                                 ) : (
-                                                    "—"
+                                                    "-"
                                                 )}
                                             </div>
                                             <div className="small text-secondary">{label}</div>

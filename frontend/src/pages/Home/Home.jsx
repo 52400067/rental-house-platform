@@ -97,7 +97,7 @@ export default function Home() {
                 <div className="container">
                     <h2 className="fw-bold text-center mb-1">Tìm trọ thông minh hơn với AI</h2>
                     <p className="text-secondary text-center mb-4">
-                        Gợi ý tham khảo do AI tạo ra — hoàn toàn miễn phí.
+                        Gợi ý tham khảo do AI tạo ra - hoàn toàn miễn phí.
                     </p>
                     <div className="row g-4">
                         {[

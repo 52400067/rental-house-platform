@@ -17,12 +17,12 @@ export const STATUS_BADGES = {
 };
 
 export function formatVnd(value) {
-    if (value === null || value === undefined) return "—";
+    if (value === null || value === undefined) return "-";
     return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
 }
 
 export function formatPriceTrieu(value) {
-    if (value === null || value === undefined) return "—";
+    if (value === null || value === undefined) return "-";
     return `${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(value / 1_000_000)}tr`;
 }
 

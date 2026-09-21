@@ -234,7 +234,7 @@ export default function Profile() {
                                             <option value="">Chọn...</option>
                                             {CLEANLINESS.map(([v, l]) => (
                                                 <option key={v} value={v}>
-                                                    {v} — {l}
+                                                    {v} - {l}
                                                 </option>
                                             ))}
                                         </select>

@@ -195,7 +195,7 @@ export default function ConversationDetail() {
                     <button
                         type="button"
                         className="btn btn-outline-secondary"
-                        title="Đính kèm tệp (pdf, jpg, png, docx — tối đa 5 MB)"
+                        title="Đính kèm tệp (pdf, jpg, png, docx - tối đa 5 MB)"
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <i className="bi bi-paperclip" />

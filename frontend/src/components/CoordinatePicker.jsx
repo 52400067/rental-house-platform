@@ -11,7 +11,7 @@ import "leaflet/dist/leaflet.css";
 
 /**
  * Reverse geocode a coordinate via Nominatim (OpenStreetMap's free service,
- * usage policy: max 1 req/s, low volume — fine for a form, not for polling).
+ * usage policy: max 1 req/s, low volume - fine for a form, not for polling).
  * Returns a short street address or null on failure.
  */
 export async function reverseGeocode(lat, lng) {
@@ -72,7 +72,7 @@ function Recenter({ lat, lng, zoom }) {
  * `center` can recentre the view (e.g. when a ward is chosen).
  * `readOnly` turns it into a display-only map (no click/drag/zoom-hijack).
  * `onAddress` (optional): called with a reverse-geocoded street guess
- * shortly after each pick or drag-end — NOT on initial render, so edit
+ * shortly after each pick or drag-end - NOT on initial render, so edit
  * forms don't prompt on load.
  */
 export default function CoordinatePicker({
