@@ -43,7 +43,10 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // 403 — authenticated but forbidden (role middleware, policies).
-            if ($e instanceof AuthorizationException) {
+            // Laravel converts AuthorizationException into AccessDeniedHttpException
+            // via prepareException(), so both must be handled here.
+            if ($e instanceof AuthorizationException
+                || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
                 return new JsonResponse(['message' => 'Bạn không có quyền thực hiện thao tác này.'], 403);
             }
 

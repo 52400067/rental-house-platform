@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ListingDetailResource;
 use App\Http\Resources\ListingSummaryResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\Listing;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Public listing browse (API_CONTRACT §4 — "Duyệt tin đăng").
@@ -202,5 +206,111 @@ class ListingController extends Controller
             ->whereIn('listings.id', $listings->modelKeys())
             ->pluck('listings.id')
             ->all();
+    }
+
+    /**
+     * GET /api/listings/{id} — public detail. Hidden listings 404 for
+     * everyone except the owner; rented listings stay visible.
+     */
+    public function show(Request $request, Listing $listing): JsonResponse
+    {
+        $user = $request->user('sanctum');
+
+        // Hidden listings: 404 unless the viewer is the owner landlord.
+        if ($listing->status === Listing::STATUS_HIDDEN
+            && (! $user || $user->id !== $listing->user_id)) {
+            abort(404);
+        }
+
+        $listing->load(['district', 'coverImage', 'images', 'amenities', 'landlord'])
+            ->loadCount('reviews')
+            ->loadAvg('reviews', 'listing_rating');
+
+        // Personalize is_favorited when a logged-in student is viewing.
+        $favorited = $user && $user->role === User::ROLE_STUDENT
+            ? $user->favorites()->where('listings.id', $listing->id)->exists()
+            : false;
+        $request->attributes->set('favorited_listing_ids', $favorited ? [$listing->id] : []);
+
+        return response()->json([
+            'data' => (new ListingDetailResource($listing))->resolve($request),
+        ]);
+    }
+
+    /**
+     * GET /api/listings/{id}/reviews — public, newest first, paginated.
+     */
+    public function reviews(Request $request, Listing $listing): JsonResponse
+    {
+        $page = $listing->reviews()
+            ->with('student:id,name')
+            ->orderByDesc('id')
+            ->paginate(min($request->integer('per_page', 12), 50));
+
+        $request->attributes->set('review_pagination', $page);
+
+        return response()->json([
+            'data' => ReviewResource::collection($page->items())->resolve($request),
+            'meta' => [
+                'current_page' => $page->currentPage(),
+                'last_page' => $page->lastPage(),
+                'per_page' => (int) $page->perPage(),
+                'total' => $page->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * POST /api/listings/{id}/reviews — students only. Requires an existing
+     * conversation about this listing; one review per student per listing.
+     */
+    public function storeReview(Request $request, Listing $listing): JsonResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'listing_rating' => ['required', 'integer', 'between:1,5'],
+            'landlord_rating' => ['required', 'integer', 'between:1,5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'required' => 'Cần cung cấp :attribute.',
+            'integer' => ':attribute phải là số nguyên.',
+            'between' => ':attribute phải từ :min đến :max sao.',
+            'max.string' => ':attribute không được vượt quá :max ký tự.',
+        ], [
+            'listing_rating' => 'Điểm tin đăng',
+            'landlord_rating' => 'Điểm chủ nhà',
+            'comment' => 'Bình luận',
+        ]);
+
+        // ERD §4: only students who already have a conversation may review.
+        // 403 with the contract's specific message (API_CONTRACT §4).
+        $hasConversation = $listing->conversations()
+            ->where('student_id', $user->id)
+            ->exists();
+
+        if (! $hasConversation) {
+            abort(403, 'Bạn cần nhắn tin với chủ nhà trước khi đánh giá.');
+        }
+
+        // One review per student per listing (unique constraint, ERD §3).
+        $alreadyReviewed = Review::query()
+            ->where('listing_id', $listing->id)
+            ->where('student_id', $user->id)
+            ->exists();
+
+        if ($alreadyReviewed) {
+            throw ValidationException::withMessages([
+                'listing_id' => ['Bạn đã đánh giá tin này rồi.'],
+            ]);
+        }
+
+        $review = Review::create([
+            'listing_id' => $listing->id,
+            'student_id' => $user->id,
+            ...$data,
+        ]);
+
+        return response()->json(['data' => (new ReviewResource($review->load('student')))->resolve($request)], 201);
     }
 }

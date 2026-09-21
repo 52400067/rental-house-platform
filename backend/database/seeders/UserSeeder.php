@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         foreach ($landlordNames as $i => $name) {
             User::create([
                 'name' => $name,
-                'email' => "landlord".($i + 1)."@example.com",
+                'email' => 'landlord'.($i + 1).'@example.com',
                 'password' => $password,
                 'role' => User::ROLE_LANDLORD,
                 'phone' => '090'.str_pad((string) ($i + 1), 7, '0', STR_PAD_LEFT),

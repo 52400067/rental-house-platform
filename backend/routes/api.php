@@ -25,3 +25,10 @@ Route::get('/amenities', [ReferenceController::class, 'amenities']);
 
 // Listing browse (API_CONTRACT §4 — "Duyệt tin đăng").
 Route::get('/listings', [ListingController::class, 'index']);
+Route::get('/listings/{listing}', [ListingController::class, 'show'])->whereNumber('listing');
+Route::get('/listings/{listing}/reviews', [ListingController::class, 'reviews'])->whereNumber('listing');
+
+// Reviews (API_CONTRACT §4 — "Đánh giá", Student only).
+Route::post('/listings/{listing}/reviews', [ListingController::class, 'storeReview'])
+    ->middleware(['auth:sanctum', 'role:student'])
+    ->whereNumber('listing');
