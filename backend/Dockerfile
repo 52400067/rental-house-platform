@@ -15,8 +15,14 @@ RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts
 
 COPY . .
 
+# bootstrap/cache must be empty here: .dockerignore excludes local *.php caches
+# (they reference dev packages like laravel/pail and would crash every artisan
+# command in a --no-dev image). Without this, artisan cannot even resolve providers.
+RUN mkdir -p bootstrap/cache && rm -f bootstrap/cache/*.php
+
 # Relative storage link so /storage URLs work behind APP_URL.
-RUN php artisan storage:link --relative || true
+# No "|| true": a failure here must break the build, not hide a broken image.
+RUN php artisan storage:link --relative --force
 
 EXPOSE 8000
 

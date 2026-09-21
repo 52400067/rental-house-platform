@@ -2,9 +2,15 @@ vendor/
 node_modules/
 .env
 storage/*.key
+# Symlink sinh local (trỏ ra ngoài context) — được tạo lại trong build.
+public/storage
 tests/
 .phpunit.result.cache
 .git
 .gitignore
 Dockerfile
 .dockerignore
+# Package-discovery cache sinh trên máy local (có dev packages, ví dụ
+# laravel/pail) — nếu lọt vào image --no-dev thì MỌI lệnh artisan crash:
+# Class "Laravel\Pail\PailServiceProvider" not found. Được tạo lại trong build.
+bootstrap/cache/*.php
