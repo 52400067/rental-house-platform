@@ -21,7 +21,7 @@ class ListingSeeder extends Seeder
         $landlords = User::where('role', User::ROLE_LANDLORD)->orderBy('id')->get();
         $wards = Ward::orderBy('id')->get();
         $amenityIds = Amenity::orderBy('id')->pluck('id')->all();
-        $schools = School::orderBy('id')->get(); // 1: ĐHQG, 2: Bách Khoa, 3: SPKT
+        $schools = School::orderBy('id')->get();
 
         // Clean previously seeded images so repeated fresh seeds don't accumulate files.
         Storage::disk('public')->delete(Storage::disk('public')->files('listings'));
@@ -55,16 +55,10 @@ class ListingSeeder extends Seeder
             $price = 1_500_000 + mt_rand(0, 45) * 100_000; // 1.5M .. 6M VND
 
             // Coordinates jittered around the ward center (~±1.3 km).
-            // A few listings sit right next to a school (same ward) so the
-            // distance filter and map demo nicely.
-            $nearSchool = match (true) {
-                in_array($i, [1, 6], true) => 0,   // ĐHQG (Thủ Đức)
-                in_array($i, [16, 21], true) => 2, // SPKT (Thủ Đức)
-                in_array($i, [4, 9], true) => 1,   // Bách Khoa (Quận 10)
-                default => null,
-            };
-            if ($nearSchool !== null) {
-                $school = $schools[$nearSchool];
+            // A few listings sit right next to a school near their ward so the
+            // distance filter and map demo nicely across all seeded cities.
+            if (in_array($i, [1, 4, 6, 9, 16, 21], true)) {
+                $school = $this->nearestSchool($schools, $ward);
                 $lat = (float) $school->latitude + mt_rand(-5, 5) / 10000;   // ~±0.5 km
                 $lng = (float) $school->longitude + mt_rand(-5, 5) / 10000;
             } else {
@@ -105,6 +99,24 @@ class ListingSeeder extends Seeder
                 $this->createSampleImage($manager, $listing, $i);
             }
         }
+    }
+
+    /** School whose coordinates are closest to the given ward. */
+    private function nearestSchool($schools, Ward $ward): School
+    {
+        $best = null;
+        $bestDist = PHP_FLOAT_MAX;
+        foreach ($schools as $school) {
+            $dLat = (float) $school->latitude - (float) $ward->latitude;
+            $dLng = (float) $school->longitude - (float) $ward->longitude;
+            $dist = $dLat * $dLat + $dLng * $dLng;
+            if ($dist < $bestDist) {
+                $bestDist = $dist;
+                $best = $school;
+            }
+        }
+
+        return $best;
     }
 
     /** Generate a simple colored JPG with text (GD), no Internet download. */

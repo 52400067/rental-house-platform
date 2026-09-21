@@ -50,7 +50,7 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 **Listing (dạng tóm tắt, dùng cho danh sách và bản đồ)**
 ```json
 { "id": 101, "title": "Phòng trọ gần ĐHQG", "type": "room", "price": 2500000, "area_m2": 22.5,
-  "address": "12 Đường số 5", "latitude": 10.8712, "longitude": 106.7801, "status": "available",
+  "address": "12 Đường số 5", "latitude": 21.0056, "longitude": 105.8339, "status": "available",
   "ward": { "id": 1, "name": "Thủ Đức" },
   "cover_image": "http://localhost:8000/storage/listings/1.jpg",
   "avg_rating": 4.3, "reviews_count": 7, "distance_km": 0.85, "is_favorited": false }

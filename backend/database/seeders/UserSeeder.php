@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
                 'password' => $password,
                 'role' => User::ROLE_LANDLORD,
                 'phone' => '090'.str_pad((string) ($i + 1), 7, '0', STR_PAD_LEFT),
-                'bio' => 'Chủ nhà cho thuê nhà trọ tại TP.HCM.',
+                'bio' => 'Chủ nhà cho thuê nhà trọ dành cho sinh viên trên toàn quốc.',
             ]);
         }
 

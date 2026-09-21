@@ -235,12 +235,12 @@ Dùng `selectRaw(... AS distance_km)` để hiển thị và `whereRaw` với c�
 
 ## 5. Dữ liệu mẫu (seeder)
 
-Dữ liệu gần đúng của TP. Hồ Chí Minh (đổi nếu thành phố của nhóm khác):
+Dữ liệu trải khắp Việt Nam (các thành phố nhiều sinh viên):
 
 | Bảng | Nội dung |
 |---|---|
-| wards | Thủ Đức (10.8494, 106.7537), Gò Vấp (10.8386, 106.6652), Bình Thạnh (10.8106, 106.7091), Phường 10 (10.7746, 106.6667), Tân Bình (10.8014, 106.6526) |
-| schools | ĐHQG TP.HCM (10.8700, 106.8030), ĐH Bách Khoa (10.7723, 106.6603), ĐH Sư phạm Kỹ thuật (10.8506, 106.7719) |
+| wards | 16 phường/xã: Hà Nội (4), TP.HCM (4), Đà Nẵng (2), Cần Thơ (2), Huế, Nha Trang, Quy Nhơn, Nghệ An |
+| schools | 13 trường ĐH: Hà Nội (3), TP.HCM (3), Đà Nẵng (2), Cần Thơ, Huế, Nha Trang, Quy Nhơn, Vinh |
 | amenities | Wifi, Máy lạnh, Máy nước nóng, Máy giặt, Tủ lạnh, Bếp, WC riêng, Chỗ để xe, Bảo vệ, Giờ giấc tự do |
 | users | 3 chủ nhà, 10 sinh viên (hồ sơ điền đủ, phần lớn `looking_for_roommate = true`). Mật khẩu chung `password`. Email theo mẫu `student1@example.com`, `landlord1@example.com` |
 | listings | 30 tin, đủ 3 loại, giá 1,5 đến 6 triệu, tọa độ quanh tâm khu vực, 3 đến 6 tiện ích mỗi tin, mỗi tin 1 ảnh mẫu lưu cục bộ, vài tin `rented` |
