@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
@@ -53,3 +54,13 @@ Route::put('/favorites/{listing_id}', [FavoriteController::class, 'attach'])
     ->middleware(['auth:sanctum', 'role:student'])->whereNumber('listing_id');
 Route::delete('/favorites/{listing_id}', [FavoriteController::class, 'detach'])
     ->middleware(['auth:sanctum', 'role:student'])->whereNumber('listing_id');
+
+// Messaging (API_CONTRACT §4 — "Nhắn tin"). Outsiders get 404.
+Route::post('/conversations', [ConversationController::class, 'store'])->middleware(['auth:sanctum', 'role:student']);
+Route::get('/conversations', [ConversationController::class, 'index'])->middleware('auth:sanctum');
+Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages'])
+    ->middleware('auth:sanctum')->whereNumber('conversation');
+Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage'])
+    ->middleware('auth:sanctum')->whereNumber('conversation');
+Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])
+    ->middleware('auth:sanctum')->whereNumber('conversation');
