@@ -1,70 +1,54 @@
+# Docker cho môi trường dev: PostgreSQL + Backend + AI service.
+# Frontend chạy ngoài Docker (npm run dev).
+# Chỉ chạy database: docker compose up -d db
+
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      target: production
-    restart: unless-stopped
-    env_file:
-      - ./backend/.env
+  db:
+    image: postgres:16-alpine
     environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - internal
-
-  postgres:
-    image: postgres:15
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_DATABASE:-rental_house}
-      POSTGRES_USER: ${DB_USERNAME:-rental_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d:ro,z
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-rental_user} -d ${DB_DATABASE:-rental_house}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - internal
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - internal
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
+      POSTGRES_DB: rental
+      POSTGRES_USER: rental
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rental}
     ports:
-      - "80:80"
+      - "5432:5432"        # để kết nối bằng DBeaver / pgAdmin từ máy
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rental -d rental"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    command: sh -c "composer install --no-interaction && php artisan serve --host=0.0.0.0 --port=8000"
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "8000:8000"
+    environment:          # ghi đè các giá trị trong backend/.env khi chạy trong Docker
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: rental
+      DB_USERNAME: rental
+      DB_PASSWORD: ${DB_PASSWORD:-rental}
+      AI_URL: http://ai-service:8001
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
-      - backend
-    networks:
-      - internal
+      db:
+        condition: service_healthy
+
+  ai-service:
+    build: ./ai-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./ai-service:/app
+    ports:
+      - "8001:8001"
+    environment:
+      FAKE_MODE: ${FAKE_MODE:-true}
+      LLM_API_KEY: ${LLM_API_KEY:-}
 
 volumes:
-  postgres_data:
-  redis_data:
-
-networks:
-  internal:
-    driver: bridge
+  pgdata:
