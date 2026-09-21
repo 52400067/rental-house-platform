@@ -34,7 +34,7 @@ class Conversation extends Model
         return $this->hasMany(Message::class);
     }
 
-    /** Most recent message (highest id) — used for the list preview. */
+    /** Most recent message (highest id) - used for the list preview. */
     public function lastMessage(): HasOne
     {
         return $this->hasOne(Message::class)->ofMany();

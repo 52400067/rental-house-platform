@@ -44,12 +44,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null; // Let non-API routes behave normally.
             }
 
-            // 401 — not authenticated (auth:sanctum guard failures land here).
+            // 401 - not authenticated (auth:sanctum guard failures land here).
             if ($e instanceof AuthenticationException) {
                 return new JsonResponse(['message' => 'Bạn chưa đăng nhập.'], 401);
             }
 
-            // 403 — authenticated but forbidden (role middleware, policies).
+            // 403 - authenticated but forbidden (role middleware, policies).
             // Laravel converts AuthorizationException into AccessDeniedHttpException
             // via prepareException(), so both must be handled here.
             if ($e instanceof AuthorizationException
@@ -57,17 +57,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 return new JsonResponse(['message' => 'Bạn không có quyền thực hiện thao tác này.'], 403);
             }
 
-            // 404 — missing route or missing model (Route model binding).
+            // 404 - missing route or missing model (Route model binding).
             if ($e instanceof NotFoundHttpException || $e instanceof ModelNotFoundException) {
                 return new JsonResponse(['message' => 'Không tìm thấy dữ liệu.'], 404);
             }
 
-            // 503 — AI service down (used by AiClient from step 9).
+            // 503 - AI service down (used by AiClient from step 9).
             if ($e instanceof AiUnavailableException) {
                 return new JsonResponse(['message' => 'Dịch vụ AI tạm thời không khả dụng.'], 503);
             }
 
-            // 422 — keep Laravel's default { message, errors } format untouched.
+            // 422 - keep Laravel's default { message, errors } format untouched.
             if ($e instanceof ValidationException) {
                 return null;
             }
@@ -81,7 +81,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return new JsonResponse(['message' => $e->getMessage() ?: 'Lỗi máy chủ.'], $e->getStatusCode());
             }
 
-            // 500 — never leak internals when APP_DEBUG=false.
+            // 500 - never leak internals when APP_DEBUG=false.
             return new JsonResponse(['message' => 'Lỗi máy chủ.'], 500);
         });
     })->create();

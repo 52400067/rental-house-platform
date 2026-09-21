@@ -41,7 +41,7 @@ class ConversationTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // POST /conversations — get-or-create
+    // POST /conversations - get-or-create
     // ------------------------------------------------------------------
 
     public function test_student_creates_conversation_for_listing(): void
@@ -95,7 +95,7 @@ class ConversationTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // GET /conversations — newest activity first, unread counts
+    // GET /conversations - newest activity first, unread counts
     // ------------------------------------------------------------------
 
     public function test_list_shows_unread_count_and_last_message(): void
@@ -291,7 +291,7 @@ class ConversationTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // POST /read — mark the other side's messages read
+    // POST /read - mark the other side's messages read
     // ------------------------------------------------------------------
 
     public function test_read_receipt_marks_only_other_users_messages(): void

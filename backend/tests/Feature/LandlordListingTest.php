@@ -237,7 +237,7 @@ class LandlordListingTest extends TestCase
         Storage::disk('public')->assertExists($storedPath);
 
         // The returned URL points at the /storage route (relative under the
-        // faked disk, absolute with APP_URL on the real disk — both valid).
+        // faked disk, absolute with APP_URL on the real disk - both valid).
         $this->assertStringEndsWith('/storage/'.$storedPath, $response->json('data.0.url'));
     }
 

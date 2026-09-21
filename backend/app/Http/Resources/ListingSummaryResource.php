@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Listing summary object per API_CONTRACT §3 — used for lists, favorites
+ * Listing summary object per API_CONTRACT §3 - used for lists, favorites
  * and the map. Cover image = image with the smallest id.
  */
 class ListingSummaryResource extends JsonResource

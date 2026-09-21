@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 /**
  * PROMPTS.md step 10, item 3: an authorization matrix over the main
- * endpoints — guest / student / landlord (non-owner) / owner — asserting
+ * endpoints - guest / student / landlord (non-owner) / owner - asserting
  * the exact contract status code (401, 403, 404 or success).
  */
 class AuthorizationMatrixTest extends TestCase
@@ -59,14 +59,14 @@ class AuthorizationMatrixTest extends TestCase
             'district_id' => $this->listing->district_id,
         ];
 
-        // POST /listings — Landlord only.
+        // POST /listings - Landlord only.
         $this->postJson('/api/listings', $payload)->assertStatus(401);
         $this->actingAs($this->student, 'sanctum')
             ->postJson('/api/listings', $payload)->assertStatus(403);
         $this->actingAs($this->landlord, 'sanctum')
             ->postJson('/api/listings', $payload)->assertStatus(201);
 
-        // PUT /listings/{id} — Owner only. forgetGuards first: actingAs()
+        // PUT /listings/{id} - Owner only. forgetGuards first: actingAs()
         // persists across in-process requests, so the guest call above would
         // otherwise still be authenticated as the landlord.
         Auth::forgetGuards();
@@ -78,7 +78,7 @@ class AuthorizationMatrixTest extends TestCase
         $this->actingAs($this->landlord, 'sanctum')
             ->putJson("/api/listings/{$this->listing->id}", ['price' => 2100000])->assertOk();
 
-        // DELETE /listings/{id} — Owner only.
+        // DELETE /listings/{id} - Owner only.
         Auth::forgetGuards();
         $this->deleteJson("/api/listings/{$this->listing->id}")->assertStatus(401);
         $this->actingAs($this->student, 'sanctum')
@@ -133,20 +133,20 @@ class AuthorizationMatrixTest extends TestCase
 
     public function test_conversations_gatekeeping(): void
     {
-        // POST /conversations — Student only.
+        // POST /conversations - Student only.
         $this->postJson('/api/conversations', ['listing_id' => $this->listing->id])->assertStatus(401);
         $this->actingAs($this->landlord, 'sanctum')
             ->postJson('/api/conversations', ['listing_id' => $this->listing->id])->assertStatus(403);
         $this->actingAs($this->student, 'sanctum')
             ->postJson('/api/conversations', ['listing_id' => $this->listing->id])->assertStatus(201);
 
-        // GET /conversations — any authenticated user.
+        // GET /conversations - any authenticated user.
         Auth::forgetGuards();
         $this->getJson('/api/conversations')->assertStatus(401);
         $this->actingAs($this->student, 'sanctum')->getJson('/api/conversations')->assertOk();
         $this->actingAs($this->landlord, 'sanctum')->getJson('/api/conversations')->assertOk();
 
-        // Messages/read — participants only, outsiders get 404.
+        // Messages/read - participants only, outsiders get 404.
         Auth::forgetGuards();
         $conversation = Conversation::first();
         $outsider = User::factory()->student()->create();

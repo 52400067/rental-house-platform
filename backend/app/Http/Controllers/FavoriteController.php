@@ -8,12 +8,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Student favorites (API_CONTRACT §4 — "Yêu thích (sinh viên)").
+ * Student favorites (API_CONTRACT §4 - "Yêu thích (sinh viên)").
  */
 class FavoriteController extends Controller
 {
     /**
-     * GET /api/favorites — paginated, most recently saved first,
+     * GET /api/favorites - paginated, most recently saved first,
      * is_favorited always true.
      */
     public function index(Request $request): JsonResponse
@@ -37,7 +37,7 @@ class FavoriteController extends Controller
     }
 
     /**
-     * PUT /api/favorites/{listing_id} — add safely (idempotent).
+     * PUT /api/favorites/{listing_id} - add safely (idempotent).
      */
     public function attach(Request $request, int $listingId): JsonResponse
     {
@@ -54,7 +54,7 @@ class FavoriteController extends Controller
     }
 
     /**
-     * DELETE /api/favorites/{listing_id} — remove safely (idempotent).
+     * DELETE /api/favorites/{listing_id} - remove safely (idempotent).
      */
     public function detach(Request $request, int $listingId): JsonResponse
     {

@@ -39,7 +39,7 @@ class ApiJsonErrorFormatTest extends TestCase
     public function test_guest_request_without_accept_header_returns_json_401_not_500(): void
     {
         // Regression: guests hitting a protected route WITHOUT "Accept: application/json"
-        // used to trigger redirectGuestsTo(route('login')) — which threw
+        // used to trigger redirectGuestsTo(route('login')) - which threw
         // RouteNotFoundException (no login route in an API-only app) and returned 500.
         $response = $this->get('/api/favorites');
 

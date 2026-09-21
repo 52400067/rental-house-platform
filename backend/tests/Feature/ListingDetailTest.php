@@ -142,7 +142,7 @@ class ListingDetailTest extends TestCase
             'landlord_rating' => 4,
         ]);
 
-        // Another listing of the SAME landlord with a 2-star review —
+        // Another listing of the SAME landlord with a 2-star review -
         // must drag landlord_avg down but not listing_avg.
         $otherListingOfLandlord = Listing::factory()->create(['user_id' => $this->landlord->id]);
         Review::factory()->create([
@@ -152,7 +152,7 @@ class ListingDetailTest extends TestCase
             'landlord_rating' => 2,
         ]);
 
-        // A listing in the SAME district with a 1-star review —
+        // A listing in the SAME district with a 1-star review -
         // must drag area_avg below listing_avg.
         $sameDistrictListing = Listing::factory()->create([
             'district_id' => $this->listing->district_id,
@@ -169,7 +169,7 @@ class ListingDetailTest extends TestCase
 
         $this->assertEqualsWithDelta(5.0, $ratings['listing_avg'], 0.001); // only this listing
         $this->assertEqualsWithDelta(3.5, $ratings['landlord_avg'], 0.001); // (5+2)/2 across landlord's listings
-        $this->assertEqualsWithDelta(3.0, $ratings['area_avg'], 0.001); // (5+1)/2 — the 2★ listing is in another district
+        $this->assertEqualsWithDelta(3.0, $ratings['area_avg'], 0.001); // (5+1)/2 - the 2★ listing is in another district
     }
 
     public function test_ratings_null_when_no_reviews(): void

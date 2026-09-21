@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
- * Landlord listing management (API_CONTRACT §4 — "Chủ nhà: quản lý tin đăng").
+ * Landlord listing management (API_CONTRACT §4 - "Chủ nhà: quản lý tin đăng").
  * All actions require the landlord role and ownership of the listing.
  */
 class LandlordListingController extends Controller
@@ -84,7 +84,7 @@ class LandlordListingController extends Controller
     }
 
     /**
-     * GET /api/my/listings — all statuses, optional status filter, paginated.
+     * GET /api/my/listings - all statuses, optional status filter, paginated.
      */
     public function index(Request $request): JsonResponse
     {
@@ -108,7 +108,7 @@ class LandlordListingController extends Controller
     }
 
     /**
-     * POST /api/listings — create a listing, status defaults to available.
+     * POST /api/listings - create a listing, status defaults to available.
      */
     public function store(Request $request): JsonResponse
     {
@@ -129,7 +129,7 @@ class LandlordListingController extends Controller
     }
 
     /**
-     * PUT /api/listings/{id} — partial update, landlord may also change status.
+     * PUT /api/listings/{id} - partial update, landlord may also change status.
      */
     public function update(Request $request, Listing $listing): JsonResponse
     {
@@ -149,7 +149,7 @@ class LandlordListingController extends Controller
     }
 
     /**
-     * DELETE /api/listings/{id} — delete the listing AND its image files.
+     * DELETE /api/listings/{id} - delete the listing AND its image files.
      */
     public function destroy(Request $request, Listing $listing): JsonResponse
     {
@@ -166,7 +166,7 @@ class LandlordListingController extends Controller
     }
 
     /**
-     * POST /api/listings/{id}/images — upload 1..n images (jpg/png/webp,
+     * POST /api/listings/{id}/images - upload 1..n images (jpg/png/webp,
      * 2 MB each, 5 total per listing). Returns ALL images of the listing;
      * the smallest id is the cover.
      */
@@ -208,7 +208,7 @@ class LandlordListingController extends Controller
     }
 
     /**
-     * DELETE /api/listings/{id}/images/{image_id} — remove the row AND the file.
+     * DELETE /api/listings/{id}/images/{image_id} - remove the row AND the file.
      */
     public function deleteImage(Request $request, Listing $listing, ListingImage $image): JsonResponse
     {

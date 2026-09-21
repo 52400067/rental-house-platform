@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * POST /api/register — create an account and log the user in (201).
+     * POST /api/register - create an account and log the user in (201).
      */
     public function register(Request $request): JsonResponse
     {
@@ -31,7 +31,7 @@ class AuthController extends Controller
             'role' => ['required', Rule::in([User::ROLE_STUDENT, User::ROLE_LANDLORD])],
         ]);
 
-        // forceCreate: 'role' is deliberately NOT fillable (step 10 security —
+        // forceCreate: 'role' is deliberately NOT fillable (step 10 security -
         // no endpoint may change roles through mass assignment), but the
         // registration endpoint legitimately sets it at creation time.
         $user = User::forceCreate([
@@ -48,7 +48,7 @@ class AuthController extends Controller
     }
 
     /**
-     * POST /api/login — issue a Sanctum token. Wrong credentials: 422 with
+     * POST /api/login - issue a Sanctum token. Wrong credentials: 422 with
      * errors.email (API_CONTRACT §4).
      */
     public function login(Request $request): JsonResponse
@@ -70,7 +70,7 @@ class AuthController extends Controller
     }
 
     /**
-     * GET /api/me — the currently authenticated user.
+     * GET /api/me - the currently authenticated user.
      */
     public function me(Request $request): JsonResponse
     {
@@ -78,7 +78,7 @@ class AuthController extends Controller
     }
 
     /**
-     * POST /api/logout — revoke the token used for this request.
+     * POST /api/logout - revoke the token used for this request.
      */
     public function logout(Request $request): JsonResponse
     {

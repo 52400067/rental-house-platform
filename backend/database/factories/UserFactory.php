@@ -19,7 +19,7 @@ class UserFactory extends Factory
     protected static ?string $password;
 
     /**
-     * 'role' is deliberately NOT fillable (step 10 security — no endpoint
+     * 'role' is deliberately NOT fillable (step 10 security - no endpoint
      * may change roles via mass assignment). The factory is the one place
      * that legitimately sets it: default "student", or the role passed by
      * the landlord() state / inline overrides.
@@ -40,7 +40,7 @@ class UserFactory extends Factory
     public function definition(): array
     {
         // Note: the users table (ERD §3) has no email_verified_at column.
-        // Role is handled in newModel() — see above.
+        // Role is handled in newModel() - see above.
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),

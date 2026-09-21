@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Messaging (API_CONTRACT §4 — "Nhắn tin"). One conversation per (student,
+ * Messaging (API_CONTRACT §4 - "Nhắn tin"). One conversation per (student,
  * listing) pair. Outsiders receive 404, not 403.
  */
 class ConversationController extends Controller
@@ -24,7 +24,7 @@ class ConversationController extends Controller
     private const ATTACHMENT_MAX_KB = 5120;
 
     /**
-     * POST /api/conversations (Student) — get-or-create. Calling twice for
+     * POST /api/conversations (Student) - get-or-create. Calling twice for
      * the same listing returns the existing conversation (contract).
      */
     public function store(Request $request): JsonResponse
@@ -42,7 +42,7 @@ class ConversationController extends Controller
         $student = $request->user();
         $listing = Listing::findOrFail($validated['listing_id']);
 
-        // A student cannot start a conversation about their own listing —
+        // A student cannot start a conversation about their own listing -
         // they are both sides of the same conversation otherwise.
         if ($listing->user_id === $student->id) {
             throw new AuthorizationException;
@@ -62,7 +62,7 @@ class ConversationController extends Controller
     }
 
     /**
-     * GET /api/conversations (User) — newest activity first, no pagination
+     * GET /api/conversations (User) - newest activity first, no pagination
      * (contract). unread_count counts messages from the OTHER user that are
      * not read yet. One query with correlated aggregates (no N+1).
      */
@@ -88,7 +88,7 @@ class ConversationController extends Controller
     }
 
     /**
-     * GET /api/conversations/{id}/messages (Participant) — oldest first,
+     * GET /api/conversations/{id}/messages (Participant) - oldest first,
      * `after_id` returns only newer messages for cheap polling.
      */
     public function messages(Request $request, Conversation $conversation): JsonResponse
@@ -121,7 +121,7 @@ class ConversationController extends Controller
     }
 
     /**
-     * POST /api/conversations/{id}/messages (Participant) — JSON { body } or
+     * POST /api/conversations/{id}/messages (Participant) - JSON { body } or
      * multipart (body + file: pdf/jpg/png/docx, max 5 MB).
      */
     public function sendMessage(Request $request, Conversation $conversation): JsonResponse
@@ -176,7 +176,7 @@ class ConversationController extends Controller
     }
 
     /**
-     * POST /api/conversations/{id}/read (Participant) — mark the OTHER
+     * POST /api/conversations/{id}/read (Participant) - mark the OTHER
      * user's messages as read, return null data.
      */
     public function markRead(Request $request, Conversation $conversation): JsonResponse
@@ -192,7 +192,7 @@ class ConversationController extends Controller
     }
 
     /**
-     * Participant check — anyone else gets 404 (contract: "Người ngoài
+     * Participant check - anyone else gets 404 (contract: "Người ngoài
      * nhận 404"), never 403 which would leak existence.
      */
     private function authorizeParticipant(Request $request, Conversation $conversation): void

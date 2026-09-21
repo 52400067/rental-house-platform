@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 class ProfileController extends Controller
 {
     /**
-     * PUT /api/profile — partial update. Student-only fields are silently
+     * PUT /api/profile - partial update. Student-only fields are silently
      * dropped when the requester is a landlord (API_CONTRACT §4).
      */
     public function update(Request $request): JsonResponse

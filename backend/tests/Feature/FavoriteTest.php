@@ -98,7 +98,7 @@ class FavoriteTest extends TestCase
     {
         $listing = $this->makeListing();
 
-        // Never favorited — both calls must succeed with false.
+        // Never favorited - both calls must succeed with false.
         foreach (['first', 'second'] as $_) {
             $this->actingAs($this->student, 'sanctum')
                 ->deleteJson("/api/favorites/{$listing->id}")

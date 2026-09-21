@@ -15,7 +15,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Public listing browse (API_CONTRACT §4 — "Duyệt tin đăng").
+ * Public listing browse (API_CONTRACT §4 - "Duyệt tin đăng").
  */
 class ListingController extends Controller
 {
@@ -24,7 +24,7 @@ class ListingController extends Controller
     public const PER_PAGE_MAX = 50;
 
     /**
-     * Haversine distance (km) between a school and listings — PostgreSQL
+     * Haversine distance (km) between a school and listings - PostgreSQL
      * flavor from ERD §4 (parameters must be CAST to float8; placeholder
      * order: school lat, school lng, school lat).
      */
@@ -191,7 +191,7 @@ class ListingController extends Controller
     }
 
     /**
-     * Ids of listings on this page favorited by the current (student) user —
+     * Ids of listings on this page favorited by the current (student) user -
      * exactly ONE query. Guests and landlords get an empty set.
      */
     private function favoritedListingIds(Request $request, $listings): array
@@ -209,7 +209,7 @@ class ListingController extends Controller
     }
 
     /**
-     * GET /api/listings/{id} — public detail. Hidden listings 404 for
+     * GET /api/listings/{id} - public detail. Hidden listings 404 for
      * everyone except the owner; rented listings stay visible.
      */
     public function show(Request $request, Listing $listing): JsonResponse
@@ -238,7 +238,7 @@ class ListingController extends Controller
     }
 
     /**
-     * GET /api/listings/{id}/reviews — public, newest first, paginated.
+     * GET /api/listings/{id}/reviews - public, newest first, paginated.
      */
     public function reviews(Request $request, Listing $listing): JsonResponse
     {
@@ -253,7 +253,7 @@ class ListingController extends Controller
     }
 
     /**
-     * POST /api/listings/{id}/reviews — students only. Requires an existing
+     * POST /api/listings/{id}/reviews - students only. Requires an existing
      * conversation about this listing; one review per student per listing.
      */
     public function storeReview(Request $request, Listing $listing): JsonResponse

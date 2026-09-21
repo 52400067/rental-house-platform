@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\URL;
 
 /**
  * Message object per API_CONTRACT §3. attachment_url is a temporary signed
- * URL (60 minutes) on the attachments route — opens directly in a browser
+ * URL (60 minutes) on the attachments route - opens directly in a browser
  * tab, no token needed. Both attachment fields are null without a file.
  */
 class MessageResource extends JsonResource
