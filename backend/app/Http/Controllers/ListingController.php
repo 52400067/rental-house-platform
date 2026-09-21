@@ -51,7 +51,7 @@ class ListingController extends Controller
         $attributes = [
             'price_min' => 'Giá tối thiểu',
             'price_max' => 'Giá tối đa',
-            'district_id' => 'Quận',
+            'ward_id' => 'Quận',
             'type' => 'Loại tin',
             'amenity_ids' => 'Tiện ích',
             'max_km' => 'Bán kính (km)',
@@ -72,7 +72,7 @@ class ListingController extends Controller
                     $fail('Giá tối đa phải lớn hơn hoặc bằng giá tối thiểu.');
                 }
             }],
-            'district_id' => ['nullable', 'integer', 'exists:districts,id'],
+            'ward_id' => ['nullable', 'integer', 'exists:wards,id'],
             'type' => ['nullable', Rule::in([Listing::TYPE_ROOM, Listing::TYPE_APARTMENT, Listing::TYPE_HOUSE])],
             'amenity_ids' => ['nullable', 'array'],
             'amenity_ids.*' => ['integer', 'exists:amenities,id'],
@@ -99,7 +99,7 @@ class ListingController extends Controller
         // ---------------------------------------------------------------
         $query = Listing::query()
             ->where('status', Listing::STATUS_AVAILABLE)
-            ->with(['district', 'coverImage'])
+            ->with(['ward', 'coverImage'])
             ->withCount('reviews')
             ->withAvg('reviews', 'listing_rating');
 
@@ -123,8 +123,8 @@ class ListingController extends Controller
             $query->where('price', '<=', $validated['price_max']);
         }
 
-        if (! empty($validated['district_id'])) {
-            $query->where('district_id', $validated['district_id']);
+        if (! empty($validated['ward_id'])) {
+            $query->where('ward_id', $validated['ward_id']);
         }
 
         if (! empty($validated['type'])) {
@@ -222,7 +222,7 @@ class ListingController extends Controller
             abort(404);
         }
 
-        $listing->load(['district', 'coverImage', 'images', 'amenities', 'landlord'])
+        $listing->load(['ward', 'coverImage', 'images', 'amenities', 'landlord'])
             ->loadCount('reviews')
             ->loadAvg('reviews', 'listing_rating');
 

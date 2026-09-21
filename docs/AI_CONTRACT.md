@@ -56,12 +56,12 @@ Response (tốt nhất trước, tối đa `limit` phần tử, `id` phải lấ
 
 ### `POST /price-advice`
 
-Đánh giá giá thuê của một tin đăng có hợp lý không. Backend đã tính sẵn thống kê thị trường từ các tin tương tự (cùng quận, cùng loại, diện tích gần nhau).
+Đánh giá giá thuê của một tin đăng có hợp lý không. Backend đã tính sẵn thống kê thị trường từ các tin tương tự (cùng phường, cùng loại, diện tích gần nhau).
 
 Request:
 ```json
 {
-  "listing": { "type": "room", "price": 2500000, "area_m2": 22.5, "district": "Thủ Đức",
+  "listing": { "type": "room", "price": 2500000, "area_m2": 22.5, "ward": "Thủ Đức",
                "amenities": ["Wifi", "Máy lạnh"] },
   "stats": { "count": 12, "min": 1800000, "median": 2300000, "max": 3200000 }
 }
@@ -82,14 +82,14 @@ Request:
 {
   "preferences": { "budget_min": 1500000, "budget_max": 3000000,
                    "priorities": ["cheap", "near_school"] },
-  "areas": [ { "district_id": 1, "name": "Thủ Đức", "listings_count": 41, "avg_price": 2300000,
+  "areas": [ { "ward_id": 1, "name": "Thủ Đức", "listings_count": 41, "avg_price": 2300000,
                "avg_rating": 4.2, "distance_to_school_km": 1.2 } ],
   "limit": 3
 }
 ```
-`avg_rating` và `distance_to_school_km` có thể là `null`. Response (tốt nhất trước, tối đa `limit` phần tử, `district_id` lấy từ dữ liệu đầu vào):
+`avg_rating` và `distance_to_school_km` có thể là `null`. Response (tốt nhất trước, tối đa `limit` phần tử, `ward_id` lấy từ dữ liệu đầu vào):
 ```json
-{ "results": [ { "district_id": 1, "reason": "Giá trung bình 2,3 triệu nằm trong ngân sách, gần trường (1,2 km)." } ] }
+{ "results": [ { "ward_id": 1, "reason": "Giá trung bình 2,3 triệu nằm trong ngân sách, gần trường (1,2 km)." } ] }
 ```
 
 ### `POST /chat`
@@ -102,7 +102,7 @@ Request:
   "message": "Tiền cọc thường là bao nhiêu?",
   "history": [ { "role": "user", "content": "..." }, { "role": "assistant", "content": "..." } ],
   "listing": { "title": "Phòng trọ gần ĐHQG", "price": 2500000, "area_m2": 22.5, "address": "12 Đường số 5",
-               "district": "Thủ Đức", "amenities": ["Wifi"], "description": "..." }
+               "ward": "Thủ Đức", "amenities": ["Wifi"], "description": "..." }
 }
 ```
 `history` có tối đa 10 phần tử. `listing` là `null` khi câu hỏi mang tính chung chung. Response:
@@ -118,7 +118,7 @@ Viết mô tả tin đăng từ các thông tin cơ bản.
 Request:
 ```json
 { "title": "Phòng trọ gần ĐHQG", "type": "room", "price": 2500000, "area_m2": 22.5,
-  "address": "12 Đường số 5", "district": "Thủ Đức", "amenities": ["Wifi", "Máy lạnh"] }
+  "address": "12 Đường số 5", "ward": "Thủ Đức", "amenities": ["Wifi", "Máy lạnh"] }
 ```
 Mọi trường trừ `title` có thể là `null` hoặc bị thiếu. Response:
 ```json

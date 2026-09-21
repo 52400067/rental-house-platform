@@ -29,7 +29,7 @@ class Listing extends Model
 
     protected $fillable = [
         'user_id',
-        'district_id',
+        'ward_id',
         'title',
         'description',
         'type',
@@ -56,9 +56,9 @@ class Listing extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function district(): BelongsTo
+    public function ward(): BelongsTo
     {
-        return $this->belongsTo(District::class);
+        return $this->belongsTo(Ward::class);
     }
 
     /** Amenities of this listing (pivot table amenity_listing). */

@@ -21,3 +21,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Dev frontend để kiểm thử API - cục bộ, không commit
+/public/dev-frontend.html

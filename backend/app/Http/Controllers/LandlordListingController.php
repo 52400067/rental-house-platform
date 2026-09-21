@@ -32,7 +32,7 @@ class LandlordListingController extends Controller
             'address' => [$creating ? 'required' : 'sometimes', 'string', 'max:300'],
             'latitude' => [$creating ? 'required' : 'sometimes', 'numeric', 'between:-90,90'],
             'longitude' => [$creating ? 'required' : 'sometimes', 'numeric', 'between:-180,180'],
-            'district_id' => [$creating ? 'required' : 'sometimes', 'integer', 'exists:districts,id'],
+            'ward_id' => [$creating ? 'required' : 'sometimes', 'integer', 'exists:wards,id'],
             'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'amenity_ids' => ['sometimes', 'array'],
             'amenity_ids.*' => ['integer', 'exists:amenities,id'],
@@ -73,7 +73,7 @@ class LandlordListingController extends Controller
             'address' => 'Địa chỉ',
             'latitude' => 'Vĩ độ',
             'longitude' => 'Kinh độ',
-            'district_id' => 'Quận',
+            'ward_id' => 'Quận',
             'description' => 'Mô tả',
             'amenity_ids' => 'Tiện ích',
             'amenity_ids.*' => 'Tiện ích',
@@ -90,7 +90,7 @@ class LandlordListingController extends Controller
     {
         $query = $request->user()
             ->listings()
-            ->with(['district', 'coverImage'])
+            ->with(['ward', 'coverImage'])
             ->withCount('reviews')
             ->withAvg('reviews', 'listing_rating')
             ->orderByDesc('id');
@@ -124,7 +124,7 @@ class LandlordListingController extends Controller
         }
 
         return response()->json([
-            'data' => (new ListingDetailResource($listing->load(['district', 'coverImage', 'images', 'amenities', 'landlord'])))->resolve($request),
+            'data' => (new ListingDetailResource($listing->load(['ward', 'coverImage', 'images', 'amenities', 'landlord'])))->resolve($request),
         ], 201);
     }
 
@@ -144,7 +144,7 @@ class LandlordListingController extends Controller
         }
 
         return response()->json([
-            'data' => (new ListingDetailResource($listing->fresh(['district', 'coverImage', 'images', 'amenities', 'landlord'])))->resolve($request),
+            'data' => (new ListingDetailResource($listing->fresh(['ward', 'coverImage', 'images', 'amenities', 'landlord'])))->resolve($request),
         ]);
     }
 

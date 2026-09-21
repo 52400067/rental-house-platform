@@ -34,7 +34,7 @@ Vì vậy bạn expose **5 endpoint cùng tên, không tiền tố `/api`**:
 |---|---|---|
 | `POST /roommates` | profile sinh viên (backend gửi sẵn) | `{ user_id, name, school, phone, score, reason }[]` - tối đa 5, score 0–100 giảm dần |
 | `POST /price-advice` | dữ liệu tin + stats | `{ listing_price, verdict, fair_min, fair_max, tips[], message, stats{count,min,median,max} }` - verdict: `high`/`fair`/`low` |
-| `POST /area-suggestions` | budget + school + priorities | `{ district_id, name, reason, stats{...} }[]` - tối đa 3 |
+| `POST /area-suggestions` | budget + school + priorities | `{ ward_id, name, reason, stats{...} }[]` - tối đa 3 |
 | `POST /chat` | `message`, `history[]`, `listing_id?` | `{ reply }` |
 | `POST /description` | thông tin tin đăng | `{ description }` |
 
@@ -55,7 +55,7 @@ Với `FAKE_MODE=true` (mặc định trong compose): **không cần LLM key**, 
 ```bash
 docker compose up -d --build ai-service
 curl -X POST http://localhost:8001/chat -H "Content-Type: application/json" \
-  -d '{"message": "cho hỏi giá phòng quận Thủ Đức"}'
+  -d '{"message": "cho hỏi giá phòng phường Thủ Đức"}'
 ```
 
 ## 5. Definition of done

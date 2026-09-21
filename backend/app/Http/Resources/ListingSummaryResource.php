@@ -28,9 +28,9 @@ class ListingSummaryResource extends JsonResource
             'latitude' => $listing->latitude !== null ? (float) $listing->latitude : null,
             'longitude' => $listing->longitude !== null ? (float) $listing->longitude : null,
             'status' => $listing->status,
-            'district' => $listing->district ? [
-                'id' => $listing->district->id,
-                'name' => $listing->district->name,
+            'ward' => $listing->ward ? [
+                'id' => $listing->ward->id,
+                'name' => $listing->ward->name,
             ] : null,
             'cover_image' => $this->coverImageUrl(),
             'avg_rating' => $this->avgRating(),

@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\District;
 use App\Models\Listing;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +17,7 @@ class ListingFactory extends Factory
         // Coordinates roughly around Ho Chi Minh City.
         return [
             'user_id' => User::factory()->landlord(),
-            'district_id' => District::factory(),
+            'ward_id' => Ward::factory(),
             'title' => 'Phòng trọ '.fake()->unique()->numberBetween(1, 999).' gần trường',
             'description' => fake()->sentence(),
             'type' => fake()->randomElement(['room', 'apartment', 'house']),

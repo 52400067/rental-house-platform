@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * District object per API_CONTRACT §4: { id, name, latitude, longitude }.
+ * Ward object per API_CONTRACT §4: { id, name, latitude, longitude }.
  */
-class DistrictResource extends JsonResource
+class WardResource extends JsonResource
 {
     public function toArray(Request $request): array
     {

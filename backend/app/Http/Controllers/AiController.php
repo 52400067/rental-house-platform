@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Amenity;
-use App\Models\District;
 use App\Models\Listing;
 use App\Models\School;
 use App\Models\User;
+use App\Models\Ward;
 use App\Services\AiClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -87,7 +87,7 @@ class AiController extends Controller
 
     /**
      * POST /api/ai/price-advice (Student). Comparable listings: same
-     * district + type, area within 40%, available or rented, excluding the
+     * ward + type, area within 40%, available or rented, excluding the
      * listing itself. Backend computes stats; count < 3 → 422.
      */
     public function priceAdvice(Request $request): JsonResponse
@@ -104,7 +104,7 @@ class AiController extends Controller
         /** @var Listing $listing */
         $listing = Listing::query()
             ->visible()
-            ->with(['amenities', 'district'])
+            ->with(['amenities', 'ward'])
             ->findOrFail($validated['listing_id']);
 
         $minArea = (float) $listing->area_m2 * 0.6;
@@ -113,7 +113,7 @@ class AiController extends Controller
         $comparables = Listing::query()
             ->visible()
             ->where('id', '!=', $listing->id)
-            ->where('district_id', $listing->district_id)
+            ->where('ward_id', $listing->ward_id)
             ->where('type', $listing->type)
             ->whereBetween('area_m2', [$minArea, $maxArea])
             ->pluck('price')
@@ -140,7 +140,7 @@ class AiController extends Controller
                 'type' => $listing->type,
                 'price' => (int) $listing->price,
                 'area_m2' => (float) $listing->area_m2,
-                'district' => $listing->district?->name,
+                'ward' => $listing->ward?->name,
                 'amenities' => $listing->amenities->pluck('name')->values()->all(),
             ],
             'stats' => $stats,
@@ -159,7 +159,7 @@ class AiController extends Controller
 
     /**
      * POST /api/ai/area-suggestions (Student). Budget/school fall back to
-     * the profile. Per-district stats computed in PHP; AI ranks and returns
+     * the profile. Per-ward stats computed in PHP; AI ranks and returns
      * reasons; Backend re-attaches names and stats.
      */
     public function areaSuggestions(Request $request): JsonResponse
@@ -199,7 +199,7 @@ class AiController extends Controller
 
         $school = $schoolId !== null ? School::find($schoolId) : null;
 
-        $districts = District::query()
+        $wards = Ward::query()
             ->whereHas('listings', fn ($q) => $q->visible()
                 ->whereBetween('price', [$budgetMin, $budgetMax]))
             ->with(['listings' => fn ($q) => $q->visible()
@@ -207,19 +207,19 @@ class AiController extends Controller
                 ->withAvg('reviews', 'listing_rating')])
             ->get();
 
-        $areas = $districts->map(function (District $district) use ($school) {
-            $listings = $district->listings;
+        $areas = $wards->map(function (Ward $ward) use ($school) {
+            $listings = $ward->listings;
             $prices = $listings->pluck('price')->map(fn ($p) => (float) $p)->sort()->values();
             $ratings = $listings->pluck('reviews_avg_listing_rating')->filter()->map(fn ($r) => (float) $r);
 
             return [
-                'district_id' => $district->id,
-                'name' => $district->name,
+                'ward_id' => $ward->id,
+                'name' => $ward->name,
                 'listings_count' => $listings->count(),
                 'avg_price' => $prices->isEmpty() ? null : (int) round($prices->avg()),
                 'avg_rating' => $ratings->isEmpty() ? null : round($ratings->avg(), 1),
-                'distance_to_school_km' => $school !== null && $district->latitude !== null
-                    ? $this->haversineKm($school->latitude, $school->longitude, $district->latitude, $district->longitude)
+                'distance_to_school_km' => $school !== null && $ward->latitude !== null
+                    ? $this->haversineKm($school->latitude, $school->longitude, $ward->latitude, $ward->longitude)
                     : null,
             ];
         })->values()->all();
@@ -234,23 +234,23 @@ class AiController extends Controller
                 'budget_max' => (int) $budgetMax,
                 'priorities' => $validated['priorities'] ?? [],
             ],
-            // Names go through: district names are not personal data and the
+            // Names go through: ward names are not personal data and the
             // AI contract includes them in the request (docs/AI_CONTRACT §4).
             'areas' => $areas,
             'limit' => 3,
         ], ['results']);
 
-        // Re-attach name + stats for the districts the AI kept.
-        $byId = collect($areas)->keyBy('district_id');
+        // Re-attach name + stats for the wards the AI kept.
+        $byId = collect($areas)->keyBy('ward_id');
         $results = [];
         foreach ($response['results'] as $row) {
-            $area = $byId->get($row['district_id'] ?? null);
+            $area = $byId->get($row['ward_id'] ?? null);
             if ($area === null || count($results) >= 3) {
                 continue;
             }
 
             $results[] = [
-                'district_id' => $area['district_id'],
+                'ward_id' => $area['ward_id'],
                 'name' => $area['name'],
                 'reason' => is_string($row['reason'] ?? null) ? $row['reason'] : '',
                 'stats' => [
@@ -292,7 +292,7 @@ class AiController extends Controller
         if (! empty($validated['listing_id'])) {
             $listing = Listing::query()
                 ->visible()
-                ->with(['amenities', 'district'])
+                ->with(['amenities', 'ward'])
                 ->find($validated['listing_id']);
 
             if ($listing !== null) {
@@ -301,7 +301,7 @@ class AiController extends Controller
                     'price' => (int) $listing->price,
                     'area_m2' => (float) $listing->area_m2,
                     'address' => $listing->address,
-                    'district' => $listing->district?->name,
+                    'ward' => $listing->ward?->name,
                     'amenities' => $listing->amenities->pluck('name')->values()->all(),
                     'description' => $listing->description,
                 ];
@@ -332,12 +332,12 @@ class AiController extends Controller
             'price' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'area_m2' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'address' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'district_id' => ['sometimes', 'nullable', 'integer', 'exists:districts,id'],
+            'ward_id' => ['sometimes', 'nullable', 'integer', 'exists:wards,id'],
             'amenity_ids' => ['sometimes', 'nullable', 'array'],
             'amenity_ids.*' => ['integer', 'exists:amenities,id'],
         ], [
             'type' => 'Loại nhà không hợp lệ.',
-            'district_id.exists' => 'Quận không tồn tại.',
+            'ward_id.exists' => 'Quận không tồn tại.',
             'amenity_ids.*.exists' => 'Tiện ích không tồn tại.',
         ], [
             'title' => 'Tiêu đề',
@@ -345,12 +345,12 @@ class AiController extends Controller
             'price' => 'Giá thuê',
             'area_m2' => 'Diện tích',
             'address' => 'Địa chỉ',
-            'district_id' => 'Quận',
+            'ward_id' => 'Quận',
             'amenity_ids' => 'Tiện ích',
         ]);
 
-        $district = isset($validated['district_id'])
-            ? District::find($validated['district_id'])?->name
+        $ward = isset($validated['ward_id'])
+            ? Ward::find($validated['ward_id'])?->name
             : null;
         $amenities = isset($validated['amenity_ids'])
             ? Amenity::whereIn('id', $validated['amenity_ids'])->pluck('name')->values()->all()
@@ -362,7 +362,7 @@ class AiController extends Controller
             'price' => $validated['price'] ?? null,
             'area_m2' => $validated['area_m2'] ?? null,
             'address' => $validated['address'] ?? null,
-            'district' => $district,
+            'ward' => $ward,
             'amenities' => $amenities,
         ], ['description']);
 

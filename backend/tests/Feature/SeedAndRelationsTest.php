@@ -39,14 +39,14 @@ class SeedAndRelationsTest extends TestCase
         $this->assertTrue(Listing::whereBetween('price', [1_500_000, 6_000_000])->count() === 30);
     }
 
-    public function test_listing_district_and_amenity_relations_work(): void
+    public function test_listing_ward_and_amenity_relations_work(): void
     {
         $this->seed();
 
         $listing = Listing::has('amenities')->first();
 
-        $this->assertNotNull($listing->district);
-        $this->assertDatabaseHas('districts', ['id' => $listing->district_id]);
+        $this->assertNotNull($listing->ward);
+        $this->assertDatabaseHas('wards', ['id' => $listing->ward_id]);
         $this->assertGreaterThanOrEqual(3, $listing->amenities->count());
         $this->assertLessThanOrEqual(6, $listing->amenities->count());
         $this->assertSame($listing->user_id, $listing->landlord->id);

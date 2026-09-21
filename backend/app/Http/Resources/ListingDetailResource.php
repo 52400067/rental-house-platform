@@ -51,7 +51,7 @@ class ListingDetailResource extends JsonResource
      * Ratings per ERD §4, rounded to 1 decimal, null when no data:
      * - listing_avg: this listing's reviews
      * - landlord_avg: reviews across ALL of the landlord's listings
-     * - area_avg: reviews across ALL listings in the same district
+     * - area_avg: reviews across ALL listings in the same ward
      */
     private function ratings(Listing $listing): array
     {
@@ -62,7 +62,7 @@ class ListingDetailResource extends JsonResource
             ->avg('listing_rating');
 
         $areaAvg = Review::query()
-            ->whereIn('listing_id', $listing->district->listings()->select('id'))
+            ->whereIn('listing_id', $listing->ward->listings()->select('id'))
             ->avg('listing_rating');
 
         return [

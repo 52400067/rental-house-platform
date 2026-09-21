@@ -41,7 +41,7 @@ class AuthorizationMatrixTest extends TestCase
         $this->getJson('/api/listings')->assertOk();
         $this->getJson("/api/listings/{$this->listing->id}")->assertOk();
         $this->getJson("/api/listings/{$this->listing->id}/reviews")->assertOk();
-        $this->getJson('/api/districts')->assertOk();
+        $this->getJson('/api/wards')->assertOk();
         $this->getJson('/api/schools')->assertOk();
         $this->getJson('/api/amenities')->assertOk();
     }
@@ -56,7 +56,7 @@ class AuthorizationMatrixTest extends TestCase
             'address' => '1 Đường test',
             'latitude' => 10.8,
             'longitude' => 106.7,
-            'district_id' => $this->listing->district_id,
+            'ward_id' => $this->listing->ward_id,
         ];
 
         // POST /listings - Landlord only.

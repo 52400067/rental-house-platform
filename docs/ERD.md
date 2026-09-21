@@ -55,7 +55,7 @@ erDiagram
     LISTINGS {
         bigint id PK
         bigint user_id FK
-        bigint district_id FK
+        bigint ward_id FK
         string type
         int price
         string status
@@ -116,7 +116,7 @@ Hai quan hệ nhiều-nhiều là hai bảng nối: `amenity_listing` (tin đăn
 
 Sửa migration `users` mặc định của Laravel để có các cột trên. Bảng `schools` phải được tạo **trước** bảng `users` (đặt tên file migration có mốc thời gian sớm hơn).
 
-### schools và districts (cùng cấu trúc)
+### schools và wards (cùng cấu trúc)
 
 | Cột | Kiểu |
 |---|---|
@@ -137,7 +137,7 @@ Sửa migration `users` mặc định của Laravel để có các cột trên. 
 |---|---|---|
 | id | bigint, PK | |
 | user_id | bigint, FK users | Chủ nhà |
-| district_id | bigint, FK districts | |
+| ward_id | bigint, FK wards | |
 | title | string(200) | |
 | description | text, null | |
 | type | string(20) | `room`, `apartment`, `house` |
@@ -148,7 +148,7 @@ Sửa migration `users` mặc định của Laravel để có các cột trên. 
 | status | string(20), mặc định `available` | `available`, `rented`, `hidden` |
 | timestamps | | |
 
-Index: `(status, price)`, `(district_id)`.
+Index: `(status, price)`, `(ward_id)`.
 
 ### amenity_listing (bảng nối)
 
@@ -214,7 +214,7 @@ Unique `(listing_id, student_id)`: mỗi sinh viên đánh giá một tin đúng
 **Điểm đánh giá** (tính khi cần, không lưu):
 - `listing_avg` = trung bình `listing_rating` của tin đó (dùng `withAvg('reviews', 'listing_rating')`).
 - `landlord_avg` = trung bình `landlord_rating` của mọi đánh giá thuộc các tin của chủ nhà đó.
-- `area_avg` = trung bình `listing_rating` của mọi đánh giá thuộc các tin cùng `district_id`.
+- `area_avg` = trung bình `listing_rating` của mọi đánh giá thuộc các tin cùng `ward_id`.
 
 **Điều kiện được đánh giá** (`can_review`): người dùng là sinh viên, đã có hội thoại về tin đó, và chưa đánh giá tin đó.
 
@@ -239,7 +239,7 @@ Dữ liệu gần đúng của TP. Hồ Chí Minh (đổi nếu thành phố c�
 
 | Bảng | Nội dung |
 |---|---|
-| districts | Thủ Đức (10.8494, 106.7537), Gò Vấp (10.8386, 106.6652), Bình Thạnh (10.8106, 106.7091), Quận 10 (10.7746, 106.6667), Tân Bình (10.8014, 106.6526) |
+| wards | Thủ Đức (10.8494, 106.7537), Gò Vấp (10.8386, 106.6652), Bình Thạnh (10.8106, 106.7091), Phường 10 (10.7746, 106.6667), Tân Bình (10.8014, 106.6526) |
 | schools | ĐHQG TP.HCM (10.8700, 106.8030), ĐH Bách Khoa (10.7723, 106.6603), ĐH Sư phạm Kỹ thuật (10.8506, 106.7719) |
 | amenities | Wifi, Máy lạnh, Máy nước nóng, Máy giặt, Tủ lạnh, Bếp, WC riêng, Chỗ để xe, Bảo vệ, Giờ giấc tự do |
 | users | 3 chủ nhà, 10 sinh viên (hồ sơ điền đủ, phần lớn `looking_for_roommate = true`). Mật khẩu chung `password`. Email theo mẫu `student1@example.com`, `landlord1@example.com` |

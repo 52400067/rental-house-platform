@@ -18,7 +18,7 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 Route::put('/profile', [ProfileController::class, 'update'])->middleware('auth:sanctum');
 
 // Reference data (API_CONTRACT §4 - "Dữ liệu tham chiếu").
-Route::get('/districts', [ReferenceController::class, 'districts']);
+Route::get('/wards', [ReferenceController::class, 'wards']);
 Route::get('/schools', [ReferenceController::class, 'schools']);
 Route::get('/amenities', [ReferenceController::class, 'amenities']);
 

@@ -3,11 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Amenity;
-use App\Models\District;
 use App\Models\Listing;
 use App\Models\Review;
 use App\Models\School;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -20,9 +20,9 @@ class ListingBrowseTest extends TestCase
 
     private School $school;
 
-    private District $districtA;
+    private Ward $wardA;
 
-    private District $districtB;
+    private Ward $wardB;
 
     protected function setUp(): void
     {
@@ -33,8 +33,8 @@ class ListingBrowseTest extends TestCase
             'latitude' => 10.8700,
             'longitude' => 106.8030,
         ]);
-        $this->districtA = District::factory()->create();
-        $this->districtB = District::factory()->create();
+        $this->wardA = Ward::factory()->create();
+        $this->wardB = Ward::factory()->create();
     }
 
     /**
@@ -51,9 +51,9 @@ class ListingBrowseTest extends TestCase
     // Reference endpoints
     // ------------------------------------------------------------------
 
-    public function test_districts_schools_amenities_return_bare_arrays(): void
+    public function test_wards_schools_amenities_return_bare_arrays(): void
     {
-        $this->getJson('/api/districts')
+        $this->getJson('/api/wards')
             ->assertOk()
             ->assertJsonCount(2, 'data')
             ->assertJsonStructure(['data' => [['id', 'name', 'latitude', 'longitude']]]);
@@ -77,7 +77,7 @@ class ListingBrowseTest extends TestCase
 
     public function test_listings_shape_matches_contract(): void
     {
-        $listing = $this->makeListing(['district_id' => $this->districtA->id]);
+        $listing = $this->makeListing(['ward_id' => $this->wardA->id]);
         $listing->images()->create(['path' => 'listings/cover.jpg']);
 
         $response = $this->getJson('/api/listings');
@@ -86,17 +86,17 @@ class ListingBrowseTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonStructure([
                 'data' => [['id', 'title', 'type', 'price', 'area_m2', 'address', 'latitude', 'longitude',
-                    'status', 'district', 'cover_image', 'avg_rating', 'reviews_count', 'distance_km', 'is_favorited']],
+                    'status', 'ward', 'cover_image', 'avg_rating', 'reviews_count', 'distance_km', 'is_favorited']],
                 'meta' => ['current_page', 'last_page', 'per_page', 'total'],
             ])
-            ->assertJsonPath('data.0.district.id', $this->districtA->id)
-            ->assertJsonPath('data.0.district.name', $this->districtA->name)
+            ->assertJsonPath('data.0.ward.id', $this->wardA->id)
+            ->assertJsonPath('data.0.ward.name', $this->wardA->name)
             ->assertJsonPath('data.0.cover_image', url('/storage/listings/cover.jpg'))
             ->assertJsonPath('data.0.is_favorited', false)
             ->assertJsonPath('data.0.distance_km', null);
 
-        // district latitude/longitude must NOT leak into the summary object.
-        $this->assertArrayNotHasKey('latitude2', $response->json('data.0.district'));
+        // ward latitude/longitude must NOT leak into the summary object.
+        $this->assertArrayNotHasKey('latitude2', $response->json('data.0.ward'));
     }
 
     public function test_hidden_and_rented_listings_are_excluded(): void
@@ -147,12 +147,12 @@ class ListingBrowseTest extends TestCase
             ->assertJsonPath('data.0.price', 2500000);
     }
 
-    public function test_filter_by_district_and_type(): void
+    public function test_filter_by_ward_and_type(): void
     {
-        $this->makeListing(['district_id' => $this->districtA->id, 'type' => 'room']);
-        $this->makeListing(['district_id' => $this->districtB->id, 'type' => 'apartment']);
+        $this->makeListing(['ward_id' => $this->wardA->id, 'type' => 'room']);
+        $this->makeListing(['ward_id' => $this->wardB->id, 'type' => 'apartment']);
 
-        $this->getJson('/api/listings?district_id='.$this->districtA->id)
+        $this->getJson('/api/listings?ward_id='.$this->wardA->id)
             ->assertOk()->assertJsonCount(1, 'data');
 
         $this->getJson('/api/listings?type=apartment')
@@ -362,10 +362,10 @@ class ListingBrowseTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['type']);
 
-        // unknown district
-        $this->getJson('/api/listings?district_id=999')
+        // unknown ward
+        $this->getJson('/api/listings?ward_id=999')
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['district_id']);
+            ->assertJsonValidationErrors(['ward_id']);
 
         // unknown amenity
         $this->getJson('/api/listings?amenity_ids[]=999')

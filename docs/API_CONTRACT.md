@@ -51,7 +51,7 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 ```json
 { "id": 101, "title": "Phòng trọ gần ĐHQG", "type": "room", "price": 2500000, "area_m2": 22.5,
   "address": "12 Đường số 5", "latitude": 10.8712, "longitude": 106.7801, "status": "available",
-  "district": { "id": 1, "name": "Thủ Đức" },
+  "ward": { "id": 1, "name": "Thủ Đức" },
   "cover_image": "http://localhost:8000/storage/listings/1.jpg",
   "avg_rating": 4.3, "reviews_count": 7, "distance_km": 0.85, "is_favorited": false }
 ```
@@ -106,7 +106,7 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 
 | Endpoint | Quyền | Trả về |
 |---|---|---|
-| `GET /districts` | Công khai | `data: [{ id, name, latitude, longitude }]` |
+| `GET /wards` | Công khai | `data: [{ id, name, latitude, longitude }]` |
 | `GET /schools` | Công khai | `data: [{ id, name, latitude, longitude }]` |
 | `GET /amenities` | Công khai | `data: [{ id, name }]` |
 
@@ -114,7 +114,7 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 
 | Endpoint | Quyền | Query | Trả về |
 |---|---|---|---|
-| `GET /listings` | Công khai | `q` (tiêu đề hoặc địa chỉ), `price_min`, `price_max`, `district_id`, `type`, `amenity_ids[]` (phải có tất cả), `school_id` + `max_km` (lọc theo khoảng cách), `sort` = `newest` (mặc định), `price_asc`, `price_desc`, `distance` (cần `school_id`), `rating`, `page`, `per_page` | `Listing (tóm tắt)` có phân trang. Chỉ tin `available` |
+| `GET /listings` | Công khai | `q` (tiêu đề hoặc địa chỉ), `price_min`, `price_max`, `ward_id`, `type`, `amenity_ids[]` (phải có tất cả), `school_id` + `max_km` (lọc theo khoảng cách), `sort` = `newest` (mặc định), `price_asc`, `price_desc`, `distance` (cần `school_id`), `rating`, `page`, `per_page` | `Listing (tóm tắt)` có phân trang. Chỉ tin `available` |
 | `GET /listings/{id}` | Công khai | | `data: Listing (chi tiết)`. Tin `hidden`: trả 404 trừ chủ tin |
 | `GET /listings/{id}/reviews` | Công khai | `page` | `Review` có phân trang, mới nhất trước |
 
@@ -125,7 +125,7 @@ Với bản đồ, Frontend gọi `GET /listings` với cùng bộ lọc và `pe
 | Endpoint | Quyền | Body | Trả về |
 |---|---|---|---|
 | `GET /my/listings` | Landlord | `page`, `status` | `Listing (tóm tắt)` có phân trang, mọi trạng thái |
-| `POST /listings` | Landlord | `title` (5-200 ký tự), `type`, `price` (100000-100000000), `area_m2` (5-1000), `address`, `latitude`, `longitude`, `district_id`, `description` (tùy chọn), `amenity_ids[]` (tùy chọn) | 201 `data: Listing (chi tiết)` |
+| `POST /listings` | Landlord | `title` (5-200 ký tự), `type`, `price` (100000-100000000), `area_m2` (5-1000), `address`, `latitude`, `longitude`, `ward_id`, `description` (tùy chọn), `amenity_ids[]` (tùy chọn) | 201 `data: Listing (chi tiết)` |
 | `PUT /listings/{id}` | Owner | Các trường như trên (đều tùy chọn) và thêm `status` | `data: Listing (chi tiết)` |
 | `DELETE /listings/{id}` | Owner | | `data: null` |
 | `POST /listings/{id}/images` | Owner | `multipart`: `images[]` (jpg/png/webp, tối đa 2 MB mỗi ảnh, tối đa 5 ảnh mỗi tin tính tổng) | `data: [{ id, url }]` (toàn bộ ảnh của tin). Ảnh đầu tiên là ảnh bìa |
@@ -167,9 +167,9 @@ Các lệnh gọi này có thể mất đến khoảng 30 giây. Hãy hiển th�
 |---|---|---|---|
 | `POST /ai/roommates` | Student | không có | `data: [{ user_id, name, school, phone, score, reason }]` (tối đa 5, `score` từ 0 đến 100, cao nhất trước). 422 nếu hồ sơ sinh viên chưa đủ hoặc `looking_for_roommate` là false |
 | `POST /ai/price-advice` | Student | `listing_id` | `data: { listing_price, verdict, fair_min, fair_max, tips: [string], message, stats: { count, min, median, max } }`. `verdict` là `high`, `fair` hoặc `low`. `message` là đoạn tin nhắn mẫu để gửi cho chủ nhà |
-| `POST /ai/area-suggestions` | Student | `budget_min`, `budget_max`, `school_id`, `priorities[]` (đều tùy chọn, thiếu thì lấy từ hồ sơ) | `data: [{ district_id, name, reason, stats: { listings_count, avg_price, avg_rating, distance_to_school_km } }]` (tối đa 3) |
+| `POST /ai/area-suggestions` | Student | `budget_min`, `budget_max`, `school_id`, `priorities[]` (đều tùy chọn, thiếu thì lấy từ hồ sơ) | `data: [{ ward_id, name, reason, stats: { listings_count, avg_price, avg_rating, distance_to_school_km } }]` (tối đa 3) |
 | `POST /ai/chat` | User | `message` (1-1000 ký tự), `history` (tùy chọn, 10 lượt gần nhất dạng `{ role: "user" hoặc "assistant", content }`), `listing_id` (tùy chọn, làm ngữ cảnh) | `data: { reply }`. Frontend giữ lịch sử và gửi lại mỗi lần |
-| `POST /ai/description` | Landlord | `title`, `type`, `price`, `area_m2`, `address`, `district_id`, `amenity_ids[]` (đều tùy chọn) | `data: { description }`. Frontend điền vào ô mô tả để chủ nhà chỉnh sửa |
+| `POST /ai/description` | Landlord | `title`, `type`, `price`, `area_m2`, `address`, `ward_id`, `amenity_ids[]` (đều tùy chọn) | `data: { description }`. Frontend điền vào ô mô tả để chủ nhà chỉnh sửa |
 
 ## 5. Thay đổi hợp đồng này
 

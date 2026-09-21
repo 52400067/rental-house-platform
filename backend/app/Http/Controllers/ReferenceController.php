@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\DistrictResource;
 use App\Http\Resources\SchoolResource;
+use App\Http\Resources\WardResource;
 use App\Models\Amenity;
-use App\Models\District;
 use App\Models\School;
+use App\Models\Ward;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -15,10 +15,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
  */
 class ReferenceController extends Controller
 {
-    /** GET /api/districts */
-    public function districts(): AnonymousResourceCollection
+    /** GET /api/wards */
+    public function wards(): AnonymousResourceCollection
     {
-        return DistrictResource::collection(District::orderBy('name')->get());
+        return WardResource::collection(Ward::orderBy('name')->get());
     }
 
     /** GET /api/schools */

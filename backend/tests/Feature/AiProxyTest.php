@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Amenity;
-use App\Models\District;
 use App\Models\Listing;
 use App\Models\School;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -133,10 +133,10 @@ class AiProxyTest extends TestCase
 
     private function makeListingWithComparables(int $comparableCount): Listing
     {
-        $district = District::factory()->create();
+        $ward = Ward::factory()->create();
         $listing = Listing::factory()->create([
             'user_id' => $this->landlord->id,
-            'district_id' => $district->id,
+            'ward_id' => $ward->id,
             'type' => 'room',
             'price' => 2_500_000,
             'area_m2' => 20,
@@ -145,7 +145,7 @@ class AiProxyTest extends TestCase
 
         Listing::factory()->count($comparableCount)->create([
             'user_id' => $this->landlord->id,
-            'district_id' => $district->id,
+            'ward_id' => $ward->id,
             'type' => 'room',
             'price' => 2_000_000,
             // 20 * 0.6 = 12 .. 20 * 1.4 = 28 - inside the comparable band.
@@ -188,7 +188,7 @@ class AiProxyTest extends TestCase
             $body = $request->data();
 
             return $body['listing']['price'] === 2_500_000
-                && $body['listing']['district'] === $listing->district->name
+                && $body['listing']['ward'] === $listing->ward->name
                 && $body['stats']['count'] === 4;
         });
     }
@@ -213,19 +213,19 @@ class AiProxyTest extends TestCase
         $school = School::factory()->create(['latitude' => 10.87, 'longitude' => 106.78]);
         $this->student->forceFill(['school_id' => $school->id])->save();
 
-        $near = District::factory()->create(['latitude' => 10.87, 'longitude' => 106.78]);
-        $far = District::factory()->create(['latitude' => 10.75, 'longitude' => 106.66]);
+        $near = Ward::factory()->create(['latitude' => 10.87, 'longitude' => 106.78]);
+        $far = Ward::factory()->create(['latitude' => 10.75, 'longitude' => 106.66]);
 
         $amenity = Amenity::factory()->create();
         Listing::factory()->count(3)->create([
             'user_id' => $this->landlord->id,
-            'district_id' => $near->id,
+            'ward_id' => $near->id,
             'price' => 2_000_000,
             'status' => 'available',
         ]);
         $rated = Listing::factory()->create([
             'user_id' => $this->landlord->id,
-            'district_id' => $near->id,
+            'ward_id' => $near->id,
             'price' => 2_200_000,
             'status' => 'available',
         ]);
@@ -236,16 +236,16 @@ class AiProxyTest extends TestCase
         ]);
         Listing::factory()->create([
             'user_id' => $this->landlord->id,
-            'district_id' => $far->id,
-            'price' => 9_000_000, // outside budget - far district has no in-budget listing
+            'ward_id' => $far->id,
+            'price' => 9_000_000, // outside budget - far ward has no in-budget listing
             'status' => 'available',
         ]);
 
         Http::fake([
             '*/areas' => Http::response([
                 'results' => [
-                    ['district_id' => $near->id, 'reason' => 'Giá trung bình nằm trong ngân sách, gần trường.'],
-                    ['district_id' => 999, 'reason' => 'fabricated'],
+                    ['ward_id' => $near->id, 'reason' => 'Giá trung bình nằm trong ngân sách, gần trường.'],
+                    ['ward_id' => 999, 'reason' => 'fabricated'],
                 ],
             ]),
         ]);
@@ -256,7 +256,7 @@ class AiProxyTest extends TestCase
             ->assertJsonCount(1, 'data');
 
         $row = $response->json('data.0');
-        $this->assertSame($near->id, $row['district_id']);
+        $this->assertSame($near->id, $row['ward_id']);
         $this->assertSame($near->name, $row['name']);
         $this->assertSame('Giá trung bình nằm trong ngân sách, gần trường.', $row['reason']);
         $this->assertSame(4, $row['stats']['listings_count']);
@@ -292,11 +292,11 @@ class AiProxyTest extends TestCase
 
     public function test_chat_sends_listing_context_when_provided(): void
     {
-        $district = District::factory()->create();
+        $ward = Ward::factory()->create();
         $amenity = Amenity::factory()->create(['name' => 'Máy lạnh']);
         $listing = Listing::factory()->create([
             'user_id' => $this->landlord->id,
-            'district_id' => $district->id,
+            'ward_id' => $ward->id,
             'price' => 2_500_000,
             'area_m2' => 22.5,
             'description' => 'Phòng đẹp gần trường.',
@@ -323,7 +323,7 @@ class AiProxyTest extends TestCase
             $body = $request->data();
 
             return $body['listing']['title'] === $listing->title
-                && $body['listing']['district'] === $listing->district->name
+                && $body['listing']['ward'] === $listing->ward->name
                 && $body['listing']['amenities'] === ['Máy lạnh']
                 && count($body['history']) === 2;
         });
@@ -347,7 +347,7 @@ class AiProxyTest extends TestCase
 
     public function test_description_converts_ids_to_names(): void
     {
-        $district = District::factory()->create(['name' => 'Thủ Đức']);
+        $ward = Ward::factory()->create(['name' => 'Phường Thủ Đức']);
         $amenity = Amenity::factory()->create(['name' => 'Wifi']);
 
         Http::fake([
@@ -361,7 +361,7 @@ class AiProxyTest extends TestCase
                 'price' => 2_500_000,
                 'area_m2' => 22.5,
                 'address' => '12 Đường số 5',
-                'district_id' => $district->id,
+                'ward_id' => $ward->id,
                 'amenity_ids' => [$amenity->id],
             ])->assertOk()
             ->assertJsonPath('data.description', 'Phòng trọ thoáng mát gần trường.');
@@ -369,9 +369,9 @@ class AiProxyTest extends TestCase
         Http::assertSent(function ($request) {
             $body = $request->data();
 
-            return $body['district'] === 'Thủ Đức'
+            return $body['ward'] === 'Phường Thủ Đức'
                 && $body['amenities'] === ['Wifi']
-                && ! array_key_exists('district_id', $body)
+                && ! array_key_exists('ward_id', $body)
                 && ! array_key_exists('amenity_ids', $body);
         });
     }

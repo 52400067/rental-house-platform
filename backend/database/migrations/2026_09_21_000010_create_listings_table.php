@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();      // landlord
-            $table->foreignId('district_id')->constrained('districts')->cascadeOnDelete();
+            $table->foreignId('ward_id')->constrained('wards')->cascadeOnDelete();
             $table->string('title', 200);
             $table->text('description')->nullable();
             $table->string('type', 20);                        // room | apartment | house
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'price']);
-            $table->index('district_id');
+            $table->index('ward_id');
         });
     }
 

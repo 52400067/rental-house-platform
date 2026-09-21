@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\District;
 use App\Models\Listing;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -41,7 +41,7 @@ class LandlordListingTest extends TestCase
             'address' => '12 Đường số 5, Thủ Đức',
             'latitude' => 10.8712,
             'longitude' => 106.7801,
-            'district_id' => District::factory()->create()->id,
+            'ward_id' => Ward::factory()->create()->id,
             'description' => 'Phòng thoáng mát.',
             'amenity_ids' => [],
         ], $overrides);

@@ -3,11 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Amenity;
-use App\Models\District;
 use App\Models\Listing;
 use App\Models\ListingImage;
 use App\Models\School;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -19,7 +19,7 @@ class ListingSeeder extends Seeder
     public function run(): void
     {
         $landlords = User::where('role', User::ROLE_LANDLORD)->orderBy('id')->get();
-        $districts = District::orderBy('id')->get();
+        $wards = Ward::orderBy('id')->get();
         $amenityIds = Amenity::orderBy('id')->pluck('id')->all();
         $schools = School::orderBy('id')->get(); // 1: ĐHQG, 2: Bách Khoa, 3: SPKT
 
@@ -47,15 +47,15 @@ class ListingSeeder extends Seeder
 
         for ($i = 1; $i <= 30; $i++) {
             $landlord = $landlords[($i - 1) % $landlords->count()];
-            $district = $districts[($i - 1) % $districts->count()];
+            $ward = $wards[($i - 1) % $wards->count()];
             $type = array_keys($typeLabels)[($i - 1) % 3];
 
             [$minArea, $maxArea] = $areasByType[$type];
             $area = $minArea + mt_rand(0, ($maxArea - $minArea) * 2) / 2;
             $price = 1_500_000 + mt_rand(0, 45) * 100_000; // 1.5M .. 6M VND
 
-            // Coordinates jittered around the district center (~±1.3 km).
-            // A few listings sit right next to a school (same district) so the
+            // Coordinates jittered around the ward center (~±1.3 km).
+            // A few listings sit right next to a school (same ward) so the
             // distance filter and map demo nicely.
             $nearSchool = match (true) {
                 in_array($i, [1, 6], true) => 0,   // ĐHQG (Thủ Đức)
@@ -68,8 +68,8 @@ class ListingSeeder extends Seeder
                 $lat = (float) $school->latitude + mt_rand(-5, 5) / 10000;   // ~±0.5 km
                 $lng = (float) $school->longitude + mt_rand(-5, 5) / 10000;
             } else {
-                $lat = (float) $district->latitude + mt_rand(-120, 120) / 10000;
-                $lng = (float) $district->longitude + mt_rand(-120, 120) / 10000;
+                $lat = (float) $ward->latitude + mt_rand(-120, 120) / 10000;
+                $lng = (float) $ward->longitude + mt_rand(-120, 120) / 10000;
             }
 
             $status = Listing::STATUS_AVAILABLE;
@@ -81,16 +81,16 @@ class ListingSeeder extends Seeder
 
             $listing = Listing::create([
                 'user_id' => $landlord->id,
-                'district_id' => $district->id,
-                'title' => sprintf('%s %s, %dm²', $typeLabels[$type], $district->name, (int) $area),
+                'ward_id' => $ward->id,
+                'title' => sprintf('%s %s, %dm²', $typeLabels[$type], $ward->name, (int) $area),
                 'description' => sprintf(
                     '%s tại %s, giá %s triệu/tháng. Giờ giấc tự do, an ninh tốt, phù hợp sinh viên.',
-                    $typeLabels[$type], $district->name, number_format($price / 1_000_000, 1)
+                    $typeLabels[$type], $ward->name, number_format($price / 1_000_000, 1)
                 ),
                 'type' => $type,
                 'price' => $price,
                 'area_m2' => $area,
-                'address' => sprintf('Số %d, Đường số %d, %s', mt_rand(1, 200), mt_rand(1, 20), $district->name),
+                'address' => sprintf('Số %d, Đường số %d, %s', mt_rand(1, 200), mt_rand(1, 20), $ward->name),
                 'latitude' => $lat,
                 'longitude' => $lng,
                 'status' => $status,

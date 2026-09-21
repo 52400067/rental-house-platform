@@ -231,7 +231,7 @@ return [
         'address' => 'Địa chỉ',
         'latitude' => 'Vĩ độ',
         'longitude' => 'Kinh độ',
-        'district_id' => 'Quận',
+        'ward_id' => 'Phường',
         'description' => 'Mô tả',
         'amenity_ids' => 'Tiện ích',
         'amenities' => 'Tiện ích',
