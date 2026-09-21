@@ -20,6 +20,7 @@ class ListingSeeder extends Seeder
         $landlords = User::where('role', User::ROLE_LANDLORD)->orderBy('id')->get();
         $districts = District::orderBy('id')->get();
         $amenityIds = Amenity::orderBy('id')->pluck('id')->all();
+        $schools = \App\Models\School::orderBy('id')->get(); // 1: ĐHQG, 2: Bách Khoa, 3: SPKT
 
         // Clean previously seeded images so repeated fresh seeds don't accumulate files.
         Storage::disk('public')->delete(Storage::disk('public')->files('listings'));
@@ -53,8 +54,22 @@ class ListingSeeder extends Seeder
             $price = 1_500_000 + mt_rand(0, 45) * 100_000; // 1.5M .. 6M VND
 
             // Coordinates jittered around the district center (~±1.3 km).
-            $lat = (float) $district->latitude + mt_rand(-120, 120) / 10000;
-            $lng = (float) $district->longitude + mt_rand(-120, 120) / 10000;
+            // A few listings sit right next to a school (same district) so the
+            // distance filter and map demo nicely.
+            $nearSchool = match (true) {
+                in_array($i, [1, 6], true) => 0,   // ĐHQG (Thủ Đức)
+                in_array($i, [16, 21], true) => 2, // SPKT (Thủ Đức)
+                in_array($i, [4, 9], true) => 1,   // Bách Khoa (Quận 10)
+                default => null,
+            };
+            if ($nearSchool !== null) {
+                $school = $schools[$nearSchool];
+                $lat = (float) $school->latitude + mt_rand(-5, 5) / 10000;   // ~±0.5 km
+                $lng = (float) $school->longitude + mt_rand(-5, 5) / 10000;
+            } else {
+                $lat = (float) $district->latitude + mt_rand(-120, 120) / 10000;
+                $lng = (float) $district->longitude + mt_rand(-120, 120) / 10000;
+            }
 
             $status = Listing::STATUS_AVAILABLE;
             if ($i > 27) {
