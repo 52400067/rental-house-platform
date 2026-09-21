@@ -23,6 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // API-only app: no named "login" route exists, so the framework default
+        // redirectGuestsTo(route('login')) throws RouteNotFoundException and turns
+        // guest API requests (without Accept: application/json) into a 500 instead
+        // of the contract's JSON 401. A closure returning null disables the redirect
+        // so AuthenticationException reaches the JSON 401 handler below.
+        $middleware->redirectGuestsTo(fn () => null);
+
         $middleware->alias([
             'role' => EnsureRole::class,
             'throttle.api' => ApiThrottle::class,

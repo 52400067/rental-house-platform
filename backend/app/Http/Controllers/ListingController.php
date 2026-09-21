@@ -245,19 +245,11 @@ class ListingController extends Controller
         $page = $listing->reviews()
             ->with('student:id,name')
             ->orderByDesc('id')
-            ->paginate(min($request->integer('per_page', 12), 50));
+            ->paginate($this->perPage($request));
 
         $request->attributes->set('review_pagination', $page);
 
-        return response()->json([
-            'data' => ReviewResource::collection($page->items())->resolve($request),
-            'meta' => [
-                'current_page' => $page->currentPage(),
-                'last_page' => $page->lastPage(),
-                'per_page' => (int) $page->perPage(),
-                'total' => $page->total(),
-            ],
-        ]);
+        return $this->paginated($page, ReviewResource::class, $request);
     }
 
     /**

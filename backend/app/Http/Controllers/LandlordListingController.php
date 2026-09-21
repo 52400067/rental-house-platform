@@ -99,20 +99,12 @@ class LandlordListingController extends Controller
             $query->where('status', $request->query('status'));
         }
 
-        $page = $query->paginate(min($request->integer('per_page', 12), 50));
+        $page = $query->paginate($this->perPage($request));
 
         // Landlord view: is_favorited is always false.
         $request->attributes->set('favorited_listing_ids', []);
 
-        return response()->json([
-            'data' => ListingSummaryResource::collection($page->getCollection())->resolve($request),
-            'meta' => [
-                'current_page' => $page->currentPage(),
-                'last_page' => $page->lastPage(),
-                'per_page' => (int) $page->perPage(),
-                'total' => $page->total(),
-            ],
-        ]);
+        return $this->paginated($page, ListingSummaryResource::class, $request);
     }
 
     /**

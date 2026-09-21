@@ -36,6 +36,18 @@ class ApiJsonErrorFormatTest extends TestCase
             ->assertExactJson(['message' => 'Bạn chưa đăng nhập.']);
     }
 
+    public function test_guest_request_without_accept_header_returns_json_401_not_500(): void
+    {
+        // Regression: guests hitting a protected route WITHOUT "Accept: application/json"
+        // used to trigger redirectGuestsTo(route('login')) — which threw
+        // RouteNotFoundException (no login route in an API-only app) and returned 500.
+        $response = $this->get('/api/favorites');
+
+        $response->assertStatus(401)
+            ->assertExactJson(['message' => 'Bạn chưa đăng nhập.'])
+            ->assertHeader('Content-Type', 'application/json');
+    }
+
     public function test_invalid_token_returns_json_401(): void
     {
         $response = $this->withHeader('Authorization', 'Bearer invalid-token')

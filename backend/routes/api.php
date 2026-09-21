@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ReferenceController;
@@ -45,3 +46,10 @@ Route::post('/listings/{listing}/images', [LandlordListingController::class, 'up
     ->middleware(['auth:sanctum', 'role:landlord'])->whereNumber('listing');
 Route::delete('/listings/{listing}/images/{image}', [LandlordListingController::class, 'deleteImage'])
     ->middleware(['auth:sanctum', 'role:landlord'])->whereNumber(['listing', 'image']);
+
+// Favorites (API_CONTRACT §4 — "Yêu thích", Student only).
+Route::get('/favorites', [FavoriteController::class, 'index'])->middleware(['auth:sanctum', 'role:student']);
+Route::put('/favorites/{listing_id}', [FavoriteController::class, 'attach'])
+    ->middleware(['auth:sanctum', 'role:student'])->whereNumber('listing_id');
+Route::delete('/favorites/{listing_id}', [FavoriteController::class, 'detach'])
+    ->middleware(['auth:sanctum', 'role:student'])->whereNumber('listing_id');

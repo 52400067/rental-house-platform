@@ -77,10 +77,10 @@ class User extends Authenticatable
         return $this->hasMany(Listing::class);
     }
 
-    /** Listings favorited by this user (pivot table favorites — no timestamps per ERD §3). */
+    /** Listings favorited by this user (pivot keeps saved-at timestamps). */
     public function favorites(): BelongsToMany
     {
-        return $this->belongsToMany(Listing::class, 'favorites');
+        return $this->belongsToMany(Listing::class, 'favorites')->withTimestamps()->withPivot('created_at');
     }
 
     /** Conversations where this user is the student. */
