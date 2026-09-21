@@ -1,4 +1,4 @@
-# TroO — Frontend
+# TroTot - Frontend
 
 React 18 + Vite + Bootstrap 5. Gọi toàn bộ API qua Backend (`docs/API_CONTRACT.md`).
 
@@ -14,8 +14,8 @@ Cần Backend chạy ở `:8000` (và AI service ở `:8001` cho các tính năn
 
 ## Tài khoản demo (mật khẩu `password`)
 
-- `student1@example.com` … `student10@example.com` — sinh viên
-- `landlord1@example.com` … `landlord3@example.com` — chủ nhà
+- `student1@example.com` … `student10@example.com` - sinh viên
+- `landlord1@example.com` … `landlord3@example.com` - chủ nhà
 
 ## Trang
 
@@ -37,7 +37,7 @@ Cần Backend chạy ở `:8000` (và AI service ở `:8001` cho các tính năn
 
 ## Kiểm thử smoke (e2e)
 
-Script `e2e-smoke.sh` gọi toàn bộ API mà các trang dùng, theo đúng luồng người dùng bấm qua từng trang (60+ kiểm tra): duyệt/lọc, đăng nhập/đăng ký, hồ sơ, yêu thích, nhắn tin kèm tệp, đánh giá, AI (chấp nhận cả khi AI service tắt — 503 fallback), CRUD tin đăng của chủ nhà, upload ảnh, phân quyền, đăng xuất.
+Script `e2e-smoke.sh` gọi toàn bộ API mà các trang dùng, theo đúng luồng người dùng bấm qua từng trang (60+ kiểm tra): duyệt/lọc, đăng nhập/đăng ký, hồ sơ, yêu thích, nhắn tin kèm tệp, đánh giá, AI (chấp nhận cả khi AI service tắt - 503 fallback), CRUD tin đăng của chủ nhà, upload ảnh, phân quyền, đăng xuất.
 
 ```bash
 # Cần backend đang chạy và đã seed:
@@ -56,5 +56,5 @@ Script chạy lại được nhiều lần không cần seed lại (tự tạo t
 ## Ghi chú kỹ thuật
 
 - Token lưu `localStorage` (`token`, `user`); tự xóa khi nhận 401.
-- Màu thương hiệu nằm ở `src/styles/theme.css` (biến `--brand`) — đổi một chỗ là đổi cả app.
+- Màu thương hiệu nằm ở `src/styles/theme.css` (biến `--brand`) - đổi một chỗ là đổi cả app.
 - Style cố tình tối giản (barebone): dùng utility của Bootstrap, ít CSS tự viết.

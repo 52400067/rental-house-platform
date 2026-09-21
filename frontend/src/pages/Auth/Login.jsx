@@ -37,7 +37,7 @@ export default function Login() {
                         <div className="auth-card">
                             <div className="text-center mb-3">
                                 <Link to="/" className="auth-logo-link">
-                                    TroO
+                                    TroTot
                                 </Link>
                                 <p className="text-secondary small mb-0">
                                     Nền tảng tìm trọ dành cho sinh viên
@@ -129,8 +129,8 @@ export default function Login() {
                             <div className="alert alert-light small mt-4 mb-0">
                                 <strong>Tài khoản demo</strong> (mật khẩu{" "}
                                 <code>password</code>):
-                                <div>student1@example.com — sinh viên</div>
-                                <div>landlord1@example.com — chủ nhà</div>
+                                <div>student1@example.com - sinh viên</div>
+                                <div>landlord1@example.com - chủ nhà</div>
                             </div>
                         </div>
                     </div>

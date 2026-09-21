@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# TroO E2E smoke test — frontende2e: exercises every API call the
+# TroTot E2E smoke test - exercises every API call the
 # frontend makes, page by page, in the order a user clicking
 # through the app would trigger them (docs/API_CONTRACT.md).
 #
@@ -13,7 +13,7 @@
 #   - curl + jq
 #   - Backend running AND seeded on :8000:
 #       cd backend && php artisan serve
-#     (DB setup: see the repo README — migrate:fresh --seed)
+#     (DB setup: see the repo README - migrate:fresh --seed)
 #
 # Notes:
 #   - The AI service is NOT required: the suite accepts both
@@ -65,7 +65,7 @@ if ! curl -s -m 3 -o /dev/null "$API/listings?per_page=1"; then
 fi
 AI_UP=false
 curl -s -m 2 "$AI_URL/health" 2>/dev/null | grep -q ok && AI_UP=true
-echo "Backend: $API  |  AI service: $([[ $AI_UP == true ]] && echo RUNNING || echo not running — 503 fallback asserted)"
+echo "Backend: $API  |  AI service: $([[ $AI_UP == true ]] && echo RUNNING || echo not running - 503 fallback asserted)"
 echo ""
 
 E2E_EMAIL="sv-e2e-$(date +%s)$RANDOM@example.com"
@@ -110,7 +110,7 @@ check "bad login 422 + errors.email" "$(JQ "$R" '.errors.email[0] != null')" "tr
 R=$(NOPOST "$API/login" '{"email":"student1@example.com","password":"password"}'); DBG "$R"
 STOKEN=$(JQ "$R" '.data.token')
 if [[ ${#STOKEN} -lt 20 ]]; then
-  echo "✗ student1 login failed — is the DB seeded? (php artisan migrate:fresh --seed)"
+  echo "✗ student1 login failed - is the DB seeded? (php artisan migrate:fresh --seed)"
   exit 1
 fi
 ok "student login token"

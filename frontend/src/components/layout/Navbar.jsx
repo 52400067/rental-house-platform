@@ -47,7 +47,7 @@ export default function Navbar() {
             <div className="container">
                 <Link className="navbar-brand fw-bold" to="/">
                     <i className="bi bi-house-heart-fill me-1" style={{ color: "var(--brand)" }} />
-                    TroO
+                    TroTot
                 </Link>
 
                 <button

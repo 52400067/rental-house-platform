@@ -52,7 +52,7 @@ export default function Register() {
                         <div className="auth-card">
                             <div className="text-center mb-3">
                                 <Link to="/" className="auth-logo-link">
-                                    TroO
+                                    TroTot
                                 </Link>
                                 <p className="text-secondary small mb-0">
                                     Nền tảng tìm trọ dành cho sinh viên

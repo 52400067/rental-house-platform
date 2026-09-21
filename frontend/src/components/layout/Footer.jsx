@@ -8,7 +8,7 @@ export default function Footer() {
                     <div className="col-lg-4">
                         <h5 className="fw-bold" style={{ color: "var(--brand)" }}>
                             <i className="bi bi-house-heart-fill me-1" />
-                            TroO
+                            TroTot
                         </h5>
                         <p className="small text-secondary mb-0">
                             Nền tảng tìm kiếm và đăng phòng trọ dành cho sinh viên
@@ -81,10 +81,9 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <hr />
-                <p className="small text-secondary text-center mb-0">
-                    © 2026 TroO — Đồ án học phần.
-                </p>
+                <hr />                    <p className="small text-secondary text-center mb-0">
+                        © 2026 TroTot. Bảo lưu mọi quyền.
+                    </p>
             </div>
         </footer>
     );
