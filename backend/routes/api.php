@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversationController;
@@ -59,3 +60,13 @@ Route::post('/conversations/{conversation}/messages', [ConversationController::c
     ->middleware('auth:sanctum')->whereNumber('conversation');
 Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])
     ->middleware('auth:sanctum')->whereNumber('conversation');
+
+// AI proxy (API_CONTRACT §4 - "AI", docs/AI_CONTRACT.md).
+// All endpoints: auth + 10 req/min per user; 503 when the AI service is down.
+Route::middleware(['auth:sanctum', 'throttle.api:10,1'])->group(function () {
+    Route::post('/ai/roommates', [AiController::class, 'roommates'])->middleware('role:student');
+    Route::post('/ai/price-advice', [AiController::class, 'priceAdvice'])->middleware('role:student');
+    Route::post('/ai/area-suggestions', [AiController::class, 'areaSuggestions'])->middleware('role:student');
+    Route::post('/ai/chat', [AiController::class, 'chat']);
+    Route::post('/ai/description', [AiController::class, 'description'])->middleware('role:landlord');
+});

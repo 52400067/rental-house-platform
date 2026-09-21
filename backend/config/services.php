@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // AI service (FastAPI), per docs/AI_CONTRACT.md.
+    'ai' => [
+        'url' => env('AI_URL', 'http://localhost:8001'),
+    ],
+
 ];
