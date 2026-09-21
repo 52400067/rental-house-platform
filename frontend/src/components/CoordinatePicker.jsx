@@ -55,24 +55,6 @@ function ClickHandler({ onPick }) {
     return null;
 }
 
-/** Fires onPickInfo after a click or drag-end resolves a coordinate. */
-function PickNotifier({ lat, lng, onAddress }) {
-    useEffect(() => {
-        if (lat == null || lng == null || !onAddress) return undefined;
-        let active = true;
-        const t = setTimeout(() => {
-            reverseGeocode(lat, lng).then((addr) => {
-                if (active && addr) onAddress(addr);
-            });
-        }, 600); // debounce: drag-end + Nominatim 1 req/s policy
-        return () => {
-            active = false;
-            clearTimeout(t);
-        };
-    }, [lat, lng, onAddress]);
-    return null;
-}
-
 /** Keeps the map centered on the marker when lat/lng change externally. */
 function Recenter({ lat, lng, zoom }) {
     const map = useMap();
@@ -88,9 +70,10 @@ function Recenter({ lat, lng, zoom }) {
  * Click-to-pick location map. Fully controlled by the parent form:
  * pass lat/lng (numbers or "" for none) + onPick(lat, lng).
  * `center` can recentre the view (e.g. when a ward is chosen).
- * `readOnly` turns it into a display-only map (no click/drag/zoom-hijack);
- * `onAddress` (optional) is called with a reverse-geocoded street guess
- * whenever the marker lands on a new spot (pick or drag end).
+ * `readOnly` turns it into a display-only map (no click/drag/zoom-hijack).
+ * `onAddress` (optional): called with a reverse-geocoded street guess
+ * shortly after each pick or drag-end — NOT on initial render, so edit
+ * forms don't prompt on load.
  */
 export default function CoordinatePicker({
     lat,
@@ -112,6 +95,22 @@ export default function CoordinatePicker({
 
     const initialCenter = position || center || [10.8231, 106.6297];
 
+    /** Geocode after interaction (600ms debounce) and report the guess. */
+    const notifyAddress = (newLat, newLng) => {
+        if (!onAddress) return;
+        setTimeout(() => {
+            reverseGeocode(newLat, newLng).then((addr) => {
+                if (addr) onAddress(addr);
+            });
+        }, 600);
+    };
+
+    /** onPick + address guess, shared by click and drag-end. */
+    const handlePicked = (newLat, newLng) => {
+        onPick?.(newLat, newLng);
+        notifyAddress(newLat, newLng);
+    };
+
     return (
         <div
             className="rounded-3 overflow-hidden border position-relative"
@@ -127,10 +126,7 @@ export default function CoordinatePicker({
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                {!readOnly && <ClickHandler onPick={onPick} />}
-                {!readOnly && (
-                    <PickNotifier lat={Number(lat)} lng={Number(lng)} onAddress={onAddress} />
-                )}
+                {!readOnly && <ClickHandler onPick={handlePicked} />}
                 <Recenter lat={center?.[0]} lng={center?.[1]} zoom={centerZoom} />
                 {position && (
                     <Marker
@@ -141,7 +137,7 @@ export default function CoordinatePicker({
                             dragend: (e) => {
                                 const { lat: newLat, lng: newLng } =
                                     e.target.getLatLng();
-                                onPick(newLat, newLng);
+                                handlePicked(newLat, newLng);
                             },
                         }}
                     />

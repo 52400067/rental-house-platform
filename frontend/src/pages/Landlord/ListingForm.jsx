@@ -78,29 +78,31 @@ export default function ListingForm() {
     /**
      * Reverse-geocoded street guess from the map (Nominatim).
      * Autofills the address when empty; asks before overwriting one.
+     * (No window.confirm inside the state updater: updaters must stay
+     * pure - StrictMode calls them twice, which would double the dialog.)
      */
     function applyAddressGuess(street) {
-        setForm((f) => {
-            const current = f.address.trim();
-            if (current === "") {
-                return { ...f, address: street };
-            }
-            if (current !== street) {
-                const wardName =
-                    wards.find((x) => String(x.id) === String(f.ward_id))?.name || "";
-                const withWard = wardName && !street.includes(wardName)
-                    ? `${street}, ${wardName}`
-                    : street;
-                if (
-                    window.confirm(
-                        `Địa chỉ trên bản đồ: "${withWard}".\nDùng địa chỉ này thay cho "${current}"?`
-                    )
-                ) {
-                    return { ...f, address: withWard };
-                }
-            }
-            return f; // unchanged
-        });
+        const current = form.address.trim();
+        if (current === "") {
+            setForm((f) => ({ ...f, address: street }));
+            return;
+        }
+        if (current === street) return;
+
+        const wardName =
+            wards.find((x) => String(x.id) === String(form.ward_id))?.name || "";
+        const withWard =
+            wardName && !street.includes(wardName)
+                ? `${street}, ${wardName}`
+                : street;
+
+        if (
+            window.confirm(
+                `Địa chỉ trên bản đồ: "${withWard}".\nDùng địa chỉ này thay cho "${current}"?`
+            )
+        ) {
+            setForm((f) => ({ ...f, address: withWard }));
+        }
     }
 
     // Recentre the coordinate picker on the selected ward's centroid.
