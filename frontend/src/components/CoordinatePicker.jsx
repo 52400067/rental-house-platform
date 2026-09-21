@@ -93,7 +93,8 @@ export default function CoordinatePicker({
         [lat, lng]
     );
 
-    const initialCenter = position || center || [10.8231, 106.6297];
+    // Trọng tâm địa lý Việt Nam (dữ liệu mẫu phủ khắp cả nước).
+    const initialCenter = position || center || [14.5, 106.5];
 
     /** Geocode after interaction (600ms debounce) and report the guess. */
     const notifyAddress = (newLat, newLng) => {

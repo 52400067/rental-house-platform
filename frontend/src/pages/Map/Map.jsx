@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getListings, getSchools } from "../../api/listingApi";
@@ -16,6 +16,9 @@ const roomIcon = L.divIcon({
     popupAnchor: [0, -24],
 });
 
+// Trọng tâm địa lý cả nước - dữ liệu mẫu phủ khắp Việt Nam.
+const VIETNAM_CENTER = [14.5, 106.5];
+
 const schoolIcon = L.divIcon({
     html: '<i class="bi bi-mortarboard-fill" style="color:#b45309;font-size:22px"></i>',
     className: "",
@@ -23,6 +26,16 @@ const schoolIcon = L.divIcon({
     iconAnchor: [12, 12],
     popupAnchor: [0, -12],
 });
+
+/** Moves the map when the selected school changes (react-leaflet
+    only uses `center` on first render). */
+function Recenter({ center, zoom }) {
+    const map = useMap();
+    useEffect(() => {
+        map.setView(center, zoom);
+    }, [center, zoom, map]);
+    return null;
+}
 
 export default function Map() {
     const [schools, setSchools] = useState([]);
@@ -53,9 +66,17 @@ export default function Map() {
         [schools, schoolId]
     );
 
-    const center = school
-        ? [Number(school.latitude), Number(school.longitude)]
-        : [10.8231, 106.6297]; // HCMC center
+    // Toàn quốc khi chưa chọn trường; zoom sát trường khi đã chọn.
+    const view = useMemo(
+        () =>
+            school
+                ? {
+                      center: [Number(school.latitude), Number(school.longitude)],
+                      zoom: 12,
+                  }
+                : { center: VIETNAM_CENTER, zoom: 5 },
+        [school]
+    );
 
     return (
         <div className="py-4">
@@ -112,10 +133,11 @@ export default function Map() {
                     <div className="col-lg-8">
                         <div className="rounded-3 overflow-hidden border" style={{ height: 480 }}>
                             <MapContainer
-                                center={center}
-                                zoom={12}
+                                center={view.center}
+                                zoom={view.zoom}
                                 style={{ height: "100%", width: "100%" }}
                             >
+                                <Recenter center={view.center} zoom={view.zoom} />
                                 <TileLayer
                                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
