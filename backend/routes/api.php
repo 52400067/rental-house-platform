@@ -12,7 +12,7 @@ use App\Http\Controllers\UserPublicController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication and profile (API_CONTRACT §4 - "Xác thực và hồ sơ").
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle.api:10,1');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle.api:10,1');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
@@ -67,7 +67,7 @@ Route::get('/conversations', [ConversationController::class, 'index'])->middlewa
 Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages'])
     ->middleware('auth:sanctum')->whereNumber('conversation');
 Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage'])
-    ->middleware('auth:sanctum')->whereNumber('conversation');
+    ->middleware(['auth:sanctum', 'throttle.api:30,1'])->whereNumber('conversation');
 Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])
     ->middleware('auth:sanctum')->whereNumber('conversation');
 

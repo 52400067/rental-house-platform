@@ -219,7 +219,7 @@ class LandlordListingController extends Controller
             abort(404);
         }
 
-        Storage::disk('public')->delete($image->path);
+        Storage::disk('public')->delete($image->path ?? '');
         $image->delete();
 
         return response()->json(['data' => null]);
