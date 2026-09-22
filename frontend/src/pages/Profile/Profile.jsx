@@ -3,6 +3,7 @@ import { updateProfile } from "../../api/authApi";
 import { getSchools } from "../../api/listingApi";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
+import { HOBBIES, HOBBY_LABELS } from "../../constants/hobbies.js";
 
 const SLEEP = [
     ["", "Chọn..."],
@@ -69,6 +70,19 @@ export default function Profile() {
         setSaved(false);
         setForm({ ...form, [key]: e.target.value });
     };
+
+    const selectedHobbies = (form.interests || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+    function toggleHobby(hobby) {
+        setSaved(false);
+        const next = selectedHobbies.includes(hobby)
+            ? selectedHobbies.filter((h) => h !== hobby)
+            : [...selectedHobbies, hobby];
+        setForm({ ...form, interests: next.join(",") });
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -169,7 +183,7 @@ export default function Profile() {
                                             <option value="">Chọn trường</option>
                                             {schools.map((s) => (
                                                 <option key={s.id} value={s.id}>
-                                                    {s.name}
+                                                    {s.city?.name ? `${s.name} - ${s.city.name}` : s.name}
                                                 </option>
                                             ))}
                                         </select>
@@ -250,16 +264,32 @@ export default function Profile() {
                                             <option value="1">Có</option>
                                         </select>
                                     </div>
-                                    <div className="col-md-8">
+                                    <div className="col-12">
                                         <label className="form-label">
-                                            Sở thích (phân cách bằng dấu phẩy)
+                                            Sở thích
                                         </label>
-                                        <input
-                                            className="form-control"
-                                            placeholder="music, gym, reading"
-                                            value={form.interests}
-                                            onChange={set("interests")}
-                                        />
+                                        <div className="d-flex flex-wrap gap-2">
+                                            {HOBBIES.map((hobby) => {
+                                                const active = selectedHobbies.includes(hobby);
+                                                return (
+                                                    <button
+                                                        key={hobby}
+                                                        type="button"
+                                                        className={`btn btn-sm ${active ? "btn-primary" : "btn-outline-secondary"}`}
+                                                        style={{ borderRadius: "2rem" }}
+                                                        aria-pressed={active}
+                                                        onClick={() => toggleHobby(hobby)}
+                                                    >
+                                                        {HOBBY_LABELS[hobby] || hobby}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {selectedHobbies.length > 0 && (
+                                            <div className="form-text">
+                                                Đã chọn: {selectedHobbies.length} sở thích
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="col-12">
                                         <div className="form-check form-switch">

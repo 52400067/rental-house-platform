@@ -32,7 +32,10 @@ class UserSeeder extends Seeder
         $schoolIds = School::orderBy('id')->pluck('id')->all();
         $sleepSchedules = [User::SLEEP_EARLY, User::SLEEP_NORMAL, User::SLEEP_LATE];
         $personalities = [User::PERSONALITY_INTROVERT, User::PERSONALITY_AMBIVERT, User::PERSONALITY_EXTROVERT];
-        $interestPool = ['music', 'gym', 'reading', 'gaming', 'cooking', 'photography', 'football', 'studying'];
+        $interestPool = [
+            'music', 'gym', 'reading', 'gaming', 'cooking', 'photography',
+            'football', 'studying', 'movies', 'travel', 'badminton', 'cafés',
+        ];
         $studentNames = [
             'Nguyễn Văn An', 'Trần Thị Bình', 'Lê Hoàng Cường', 'Phạm Thị Dung', 'Hoàng Văn Em',
             'Đỗ Thị Phương', 'Vũ Minh Giang', 'Bùi Thị Hoa', 'Đặng Quốc Hưng', 'Ngô Thu Thảo',
