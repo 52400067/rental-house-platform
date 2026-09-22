@@ -90,7 +90,7 @@ class LandlordListingController extends Controller
     {
         $query = $request->user()
             ->listings()
-            ->with(['ward', 'coverImage'])
+            ->with(['ward.city', 'coverImage'])
             ->withCount('reviews')
             ->withAvg('reviews', 'listing_rating')
             ->orderByDesc('id');

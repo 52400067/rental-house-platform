@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * School object per API_CONTRACT §4: { id, name, latitude, longitude }.
+ * School object per API_CONTRACT §4: { id, name, city, latitude, longitude }.
+ * city is included when the school.city relation was eager loaded.
  */
 class SchoolResource extends JsonResource
 {
@@ -15,6 +16,11 @@ class SchoolResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'city' => $this->whenLoaded('city', fn () => [
+                'id' => $this->city->id,
+                'name' => $this->city->name,
+                'type' => $this->city->type,
+            ]),
             'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
             'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
         ];

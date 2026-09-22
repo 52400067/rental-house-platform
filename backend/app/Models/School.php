@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class School extends Model
@@ -12,7 +13,7 @@ class School extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'latitude', 'longitude'];
+    protected $fillable = ['name', 'city_id', 'latitude', 'longitude'];
 
     protected function casts(): array
     {
@@ -25,5 +26,10 @@ class School extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 }

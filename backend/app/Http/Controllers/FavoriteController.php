@@ -20,7 +20,7 @@ class FavoriteController extends Controller
     {
         $page = $request->user()
             ->favorites()
-            ->with(['ward', 'coverImage'])
+            ->with(['ward.city', 'coverImage'])
             ->withCount('reviews')
             ->withAvg('reviews', 'listing_rating')
             ->orderByDesc('favorites.created_at')

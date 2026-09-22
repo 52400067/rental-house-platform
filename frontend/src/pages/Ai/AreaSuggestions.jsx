@@ -116,7 +116,7 @@ export default function AreaSuggestions() {
                                         <option value="">Chọn trường</option>
                                         {schools.map((s) => (
                                             <option key={s.id} value={s.id}>
-                                                {s.name}
+                                                {s.city?.name ? `${s.name} - ${s.city.name}` : s.name}
                                             </option>
                                         ))}
                                     </select>

@@ -31,6 +31,10 @@ class ListingSummaryResource extends JsonResource
             'ward' => $listing->ward ? [
                 'id' => $listing->ward->id,
                 'name' => $listing->ward->name,
+                'city' => $listing->ward->relationLoaded('city') && $listing->ward->city ? [
+                    'id' => $listing->ward->city->id,
+                    'name' => $listing->ward->city->name,
+                ] : null,
             ] : null,
             'cover_image' => $this->coverImageUrl(),
             'avg_rating' => $this->avgRating(),

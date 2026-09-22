@@ -235,12 +235,13 @@ Dùng `selectRaw(... AS distance_km)` để hiển thị và `whereRaw` với c�
 
 ## 5. Dữ liệu mẫu (seeder)
 
-Dữ liệu trải khắp Việt Nam (các thành phố nhiều sinh viên):
+Dữ liệu trải khắp Việt Nam, nhóm theo 34 đơn vị hành chính cấp tỉnh (NQ 202/2025/QH15):
 
 | Bảng | Nội dung |
 |---|---|
-| wards | 16 phường/xã: Hà Nội (4), TP.HCM (4), Đà Nẵng (2), Cần Thơ (2), Huế, Nha Trang, Quy Nhơn, Nghệ An |
-| schools | 13 trường ĐH: Hà Nội (3), TP.HCM (3), Đà Nẵng (2), Cần Thơ, Huế, Nha Trang, Quy Nhơn, Vinh |
+| cities | Đủ 34 tỉnh/TP: 6 thành phố TW (Hà Nội, TP.HCM, Hải Phòng, Đà Nẵng, Huế, Cần Thơ) + 28 tỉnh, kèm tọa độ tâm |
+| wards | 22 phường/xã mẫu thuộc 12 thành phố nhiều sinh viên (mỗi ward có `city_id`) |
+| schools | 16 trường ĐH thuộc 10 thành phố, gồm cả ĐH Tôn Đức Thắng (mỗi trường có `city_id`) |
 | amenities | Wifi, Máy lạnh, Máy nước nóng, Máy giặt, Tủ lạnh, Bếp, WC riêng, Chỗ để xe, Bảo vệ, Giờ giấc tự do |
 | users | 3 chủ nhà, 10 sinh viên (hồ sơ điền đủ, phần lớn `looking_for_roommate = true`). Mật khẩu chung `password`. Email theo mẫu `student1@example.com`, `landlord1@example.com` |
 | listings | 30 tin, đủ 3 loại, giá 1,5 đến 6 triệu, tọa độ quanh tâm khu vực, 3 đến 6 tiện ích mỗi tin, mỗi tin 1 ảnh mẫu lưu cục bộ, vài tin `rented` |

@@ -6,21 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Ward object per API_CONTRACT §4: { id, name, city, latitude, longitude }.
- * city is included when the ward.city relation was eager loaded.
+ * City object (đơn vị hành chính cấp tỉnh) per API_CONTRACT §4:
+ * { id, name, type: "city"|"province", latitude, longitude }.
  */
-class WardResource extends JsonResource
+class CityResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'city' => $this->whenLoaded('city', fn () => [
-                'id' => $this->city->id,
-                'name' => $this->city->name,
-                'type' => $this->city->type,
-            ]),
+            'type' => $this->type,
             'latitude' => $this->latitude !== null ? (float) $this->latitude : null,
             'longitude' => $this->longitude !== null ? (float) $this->longitude : null,
         ];

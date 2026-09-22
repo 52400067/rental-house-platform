@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getListings, getSchools } from "../../api/listingApi";
+import { getListings, getSchools, getCities } from "../../api/listingApi";
 import { TYPE_LABELS, formatPriceTrieu } from "../../api/format";
 import "../../styles/map.css";
 
@@ -39,6 +39,8 @@ function Recenter({ center, zoom }) {
 
 export default function Map() {
     const [schools, setSchools] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [cityId, setCityId] = useState("");
     const [schoolId, setSchoolId] = useState("");
     const [type, setType] = useState("");
     const [maxKm, setMaxKm] = useState("");
@@ -46,6 +48,7 @@ export default function Map() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        getCities().then(setCities).catch(() => {});
         getSchools().then(setSchools).catch(() => {});
     }, []);
 
@@ -53,30 +56,40 @@ export default function Map() {
         setLoading(true);
         const params = { per_page: 50 };
         if (type) params.type = type;
+        if (cityId) params.city_id = cityId;
         if (schoolId) params.school_id = schoolId;
         if (schoolId && maxKm) params.max_km = maxKm;
         getListings(params)
             .then(({ data }) => setListings(data))
             .catch(() => {})
             .finally(() => setLoading(false));
-    }, [type, schoolId, maxKm]);
+    }, [type, cityId, schoolId, maxKm]);
 
     const school = useMemo(
         () => schools.find((s) => String(s.id) === String(schoolId)),
         [schools, schoolId]
     );
-
-    // Toàn quốc khi chưa chọn trường; zoom sát trường khi đã chọn.
-    const view = useMemo(
-        () =>
-            school
-                ? {
-                      center: [Number(school.latitude), Number(school.longitude)],
-                      zoom: 12,
-                  }
-                : { center: VIETNAM_CENTER, zoom: 5 },
-        [school]
+    const city = useMemo(
+        () => cities.find((c) => String(c.id) === String(cityId)),
+        [cities, cityId]
     );
+
+    // Toàn quốc -> Tỉnh/TP -> sát trường: view co dần theo lựa chọn.
+    const view = useMemo(() => {
+        if (school) {
+            return {
+                center: [Number(school.latitude), Number(school.longitude)],
+                zoom: 12,
+            };
+        }
+        if (city?.latitude != null) {
+            return {
+                center: [Number(city.latitude), Number(city.longitude)],
+                zoom: 11,
+            };
+        }
+        return { center: VIETNAM_CENTER, zoom: 5 };
+    }, [school, city]);
 
     return (
         <div className="py-4">
@@ -87,15 +100,41 @@ export default function Map() {
                     <div className="col-md-4">
                         <select
                             className="form-select"
-                            value={schoolId}
-                            onChange={(e) => setSchoolId(e.target.value)}
+                            value={cityId}
+                            onChange={(e) => {
+                                setCityId(e.target.value);
+                                setSchoolId(""); // cascade: đổi city thì reset trường
+                            }}
                         >
-                            <option value="">Tất cả khu vực</option>
-                            {schools.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    Gần {s.name}
+                            <option value="">Toàn quốc</option>
+                            {cities.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
                                 </option>
                             ))}
+                        </select>
+                    </div>
+                    <div className="col-md-4">
+                        <select
+                            className="form-select"
+                            value={schoolId}
+                            onChange={(e) => setSchoolId(e.target.value)}
+                            disabled={!cityId}
+                        >
+                            <option value="">
+                                {cityId ? "Tất cả trường" : "Chọn Tỉnh/TP trước"}
+                            </option>
+                            {schools
+                                .filter(
+                                    (s) =>
+                                        !cityId ||
+                                        String(s.city?.id) === String(cityId)
+                                )
+                                .map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        Gần {s.name}
+                                    </option>
+                                ))}
                         </select>
                     </div>
                     <div className="col-md-4">

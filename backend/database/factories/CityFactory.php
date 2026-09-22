@@ -3,19 +3,19 @@
 namespace Database\Factories;
 
 use App\Models\City;
-use App\Models\School;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<School>
+ * @extends Factory<City>
  */
-class SchoolFactory extends Factory
+class CityFactory extends Factory
 {
     public function definition(): array
     {
+        // Coordinates anywhere in Vietnam (roughly 8.2N..23.4N, 102.1E..109.5E).
         return [
-            'name' => fake()->unique()->company().' University',
-            'city_id' => City::factory(),
+            'name' => fake()->unique()->city(),
+            'type' => fake()->randomElement([City::TYPE_CITY, City::TYPE_PROVINCE]),
             'latitude' => fake()->latitude(8.20, 23.40),
             'longitude' => fake()->longitude(102.10, 109.50),
         ];

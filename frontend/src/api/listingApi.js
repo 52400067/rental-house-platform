@@ -21,6 +21,14 @@ export const createReview = (listingId, payload) =>
     api.post(`/listings/${listingId}/reviews`, payload).then((r) => r.data.data);
 
 // API_CONTRACT §4 - "Dữ liệu tham chiếu"
-export const getWards = () => api.get("/wards").then((r) => r.data.data);
-export const getSchools = () => api.get("/schools").then((r) => r.data.data);
+// Cascade: chọn Tỉnh/TP trước, rồi ward/trường lọc theo city_id (tùy chọn).
+export const getCities = () => api.get("/cities").then((r) => r.data.data);
+export const getWards = (cityId) =>
+    api
+        .get("/wards", { params: cityId ? { city_id: cityId } : {} })
+        .then((r) => r.data.data);
+export const getSchools = (cityId) =>
+    api
+        .get("/schools", { params: cityId ? { city_id: cityId } : {} })
+        .then((r) => r.data.data);
 export const getAmenities = () => api.get("/amenities").then((r) => r.data.data);

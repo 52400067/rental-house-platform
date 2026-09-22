@@ -6,7 +6,7 @@ import {
     uploadImages,
     deleteImage,
 } from "../../api/landlordApi";
-import { getListing, getWards, getAmenities } from "../../api/listingApi";
+import { getListing, getWards, getAmenities, getCities } from "../../api/listingApi";
 import { aiDescription } from "../../api/aiApi";
 import { TYPE_LABELS, formatVnd } from "../../api/format";
 import { errMessage } from "../../api/axiosClient";
@@ -20,6 +20,7 @@ export default function ListingForm() {
     const navigate = useNavigate();
 
     const [wards, setWards] = useState([]);
+    const [cities, setCities] = useState([]);
     const [amenities, setAmenities] = useState([]);
     const [form, setForm] = useState({
         title: "",
@@ -29,6 +30,7 @@ export default function ListingForm() {
         address: "",
         latitude: "",
         longitude: "",
+        city_id: "",
         ward_id: "",
         description: "",
         amenity_ids: [],
@@ -42,6 +44,7 @@ export default function ListingForm() {
     const [notice, setNotice] = useState("");
 
     useEffect(() => {
+        getCities().then(setCities).catch(() => {});
         getWards().then(setWards).catch(() => {});
         getAmenities().then(setAmenities).catch(() => {});
     }, []);
@@ -58,6 +61,7 @@ export default function ListingForm() {
                     address: l.address || "",
                     latitude: l.latitude ?? "",
                     longitude: l.longitude ?? "",
+                    city_id: l.ward?.city?.id || "",
                     ward_id: l.ward?.id || "",
                     description: l.description || "",
                     amenity_ids: l.amenities?.map((a) => a.id) || [],
@@ -309,21 +313,63 @@ export default function ListingForm() {
                                 {fieldError("address")}
                             </div>
                             <div className="col-md-4">
+                                <label className="form-label">Tỉnh/Thành phố *</label>
+                                <select
+                                    className={`form-select ${errors.city_id ? "is-invalid" : ""}`}
+                                    value={form.city_id}
+                                    onChange={(e) =>
+                                        setForm((f) => ({
+                                            ...f,
+                                            city_id: e.target.value,
+                                            ward_id: "", // cascade: đổi city thì reset ward
+                                        }))
+                                    }
+                                    required
+                                >
+                                    <option value="">Chọn Tỉnh/TP</option>
+                                    {cities.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.city_id && (
+                                    <div className="invalid-feedback">
+                                        {errors.city_id[0]}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="col-md-4">
                                 <label className="form-label">Khu vực *</label>
                                 <select
                                     className={`form-select ${errors.ward_id ? "is-invalid" : ""}`}
                                     value={form.ward_id}
                                     onChange={set("ward_id")}
+                                    disabled={!form.city_id}
                                     required
                                 >
-                                    <option value="">Chọn khu vực</option>
-                                    {wards.map((w) => (
-                                        <option key={w.id} value={w.id}>
-                                            {w.name}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        {form.city_id
+                                            ? "Chọn phường/xã"
+                                            : "Chọn Tỉnh/TP trước"}
+                                    </option>
+                                    {wards
+                                        .filter(
+                                            (w) =>
+                                                !form.city_id ||
+                                                String(w.city?.id) === String(form.city_id)
+                                        )
+                                        .map((w) => (
+                                            <option key={w.id} value={w.id}>
+                                                {w.name}
+                                            </option>
+                                        ))}
                                 </select>
-                                {fieldError("ward_id")}
+                                {errors.ward_id && (
+                                    <div className="invalid-feedback">
+                                        {errors.ward_id[0]}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Coordinate picker: click the map or fine-tune

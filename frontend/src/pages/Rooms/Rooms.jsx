@@ -5,6 +5,7 @@ import {
     getSchools,
     getWards,
     getAmenities,
+    getCities,
 } from "../../api/listingApi";
 import { TYPE_LABELS } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
@@ -35,10 +36,12 @@ export default function Rooms() {
     const [schools, setSchools] = useState([]);
     const [wards, setWards] = useState([]);
     const [amenities, setAmenities] = useState([]);
+    const [cities, setCities] = useState([]);
 
     const [filters, setFilters] = useState({
         q: searchParams.get("q") || "",
         type: searchParams.get("type") || "",
+        city_id: "",
         ward_id: "",
         school_id: "",
         max_km: "",
@@ -56,6 +59,7 @@ export default function Rooms() {
     const firstRender = useRef(true);
 
     useEffect(() => {
+        getCities().then(setCities).catch(() => {});
         getSchools().then(setSchools).catch(() => {});
         getWards().then(setWards).catch(() => {});
         getAmenities().then(setAmenities).catch(() => {});
@@ -73,6 +77,7 @@ export default function Rooms() {
             };
             if (filters.q.trim()) params.q = filters.q.trim();
             if (filters.type) params.type = filters.type;
+            if (filters.city_id) params.city_id = filters.city_id;
             if (filters.ward_id) params.ward_id = filters.ward_id;
             if (filters.school_id) params.school_id = filters.school_id;
             if (filters.max_km) params.max_km = filters.max_km;
@@ -116,6 +121,18 @@ export default function Rooms() {
         setFilters((f) => ({ ...f, [key]: value }));
     };
 
+    // Đổi Tỉnh/TP: reset ward/school để cascade hợp lệ.
+    const setCity = (cityId) => {
+        setPage(1);
+        setFilters((f) => ({
+            ...f,
+            city_id: cityId,
+            ward_id: "",
+            school_id: "",
+            max_km: "",
+        }));
+    };
+
     const toggleAmenity = (id) => {
         setPage(1);
         setFilters((f) => ({
@@ -151,6 +168,7 @@ export default function Rooms() {
         setFilters({
             q: "",
             type: "",
+            city_id: "",
             ward_id: "",
             school_id: "",
             max_km: "",
@@ -247,6 +265,24 @@ export default function Rooms() {
 
                                 <div className="mb-3">
                                     <label className="form-label small fw-semibold">
+                                        Tỉnh/Thành phố
+                                    </label>
+                                    <select
+                                        className="form-select form-select-sm"
+                                        value={filters.city_id}
+                                        onChange={(e) => setCity(e.target.value)}
+                                    >
+                                        <option value="">Toàn quốc</option>
+                                        {cities.map((c) => (
+                                            <option key={c.id} value={c.id}>
+                                                {c.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label small fw-semibold">
                                         Khu vực
                                     </label>
                                     <select
@@ -255,13 +291,25 @@ export default function Rooms() {
                                         onChange={(e) =>
                                             setFilter("ward_id", e.target.value)
                                         }
+                                        disabled={!filters.city_id}
                                     >
-                                        <option value="">Tất cả khu vực</option>
-                                        {wards.map((w) => (
-                                            <option key={w.id} value={w.id}>
-                                                {w.name}
-                                            </option>
-                                        ))}
+                                        <option value="">
+                                            {filters.city_id
+                                                ? "Tất cả phường/xã"
+                                                : "Chọn Tỉnh/TP trước"}
+                                        </option>
+                                        {wards
+                                            .filter(
+                                                (w) =>
+                                                    !filters.city_id ||
+                                                    String(w.city?.id) ===
+                                                    String(filters.city_id)
+                                            )
+                                            .map((w) => (
+                                                <option key={w.id} value={w.id}>
+                                                    {w.name}
+                                                </option>
+                                            ))}
                                     </select>
                                 </div>
 
@@ -307,11 +355,18 @@ export default function Rooms() {
                                         }}
                                     >
                                         <option value="">Chọn trường</option>
-                                        {schools.map((s) => (
-                                            <option key={s.id} value={s.id}>
-                                                {s.name}
-                                            </option>
-                                        ))}
+                                        {schools
+                                            .filter(
+                                                (s) =>
+                                                    !filters.city_id ||
+                                                    String(s.city?.id) ===
+                                                    String(filters.city_id)
+                                            )
+                                            .map((s) => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.name}
+                                                </option>
+                                            ))}
                                     </select>
                                     {filters.school_id && (
                                         <select

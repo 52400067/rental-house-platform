@@ -73,6 +73,7 @@ class ListingController extends Controller
                 }
             }],
             'ward_id' => ['nullable', 'integer', 'exists:wards,id'],
+            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
             'type' => ['nullable', Rule::in([Listing::TYPE_ROOM, Listing::TYPE_APARTMENT, Listing::TYPE_HOUSE])],
             'amenity_ids' => ['nullable', 'array'],
             'amenity_ids.*' => ['integer', 'exists:amenities,id'],
@@ -99,7 +100,7 @@ class ListingController extends Controller
         // ---------------------------------------------------------------
         $query = Listing::query()
             ->where('status', Listing::STATUS_AVAILABLE)
-            ->with(['ward', 'coverImage'])
+            ->with(['ward.city', 'coverImage'])
             ->withCount('reviews')
             ->withAvg('reviews', 'listing_rating');
 
@@ -125,6 +126,11 @@ class ListingController extends Controller
 
         if (! empty($validated['ward_id'])) {
             $query->where('ward_id', $validated['ward_id']);
+        }
+
+        // City filter: listing's ward belongs to the selected provincial unit.
+        if (! empty($validated['city_id'])) {
+            $query->whereHas('ward', fn ($q) => $q->where('city_id', $validated['city_id']));
         }
 
         if (! empty($validated['type'])) {
@@ -222,7 +228,7 @@ class ListingController extends Controller
             abort(404);
         }
 
-        $listing->load(['ward', 'coverImage', 'images', 'amenities', 'landlord'])
+        $listing->load(['ward.city', 'coverImage', 'images', 'amenities', 'landlord'])
             ->loadCount('reviews')
             ->loadAvg('reviews', 'listing_rating');
 
