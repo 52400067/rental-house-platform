@@ -9,6 +9,7 @@ import Home from "./pages/Home/Home";
 import Rooms from "./pages/Rooms/Rooms";
 import RoomDetail from "./pages/RoomDetail/RoomDetail";
 import Map from "./pages/Map/Map";
+import StudentPublic from "./pages/StudentPublic/StudentPublic";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 
@@ -36,6 +37,7 @@ export default function App() {
                         <Route path="/rooms" element={<Rooms />} />
                         <Route path="/rooms/:id" element={<RoomDetail />} />
                         <Route path="/map" element={<Map />} />
+                        <Route path="/students/:id" element={<StudentPublic />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/ai/chat" element={<AiChat />} />

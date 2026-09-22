@@ -110,15 +110,33 @@ export default function ConversationDetail() {
                     </Link>
                     <div className="flex-grow-1">
                         <strong className="d-block">
-                            {conversation?.other_user?.name || "Hội thoại"}
+                            {conversation?.other_user?.role === "student" ? (
+                                <Link
+                                    to={`/students/${conversation.other_user.id}`}
+                                    className="text-decoration-none text-reset"
+                                    title="Xem hồ sơ công khai"
+                                >
+                                    {conversation.other_user.name}
+                                    <i
+                                        className="bi bi-box-arrow-up-right ms-1"
+                                        style={{ fontSize: "0.7rem" }}
+                                    />
+                                </Link>
+                            ) : (
+                                conversation?.other_user?.name || "Hội thoại"
+                            )}
                         </strong>
-                        {conversation?.listing && (
+                        {conversation?.listing ? (
                             <Link
                                 to={`/rooms/${conversation.listing.id}`}
                                 className="small text-decoration-none"
                             >
                                 {conversation.listing.title}
                             </Link>
+                        ) : (
+                            <span className="small text-secondary">
+                                Trò chuyện trực tiếp
+                            </span>
                         )}
                     </div>
                 </div>

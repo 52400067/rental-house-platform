@@ -19,6 +19,10 @@ export const getConversations = () =>
 export const startConversation = (listingId) =>
     api.post("/conversations", { listing_id: listingId }).then((r) => r.data.data);
 
+// Hội thoại trực tiếp giữa 2 sinh viên (không qua tin đăng) - từ hồ sơ công khai.
+export const startDirectConversation = (userId) =>
+    api.post(`/users/${userId}/message`).then((r) => r.data.data);
+
 export const getMessages = (conversationId, afterId = null) =>
     api
         .get(`/conversations/${conversationId}/messages`, {

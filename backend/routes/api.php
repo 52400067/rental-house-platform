@@ -8,6 +8,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ReferenceController;
+use App\Http\Controllers\UserPublicController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication and profile (API_CONTRACT §4 - "Xác thực và hồ sơ").
@@ -18,9 +19,15 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 Route::put('/profile', [ProfileController::class, 'update'])->middleware('auth:sanctum');
 
 // Reference data (API_CONTRACT §4 - "Dữ liệu tham chiếu").
+// Cascade: chọn Tỉnh/TP trước (GET /cities), rồi lọc ward/trường theo city_id.
+Route::get('/cities', [ReferenceController::class, 'cities']);
 Route::get('/wards', [ReferenceController::class, 'wards']);
 Route::get('/schools', [ReferenceController::class, 'schools']);
 Route::get('/amenities', [ReferenceController::class, 'amenities']);
+
+// Listing browse (API_CONTRACT §4 - "Duyệt tin đăng").
+// Public student profiles (API_CONTRACT §4) - PII-safe, landlords 404.
+Route::get('/users/{user}', [UserPublicController::class, 'show'])->whereNumber('user');
 
 // Listing browse (API_CONTRACT §4 - "Duyệt tin đăng").
 Route::get('/listings', [ListingController::class, 'index']);
@@ -53,6 +60,9 @@ Route::delete('/favorites/{listing_id}', [FavoriteController::class, 'detach'])
 
 // Messaging (API_CONTRACT §4 - "Nhắn tin"). Outsiders get 404.
 Route::post('/conversations', [ConversationController::class, 'store'])->middleware(['auth:sanctum', 'role:student']);
+// Hội thoại trực tiếp giữa 2 sinh viên (không qua tin đăng) từ hồ sơ công khai.
+Route::post('/users/{user}/message', [ConversationController::class, 'storeDirect'])
+    ->middleware(['auth:sanctum', 'role:student'])->whereNumber('user');
 Route::get('/conversations', [ConversationController::class, 'index'])->middleware('auth:sanctum');
 Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages'])
     ->middleware('auth:sanctum')->whereNumber('conversation');

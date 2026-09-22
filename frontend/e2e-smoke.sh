@@ -88,6 +88,18 @@ check "ward filter" "$(JQ "$R" '.data|type')" "array"
 AM=$(JQ "$(NOGET "$API/amenities")" '.data[0].id')
 R=$(NOGET "$API/listings?amenity_ids[]=$AM"); DBG "$R"
 check "amenity filter" "$(JQ "$R" '.data|type')" "array"
+
+# Cascade dia ly: City -> Ward/School (34 don vi cap tinh, NQ 202/2025/QH15).
+R=$(NOGET "$API/cities"); DBG "$R"
+check "cities list >=34" "$([[ $(JQ "$R" '.data|length') -ge 34 ]] && echo true)" "true"
+check "cities sorted A-Z (first)" "$(JQ "$R" '.data[0].name')" "An Giang"
+CITY=$(JQ "$(NOGET "$API/cities")" '.data[]|select(.name=="TP.HCM")|.id')
+R=$(NOGET "$API/wards?city_id=$CITY"); DBG "$R"
+check "wards filter by city" "$(JQ "$R" "[.data[]|select(.city.id != $CITY)]|length")" "0"
+R=$(NOGET "$API/schools?city_id=$CITY"); DBG "$R"
+check "schools filter by city" "$(JQ "$R" "[.data[]|select(.city.id != $CITY)]|length")" "0"
+R=$(NOGET "$API/listings?city_id=$CITY&per_page=50"); DBG "$R"
+check "listings filter by city_id" "$(JQ "$R" '.data|type')" "array"
 SCHOOL=$(JQ "$(NOGET "$API/schools")" '.data[0].id')
 R=$(NOGET "$API/listings?school_id=$SCHOOL&max_km=3&sort=distance"); DBG "$R"
 check "near-school filter (distance_km)" "$(JQ "$R" '.data[0].distance_km != null')" "true"
@@ -150,6 +162,11 @@ CONV=$(JQ "$R" '.data.id')
 check "conversation created w/ listing" "$(JQ "$R" '.data.listing.id')" "$LID"
 R=$(POST "$TTOKEN" "$API/conversations" "{\"listing_id\":$LID}"); DBG "$R"
 check "get-or-create same id" "$(JQ "$R" '.data.id')" "$CONV"
+
+# Direct student-to-student conversation (from public profile, no listing).
+S2ID=$(JQ "$(NOPOST "$API/login" '{"email":"student2@example.com","password":"password"}')" '.data.user.id')
+R=$(POST "$TTOKEN" "$API/users/$S2ID/message" '{}'); DBG "$R"
+check "direct conversation get-or-create" "$(JQ "$R" '.data.listing == null and .data.other_user.id != null')" "true"
 R=$(POST "$TTOKEN" "$API/conversations/$CONV/messages" '{"body":"Phòng còn không ạ?"}'); DBG "$R"
 MSG1=$(JQ "$R" '.data.id')
 check "send text message is_mine" "$(JQ "$R" '.data.is_mine')" "true"
@@ -189,6 +206,14 @@ check "public reviews show student name" "$(JQ "$R" '.data[0].student.name != nu
 echo "=== STUDENT: AI pages (503 fallback or live AI, both OK) ==="
 R=$(POST "$TTOKEN" "$API/ai/roommates" '{}'); DBG "$R"
 check_ai "ai/roommates" "$R"
+
+# Public student profile (linked from Roommates results): PII-safe.
+MYID=$(JQ "$(GET "$TTOKEN" "$API/me")" '.data.id')
+R=$(NOGET "$API/users/$MYID"); DBG "$R"
+check "public student profile no email/phone" "$(JQ "$R" '(.data.email == null) and (.data.phone == null) and (.data.interests|type == "array")')" "true"
+LANDLORD_ID=$(JQ "$(NOPOST "$API/login" '{"email":"landlord1@example.com","password":"password"}')" '.data.user.id')
+R=$(NOGET "$API/users/$LANDLORD_ID"); DBG "$R"
+check "landlord public profile -> 404" "$(JQ "$R" '.message != null')" "true"
 R=$(POST "$TTOKEN" "$API/ai/area-suggestions" '{}'); DBG "$R"
 check_ai "ai/area-suggestions" "$R"
 R=$(POST "$TTOKEN" "$API/ai/chat" '{"message":"xin chao"}'); DBG "$R"

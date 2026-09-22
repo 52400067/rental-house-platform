@@ -14,7 +14,8 @@ use Illuminate\Http\Request;
 
 /**
  * Messaging (API_CONTRACT §4 - "Nhắn tin"). One conversation per (student,
- * listing) pair. Outsiders receive 404, not 403.
+ * listing) pair. Outsiders receive 404, not 403. Conversations can also be
+ * DIRECT (listing_id null) - started from a student's public profile.
  */
 class ConversationController extends Controller
 {
@@ -54,6 +55,35 @@ class ConversationController extends Controller
         );
 
         // Fresh read so the response matches the stored state.
+        return response()->json([
+            'data' => (new ConversationResource(
+                $conversation->fresh(['listing.coverImage', 'student', 'landlord', 'lastMessage'])
+            ))->resolve($request),
+        ], $conversation->wasRecentlyCreated ? 201 : 200);
+    }
+
+    /**
+     * POST /api/users/{user}/message (Student) - get-or-create a DIRECT
+     * conversation (listing_id null) with another student, from their
+     * public profile. Targets that are landlords or yourself are 404
+     * (consistent with the public-profile rules).
+     */
+    public function storeDirect(Request $request, User $user): JsonResponse
+    {
+        if ($user->role !== User::ROLE_STUDENT || $user->id === $request->user()->id) {
+            return response()->json([
+                'message' => 'Chỉ có thể nhắn tin cho sinh viên khác.',
+            ], 404);
+        }
+
+        $conversation = Conversation::firstOrCreate(
+            [
+                'listing_id' => null,
+                'student_id' => $request->user()->id,
+                'landlord_id' => $user->id,
+            ],
+        );
+
         return response()->json([
             'data' => (new ConversationResource(
                 $conversation->fresh(['listing.coverImage', 'student', 'landlord', 'lastMessage'])

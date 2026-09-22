@@ -41,6 +41,85 @@ class ConversationTest extends TestCase
     }
 
     // ------------------------------------------------------------------
+    // POST /users/{id}/message - direct student-to-student conversation
+    // ------------------------------------------------------------------
+
+    public function test_student_starts_direct_conversation_with_another_student(): void
+    {
+        $other = User::factory()->student()->create();
+
+        $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$other->id}/message")
+            ->assertStatus(201)
+            ->assertJsonPath('data.listing', null)
+            ->assertJsonPath('data.other_user.id', $other->id);
+
+        $this->assertDatabaseHas('conversations', [
+            'listing_id' => null,
+            'student_id' => $this->student->id,
+            'landlord_id' => $other->id,
+        ]);
+
+        // Get-or-create: calling again returns the same conversation (200).
+        $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$other->id}/message")
+            ->assertOk()
+            ->assertJsonPath('data.other_user.id', $other->id);
+    }
+
+    public function test_direct_conversation_rejects_landlord_and_self(): void
+    {
+        // Guest - unauthenticated (must run before any actingAs in this test).
+        $guest = User::factory()->student()->create();
+        $this->postJson("/api/users/{$guest->id}/message")
+            ->assertUnauthorized();
+
+        // Landlord target - 404 like the public profile.
+        $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$this->landlord->id}/message")
+            ->assertNotFound();
+
+        // Self - 404.
+        $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$this->student->id}/message")
+            ->assertNotFound();
+
+        // Landlord requester - role middleware 403.
+        $other = User::factory()->student()->create();
+        $this->actingAs($this->landlord, 'sanctum')
+            ->postJson("/api/users/{$other->id}/message")
+            ->assertForbidden();
+    }
+
+    public function test_direct_conversation_supports_messages_and_read(): void
+    {
+        $other = User::factory()->student()->create();
+
+        $conversationId = $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$other->id}/message")
+            ->json('data.id');
+
+        // Sender sends, then the other side sees it unread.
+        $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/conversations/{$conversationId}/messages", ['body' => 'Chào bạn!'])
+            ->assertStatus(201);
+
+        $this->actingAs($other, 'sanctum')
+            ->getJson('/api/conversations')
+            ->assertOk()
+            ->assertJsonPath('data.0.other_user.id', $this->student->id)
+            ->assertJsonPath('data.0.unread_count', 1);
+
+        // And both can chat + mark read like any conversation.
+        $this->actingAs($other, 'sanctum')
+            ->postJson("/api/conversations/{$conversationId}/messages", ['body' => 'Chào!'])
+            ->assertStatus(201);
+        $this->actingAs($other, 'sanctum')
+            ->postJson("/api/conversations/{$conversationId}/read")
+            ->assertOk();
+    }
+
+    // ------------------------------------------------------------------
     // POST /conversations - get-or-create
     // ------------------------------------------------------------------
 

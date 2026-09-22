@@ -29,7 +29,8 @@ Cần Backend chạy ở `:8000` (và AI service ở `:8001` cho các tính năn
 | `/favorites` | Phòng yêu thích (sinh viên) |
 | `/messages`, `/messages/:id` | Hộp thư, chat có đính kèm tệp, tự cập nhật 5 giây |
 | `/profile` | Hồ sơ cá nhân (cập nhật `PUT /profile`) |
-| `/ai/roommates` | AI gợi ý bạn cùng phòng (sinh viên) |
+| `/students/:id` | Hồ sơ công khai của sinh viên: chip sở thích, lối sống (từ kết quả Tìm bạn cùng phòng) |
+| `/ai/roommates` | AI gợi ý bạn cùng phòng (sinh viên), tên ứng viên link tới hồ sơ công khai |
 | `/ai/area-suggestions` | AI gợi ý khu vực (sinh viên) |
 | `/ai/chat` | Trợ lý AI (mọi user), hỗ trợ ngữ cảnh tin đăng qua `?listing_id=` |
 | `/landlord` | Quản lý tin đăng (chủ nhà): đổi trạng thái, xóa, sửa |

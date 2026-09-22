@@ -83,7 +83,7 @@ export default function Messages() {
                                     </span>
                                 </div>
                                 <div className="small text-secondary text-truncate">
-                                    {c.listing?.title || "Tin đăng"}
+                                    {c.listing?.title || "Trò chuyện trực tiếp"}
                                 </div>
                                 <div
                                     className={`small text-truncate ${

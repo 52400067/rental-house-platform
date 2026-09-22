@@ -35,6 +35,7 @@ class ConversationResource extends JsonResource
             'other_user' => $other ? [
                 'id' => $other->id,
                 'name' => $other->name,
+                'role' => $other->role, // student => link tới hồ sơ công khai
             ] : null,
             'last_message' => $conversation->lastMessage ? [
                 'body' => $conversation->lastMessage->body,
