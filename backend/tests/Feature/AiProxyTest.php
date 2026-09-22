@@ -53,6 +53,29 @@ class AiProxyTest extends TestCase
     }
 
     // ------------------------------------------------------------------
+    // GET /users/{id} - public student profile (linked from Roommates)
+    // ------------------------------------------------------------------
+
+    public function test_public_student_profile_is_pii_safe(): void
+    {
+        $student = $this->completeProfile(User::factory()->create(), [
+            'phone' => '0912345678',
+        ]);
+
+        $response = $this->getJson("/api/users/{$student->id}")
+            ->assertOk();
+
+        $data = $response->json('data');
+        $this->assertSame($student->id, $data['id']);
+        $this->assertSame(['music', 'gym'], $data['interests']);
+        $this->assertArrayNotHasKey('email', $data);
+        $this->assertArrayNotHasKey('phone', $data);
+
+        // Landlord has no public profile (privacy by design).
+        $this->getJson("/api/users/{$this->landlord->id}")->assertNotFound();
+    }
+
+    // ------------------------------------------------------------------
     // POST /ai/roommates
     // ------------------------------------------------------------------
 
@@ -65,6 +88,14 @@ class AiProxyTest extends TestCase
             'budget_max' => 3_500_000,
             'smoking' => false,
             'phone' => '0912345678',
+            'interests' => 'music,reading',
+        ]);
+
+        // Trùng 2 sở thích (music + gym) - phải xếp trên $match dù AI cho score thấp hơn.
+        $betterMatch = $this->completeProfile(User::factory()->create(), [
+            'budget_min' => 2_000_000,
+            'budget_max' => 3_500_000,
+            'interests' => 'music,gym,reading',
         ]);
 
         $outOfBudget = $this->completeProfile(User::factory()->create(), [
@@ -81,7 +112,9 @@ class AiProxyTest extends TestCase
                 // 999 is not a candidate id - must be dropped. 87 → out of
                 // budget, 88 → not looking; neither may appear in results.
                 'results' => [
+                    // AI xếp $match trước - Backend phải đổi thứ tự theo interests_shared.
                     ['id' => $match->id, 'score' => 92, 'reason' => 'Cùng thích âm nhạc.'],
+                    ['id' => $betterMatch->id, 'score' => 70, 'reason' => 'ok'],
                     ['id' => 999, 'score' => 99, 'reason' => 'fabricated'],
                     ['id' => $outOfBudget->id, 'score' => 88, 'reason' => 'nope'],
                     ['id' => $notLooking->id, 'score' => 87, 'reason' => 'nope'],
@@ -92,12 +125,20 @@ class AiProxyTest extends TestCase
         $response = $this->actingAs($this->student, 'sanctum')
             ->postJson('/api/ai/roommates')
             ->assertOk()
-            ->assertJsonCount(1, 'data');
+            ->assertJsonCount(2, 'data');
 
-        $row = $response->json('data.0');
-        $this->assertSame($match->id, $row['user_id']);
+        // betterMatch trùng 2 sở thích -> đầu tiên, dù AI cho score thấp hơn.
+        $this->assertSame([
+            $betterMatch->id,
+            $match->id,
+        ], array_column($response->json('data'), 'user_id'));
+
+        $row = $response->json('data.1');
         $this->assertSame(92, $row['score']);
         $this->assertSame('Cùng thích âm nhạc.', $row['reason']);
+        $this->assertSame(['music', 'reading'], $row['interests']);
+        // Requester has music,gym; match has music,reading -> shared = music.
+        $this->assertSame(['music'], $row['interests_shared']);
         $this->assertNotNull($row['name']);
         $this->assertNotNull($row['school']);
         $this->assertNotNull($row['phone']);

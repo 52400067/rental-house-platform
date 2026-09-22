@@ -51,6 +51,7 @@ class AiController extends Controller
 
         // The requester comes from the auth guard without eager loads.
         $me->load('school:id,name');
+        $myInterests = $this->interestList($me->interests);
 
         if ($candidates->isEmpty()) {
             return response()->json(['data' => []]);
@@ -77,10 +78,20 @@ class AiController extends Controller
                 'name' => $candidate->name,
                 'school' => $candidate->school?->name,
                 'phone' => $candidate->phone,
+                'interests' => $this->interestList($candidate->interests),
+                'interests_shared' => array_values(
+                    array_intersect($myInterests, $this->interestList($candidate->interests))
+                ),
                 'score' => is_numeric($row['score'] ?? null) ? (int) $row['score'] : 0,
                 'reason' => is_string($row['reason'] ?? null) ? $row['reason'] : '',
             ];
         }
+
+        // Ưu tiên ứng viên trùng nhiều sở thích nhất với người yêu cầu;
+        // hòa nhau thì theo score của AI, rồi theo id để ổn định.
+        usort($results, fn (array $a, array $b) => count($b['interests_shared']) <=> count($a['interests_shared'])
+            ?: $b['score'] <=> $a['score']
+            ?: $a['user_id'] <=> $b['user_id']);
 
         return response()->json(['data' => $results]);
     }
@@ -382,10 +393,18 @@ class AiController extends Controller
             'cleanliness' => $user->cleanliness !== null ? (int) $user->cleanliness : null,
             'smoking' => (bool) $user->smoking,
             'personality' => $user->personality,
-            'interests' => $user->interests !== null
-                ? array_values(array_filter(array_map('trim', explode(',', $user->interests))))
-                : [],
+            'interests' => $this->interestList($user->interests),
         ];
+    }
+
+    /** "music, gym" -> ["music", "gym"] (null -> []).
+     * @return list<string>
+     */
+    private function interestList(?string $csv): array
+    {
+        return $csv !== null
+            ? array_values(array_filter(array_map('trim', explode(',', $csv))))
+            : [];
     }
 
     private function profileComplete(User $user): bool

@@ -4,6 +4,7 @@ import { aiRoommates } from "../../api/aiApi";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import AiDisclaimer from "../../components/AiDisclaimer";
+import { hobbyLabels, HOBBY_LABELS } from "../../constants/hobbies.js";
 
 export default function Roommates() {
     const { user } = useAuth();
@@ -99,7 +100,14 @@ export default function Roommates() {
                                         </div>
                                         <div className="flex-grow-1">
                                             <div className="d-flex justify-content-between">
-                                                <strong>{r.name}</strong>
+                                                <strong>
+                                                    <Link
+                                                        to={`/students/${r.user_id}`}
+                                                        className="text-decoration-none"
+                                                    >
+                                                        {r.name}
+                                                    </Link>
+                                                </strong>
                                                 {r.phone && (
                                                     <a
                                                         href={`tel:${r.phone}`}
@@ -113,6 +121,40 @@ export default function Roommates() {
                                             <div className="small text-secondary mb-1">
                                                 {r.school || "Không rõ trường"}
                                             </div>
+                                            {(r.interests?.length ?? 0) > 0 && (
+                                                <div className="d-flex flex-wrap gap-1 mb-2">
+                                                    {hobbyLabels(r.interests.join(",")).map(
+                                                        (label) => {
+                                                            const shared = (r.interests_shared ?? []).some(
+                                                                (key) => (HOBBY_LABELS[key] || key) === label,
+                                                            );
+                                                            return (
+                                                                <span
+                                                                    key={label}
+                                                                    className={`badge rounded-pill ${shared ? "text-bg-success" : ""}`}
+                                                                    style={
+                                                                        shared
+                                                                            ? undefined
+                                                                            : {
+                                                                                  backgroundColor:
+                                                                                      "var(--bs-secondary-bg)",
+                                                                                  color: "var(--bs-secondary-color)",
+                                                                              }
+                                                                    }
+                                                                >
+                                                                    {label}
+                                                                </span>
+                                                            );
+                                                        },
+                                                    )}
+                                                </div>
+                                            )}
+                                            {(r.interests_shared?.length ?? 0) > 0 && (
+                                                <p className="small text-success mb-2">
+                                                    <i className="bi bi-hand-thumbs-up me-1" />
+                                                    Trùng {r.interests_shared.length} sở thích với bạn
+                                                </p>
+                                            )}
                                             <p className="small mb-0">{r.reason}</p>
                                         </div>
                                     </div>

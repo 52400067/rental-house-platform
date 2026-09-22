@@ -32,7 +32,7 @@ Vì vậy bạn expose **5 endpoint cùng tên, không tiền tố `/api`**:
 
 | Endpoint | Request (JSON) | Phải trả về (JSON, đúng shape hợp đồng §4) |
 |---|---|---|
-| `POST /roommates` | profile sinh viên (backend gửi sẵn) | `{ user_id, name, school, phone, score, reason }[]` - tối đa 5, score 0–100 giảm dần |
+| `POST /roommates` | profile sinh viên (backend gửi sẵn) | `{ user_id, name, school, phone, interests: string[], interests_shared: string[], score, reason }[]` - tối đa 5, score 0–100 giảm dần |
 | `POST /price-advice` | dữ liệu tin + stats | `{ listing_price, verdict, fair_min, fair_max, tips[], message, stats{count,min,median,max} }` - verdict: `high`/`fair`/`low` |
 | `POST /area-suggestions` | budget + school + priorities | `{ ward_id, name, reason, stats{...} }[]` - tối đa 3 |
 | `POST /chat` | `message`, `history[]`, `listing_id?` | `{ reply }` |

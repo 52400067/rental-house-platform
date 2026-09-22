@@ -71,7 +71,7 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 **Conversation (hội thoại)**
 ```json
 { "id": 33, "listing": { "id": 101, "title": "Phòng trọ gần ĐHQG", "cover_image": null },
-  "other_user": { "id": 5, "name": "Trần Thị B" },
+  "other_user": { "id": 5, "name": "Trần Thị B", "role": "student" },
   "last_message": { "body": "Phòng còn trống không ạ?", "created_at": "2026-09-20T08:30:00Z" },
   "unread_count": 2 }
 ```
@@ -104,17 +104,21 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 
 ### Dữ liệu tham chiếu (cho dropdown và bản đồ)
 
+Cascade địa lý: chọn Tỉnh/TP (34 đơn vị cấp tỉnh theo NQ 202/2025/QH15) trước,
+rồi lọc phường/xã và trường theo `city_id`.
+
 | Endpoint | Quyền | Trả về |
 |---|---|---|
-| `GET /wards` | Công khai | `data: [{ id, name, latitude, longitude }]` |
-| `GET /schools` | Công khai | `data: [{ id, name, latitude, longitude }]` |
+| `GET /cities` | Công khai | `data: [{ id, name, type: "city\|"province", latitude, longitude }]` (xếp theo tên A-Z) |
+| `GET /wards?city_id=` | Công khai | `data: [{ id, name, city: { id, name, type }, latitude, longitude }]` |
+| `GET /schools?city_id=` | Công khai | `data: [{ id, name, city: { id, name, type }, latitude, longitude }]` |
 | `GET /amenities` | Công khai | `data: [{ id, name }]` |
 
 ### Duyệt tin đăng
 
 | Endpoint | Quyền | Query | Trả về |
 |---|---|---|---|
-| `GET /listings` | Công khai | `q` (tiêu đề hoặc địa chỉ), `price_min`, `price_max`, `ward_id`, `type`, `amenity_ids[]` (phải có tất cả), `school_id` + `max_km` (lọc theo khoảng cách), `sort` = `newest` (mặc định), `price_asc`, `price_desc`, `distance` (cần `school_id`), `rating`, `page`, `per_page` | `Listing (tóm tắt)` có phân trang. Chỉ tin `available` |
+| `GET /listings` | Công khai | `q` (tiêu đề hoặc địa chỉ), `price_min`, `price_max`, `city_id` (qua ward của tin), `ward_id`, `type`, `amenity_ids[]` (phải có tất cả), `school_id` + `max_km` (lọc theo khoảng cách), `sort` = `newest` (mặc định), `price_asc`, `price_desc`, `distance` (cần `school_id`), `rating`, `page`, `per_page` | `Listing (tóm tắt)` có phân trang. Chỉ tin `available` |
 | `GET /listings/{id}` | Công khai | | `data: Listing (chi tiết)`. Tin `hidden`: trả 404 trừ chủ tin |
 | `GET /listings/{id}/reviews` | Công khai | `page` | `Review` có phân trang, mới nhất trước |
 
@@ -144,6 +148,7 @@ Với bản đồ, Frontend gọi `GET /listings` với cùng bộ lọc và `pe
 | Endpoint | Quyền | Body | Trả về |
 |---|---|---|---|
 | `POST /conversations` | Student | `listing_id` | `data: Conversation`. Nếu đã có thì trả hội thoại cũ |
+| `POST /users/{id}/message` | Student | không có | Get-or-create hội thoại **trực tiếp** giữa 2 sinh viên (không qua tin đăng, `listing` = null). Đích là chủ nhà hoặc chính mình → 404. Trả `201` khi tạo mới, `200` khi đã có |
 | `GET /conversations` | User | | `data: [Conversation]`, hoạt động mới nhất trước (không phân trang) |
 | `GET /conversations/{id}/messages` | Participant | `after_id` (tùy chọn, chỉ lấy tin mới hơn) | `data: [Message]` cũ nhất trước. Frontend có thể gọi lặp lại mỗi 5 giây |
 | `POST /conversations/{id}/messages` | Participant | JSON `{ body }` (tối đa 1000 ký tự), hoặc multipart `body` + `file` (pdf, jpg, png, docx, tối đa 5 MB) | 201 `data: Message` |
@@ -165,7 +170,8 @@ Các lệnh gọi này có thể mất đến khoảng 30 giây. Hãy hiển th�
 
 | Endpoint | Quyền | Body | Trả về |
 |---|---|---|---|
-| `POST /ai/roommates` | Student | không có | `data: [{ user_id, name, school, phone, score, reason }]` (tối đa 5, `score` từ 0 đến 100, cao nhất trước). 422 nếu hồ sơ sinh viên chưa đủ hoặc `looking_for_roommate` là false |
+| `GET /users/{id}` | Công khai | không có | `data: User` công khai của sinh viên (không có `email`/`phone`; `interests` là mảng key; chủ nhà → 404) |
+| `POST /ai/roommates` | Student | không có | `data: [{ user_id, name, school, phone, interests: string[], interests_shared: string[], score, reason }]` (tối đa 5, xếp theo `interests_shared` giảm dần - trùng nhiều sở thích nhất trước - rồi `score` từ 0 đến 100 cao nhất trước; `interests` là key sở thích để hiển thị chip, `interests_shared` là giao với người yêu cầu). 422 nếu hồ sơ sinh viên chưa đủ hoặc `looking_for_roommate` là false |
 | `POST /ai/price-advice` | Student | `listing_id` | `data: { listing_price, verdict, fair_min, fair_max, tips: [string], message, stats: { count, min, median, max } }`. `verdict` là `high`, `fair` hoặc `low`. `message` là đoạn tin nhắn mẫu để gửi cho chủ nhà |
 | `POST /ai/area-suggestions` | Student | `budget_min`, `budget_max`, `school_id`, `priorities[]` (đều tùy chọn, thiếu thì lấy từ hồ sơ) | `data: [{ ward_id, name, reason, stats: { listings_count, avg_price, avg_rating, distance_to_school_km } }]` (tối đa 3) |
 | `POST /ai/chat` | User | `message` (1-1000 ký tự), `history` (tùy chọn, 10 lượt gần nhất dạng `{ role: "user" hoặc "assistant", content }`), `listing_id` (tùy chọn, làm ngữ cảnh) | `data: { reply }`. Frontend giữ lịch sử và gửi lại mỗi lần |
