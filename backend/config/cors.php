@@ -19,6 +19,8 @@ return [
 
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:5173'),
+        // Local production-bundle smoke tests (vite preview).
+        env('FRONTEND_PREVIEW_URL', 'http://localhost:4173'),
     ],
 
     'allowed_origins_patterns' => [],

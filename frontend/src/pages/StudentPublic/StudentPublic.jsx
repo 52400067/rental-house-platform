@@ -5,6 +5,7 @@ import { formatVnd } from "../../api/format.js";
 import { startDirectConversation } from "../../api/socialApi";
 import { useAuth } from "../../context/AuthContext";
 import { hobbyLabels } from "../../constants/hobbies.js";
+import StudentPublicSkeleton from "../../components/ui/StudentPublicSkeleton";
 
 const SLEEP_LABELS = {
     early: "Ngủ sớm",
@@ -46,11 +47,7 @@ export default function StudentPublic() {
         );
     }
     if (!student) {
-        return (
-            <div className="container py-5 text-center">
-                <div className="spinner-border" role="status" />
-            </div>
-        );
+        return <StudentPublicSkeleton />;
     }
 
     const interests = hobbyLabels((student.interests || []).join(","));

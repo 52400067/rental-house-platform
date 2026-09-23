@@ -11,6 +11,7 @@ import { aiDescription } from "../../api/aiApi";
 import { TYPE_LABELS, formatVnd } from "../../api/format";
 import { errMessage } from "../../api/axiosClient";
 import CoordinatePicker from "../../components/CoordinatePicker";
+import { useToast } from "../../components/ui/Toast";
 
 const TYPE_OPTIONS = Object.entries(TYPE_LABELS);
 
@@ -18,6 +19,7 @@ export default function ListingForm() {
     const { id } = useParams();
     const isEdit = !!id;
     const navigate = useNavigate();
+    const toast = useToast();
 
     const [wards, setWards] = useState([]);
     const [cities, setCities] = useState([]);
@@ -197,8 +199,9 @@ export default function ListingForm() {
         try {
             await deleteImage(id, imageId);
             setImages((rows) => rows.filter((i) => i.id !== imageId));
+            toast.success("Đã xóa ảnh.");
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         }
     }
 
@@ -224,10 +227,10 @@ export default function ListingForm() {
         );
 
     return (
-        <div className="py-4">
+        <div className="py-4 landlord-scope">
             <div className="container" style={{ maxWidth: 820 }}>
                 <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h1 className="h3 fw-bold mb-0">
+                    <h1 className="h3 fw-bold mb-0 landlord-heading">
                         {isEdit ? "Sửa tin đăng" : "Đăng tin mới"}
                     </h1>
                     <Link to="/landlord" className="btn btn-outline-secondary btn-sm">

@@ -4,6 +4,7 @@ import { getSchools } from "../../api/listingApi";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import { HOBBIES, HOBBY_LABELS } from "../../constants/hobbies.js";
+import FormSkeleton from "../../components/ui/FormSkeleton";
 
 const SLEEP = [
     ["", "Chọn..."],
@@ -59,8 +60,15 @@ export default function Profile() {
 
     if (!form) {
         return (
-            <div className="container py-5 text-center">
-                <div className="spinner-border" role="status" />
+            <div className="py-4">
+                <div className="container" style={{ maxWidth: 720 }}>
+                    <div className="skeleton mb-2" style={{ height: 26, width: 180 }} />
+                    <div
+                        className="skeleton mb-4"
+                        style={{ height: 14, width: 220 }}
+                    />
+                    <FormSkeleton />
+                </div>
             </div>
         );
     }

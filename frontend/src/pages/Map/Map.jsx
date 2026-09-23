@@ -5,11 +5,10 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getListings, getSchools, getCities } from "../../api/listingApi";
 import { TYPE_LABELS, formatPriceTrieu } from "../../api/format";
-import "../../styles/map.css";
 
 // Markers as inline divIcons - no external image assets needed.
 const roomIcon = L.divIcon({
-    html: '<i class="bi bi-geo-alt-fill" style="color:#0f766e;font-size:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))"></i>',
+    html: '<i class="bi bi-geo-alt-fill" style="color:#9a4630;font-size:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))"></i>',
     className: "",
     iconSize: [26, 26],
     iconAnchor: [13, 26],

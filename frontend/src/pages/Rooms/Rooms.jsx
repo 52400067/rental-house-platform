@@ -12,7 +12,9 @@ import { useAuth } from "../../context/AuthContext";
 import * as socialApi from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";
 import ListingCard from "../../components/ListingCard";
+import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
 import Pagination from "../../components/Pagination";
+import { useToast } from "../../components/ui/Toast";
 
 const TYPE_OPTIONS = [
     ["", "Tất cả loại"],
@@ -31,6 +33,7 @@ const SORT_OPTIONS = [
 
 export default function Rooms() {
     const { user } = useAuth();
+    const toast = useToast();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const [schools, setSchools] = useState([]);
@@ -148,8 +151,10 @@ export default function Rooms() {
         try {
             if (listing.is_favorited) {
                 await socialApi.removeFavorite(listing.id);
+                toast.info("Đã bỏ phòng khỏi danh sách yêu thích.");
             } else {
                 await socialApi.addFavorite(listing.id);
+                toast.success("Đã thêm phòng vào danh sách yêu thích.");
             }
             setListings((rows) =>
                 rows.map((l) =>
@@ -159,7 +164,7 @@ export default function Rooms() {
                 )
             );
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         }
     }
 
@@ -417,8 +422,8 @@ export default function Rooms() {
                     {/* RESULTS */}
                     <div className="col-lg-9">
                         {loading ? (
-                            <div className="text-center py-5">
-                                <div className="spinner-border" role="status" />
+                            <div className="row g-4">
+                                <ListingGridSkeleton count={6} />
                             </div>
                         ) : error ? (
                             <div className="alert alert-warning">{error}</div>

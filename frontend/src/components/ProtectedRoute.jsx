@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import PageSkeleton from "./ui/PageSkeleton";
 
 /**
  * Route guard. `roles` optionally limits by user role
@@ -10,11 +11,7 @@ export default function ProtectedRoute({ roles, children }) {
     const location = useLocation();
 
     if (loading) {
-        return (
-            <div className="container py-5 text-center">
-                <div className="spinner-border" role="status" />
-            </div>
-        );
+        return <PageSkeleton />;
     }
 
     if (!user) {

@@ -4,6 +4,8 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./components/ui/Toast";
+import BackToTop from "./components/ui/BackToTop";
 
 import Home from "./pages/Home/Home";
 import Rooms from "./pages/Rooms/Rooms";
@@ -29,101 +31,104 @@ export default function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                <Navbar />
-                <main className="flex-grow-1">
-                    <Routes>
-                        {/* Public */}
-                        <Route path="/" element={<Home />} />
-                        <Route path="/rooms" element={<Rooms />} />
-                        <Route path="/rooms/:id" element={<RoomDetail />} />
-                        <Route path="/map" element={<Map />} />
-                        <Route path="/students/:id" element={<StudentPublic />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route path="/ai/chat" element={<AiChat />} />
+                <ToastProvider>
+                    <Navbar />
+                    <main className="flex-grow-1">
+                        <Routes>
+                            {/* Public */}
+                            <Route path="/" element={<Home />} />
+                            <Route path="/rooms" element={<Rooms />} />
+                            <Route path="/rooms/:id" element={<RoomDetail />} />
+                            <Route path="/map" element={<Map />} />
+                            <Route path="/students/:id" element={<StudentPublic />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+                            <Route path="/ai/chat" element={<AiChat />} />
 
-                        {/* Any authenticated user */}
-                        <Route
-                            path="/messages"
-                            element={
-                                <ProtectedRoute>
-                                    <Messages />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/messages/:id"
-                            element={
-                                <ProtectedRoute>
-                                    <ConversationDetail />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/profile"
-                            element={
-                                <ProtectedRoute>
-                                    <Profile />
-                                </ProtectedRoute>
-                            }
-                        />
+                            {/* Any authenticated user */}
+                            <Route
+                                path="/messages"
+                                element={
+                                    <ProtectedRoute>
+                                        <Messages />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/messages/:id"
+                                element={
+                                    <ProtectedRoute>
+                                        <ConversationDetail />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/profile"
+                                element={
+                                    <ProtectedRoute>
+                                        <Profile />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        {/* Student only */}
-                        <Route
-                            path="/favorites"
-                            element={
-                                <ProtectedRoute roles={["student"]}>
-                                    <Favorites />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/ai/roommates"
-                            element={
-                                <ProtectedRoute roles={["student"]}>
-                                    <Roommates />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/ai/area-suggestions"
-                            element={
-                                <ProtectedRoute roles={["student"]}>
-                                    <AreaSuggestions />
-                                </ProtectedRoute>
-                            }
-                        />
+                            {/* Student only */}
+                            <Route
+                                path="/favorites"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <Favorites />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/ai/roommates"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <Roommates />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/ai/area-suggestions"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <AreaSuggestions />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        {/* Landlord only */}
-                        <Route
-                            path="/landlord"
-                            element={
-                                <ProtectedRoute roles={["landlord"]}>
-                                    <MyListings />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/landlord/new"
-                            element={
-                                <ProtectedRoute roles={["landlord"]}>
-                                    <ListingForm />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/landlord/edit/:id"
-                            element={
-                                <ProtectedRoute roles={["landlord"]}>
-                                    <ListingForm />
-                                </ProtectedRoute>
-                            }
-                        />
+                            {/* Landlord only */}
+                            <Route
+                                path="/landlord"
+                                element={
+                                    <ProtectedRoute roles={["landlord"]}>
+                                        <MyListings />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/landlord/new"
+                                element={
+                                    <ProtectedRoute roles={["landlord"]}>
+                                        <ListingForm />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/landlord/edit/:id"
+                                element={
+                                    <ProtectedRoute roles={["landlord"]}>
+                                        <ListingForm />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                </main>
-                <Footer />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </main>
+                    <Footer />
+                    <BackToTop />
+                </ToastProvider>
             </AuthProvider>
         </BrowserRouter>
     );

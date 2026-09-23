@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { getFavorites, removeFavorite } from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";
 import ListingCard from "../../components/ListingCard";
+import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
 import Pagination from "../../components/Pagination";
+import { useToast } from "../../components/ui/Toast";
 
 export default function Favorites() {
+    const toast = useToast();
     const [listings, setListings] = useState([]);
     const [meta, setMeta] = useState(null);
     const [page, setPage] = useState(1);
@@ -33,7 +36,7 @@ export default function Favorites() {
             await removeFavorite(listing.id);
             setListings((rows) => rows.filter((l) => l.id !== listing.id));
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         }
     }
 
@@ -47,8 +50,8 @@ export default function Favorites() {
                 </p>
 
                 {loading && (
-                    <div className="text-center py-5">
-                        <div className="spinner-border" role="status" />
+                    <div className="row g-4">
+                        <ListingGridSkeleton count={6} />
                     </div>
                 )}
 

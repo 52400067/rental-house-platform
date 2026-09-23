@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getConversations } from "../../api/socialApi";
 import { timeAgo } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
+import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
 
 export default function Messages() {
     const { user } = useAuth();
@@ -25,11 +26,7 @@ export default function Messages() {
                     Tin nhắn
                 </h1>
 
-                {loading && (
-                    <div className="text-center py-5">
-                        <div className="spinner-border" role="status" />
-                    </div>
-                )}
+                {loading && <ListRowsSkeleton count={6} />}
 
                 {error && <div className="alert alert-warning">{error}</div>}
 

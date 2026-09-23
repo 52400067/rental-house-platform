@@ -55,3 +55,8 @@ storage/*.key
 # ===== Không bao giờ commit khóa DB/API thật =====
 *.sql.dump
 *.dump
+
+# AI tooling (personal, not project code)
+.agents/
+.claude/
+skills-lock.json

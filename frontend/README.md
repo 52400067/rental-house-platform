@@ -54,8 +54,39 @@ DEBUG=1 bash frontend/e2e-smoke.sh                     # in raw response
 
 Script chạy lại được nhiều lần không cần seed lại (tự tạo tài khoản test mới mỗi lần và tự dọn fixture). Kết quả mong đợi: `ALL GREEN`.
 
+## Kiểm thử E2E qua trình duyệt
+
+Ngoài smoke test qua API ở trên, `npm run test:e2e` chạy **trình duyệt thật** (Chromium headless qua Playwright) đi hết hành trình người dùng trên giao diện thật: vào trang chủ → tìm kiếm → đăng nhập → xem phòng → yêu thích → mở chat **và gửi tin nhắn thật** → yêu thích/hồ sơ → đăng xuất, kèm kiểm tra responsive mobile 390px và bắt lỗi console.
+
+```bash
+# Cần frontend (:5173) và backend (:8000) đang chạy và đã seed.
+# Cài Playwright (một lần) và dùng Chromium hệ thống:
+pip install --user playwright
+
+npm run test:e2e        # hoặc: python3 .browser-check/e2e-journey.py
+```
+
+Biến môi trường hữu dụng:
+
+```bash
+APP_URL=http://localhost:5173 API_URL=http://localhost:8000 \
+E2E_EMAIL=student1@example.com E2E_PASSWORD=password \
+CHROME_PATH=/usr/bin/chromium-browser npm run test:e2e
+```
+
+Kết quả mong đợi: `all checks passed` (13/13 mục `[OK]`). Ảnh chụp màn hình các bước nằm trong `.browser-check/shots/e2e-*.png`.
+
+Hai script kiểm thử bổ sung:
+
+```bash
+npm run test:skeletons   # giữ API treo (route interception) để xác nhận skeleton hiển thị + shimmer chạy, sau đó trang render nội dung thật
+npm run test:prod        # smoke test bản build production (vite preview :4173) - kiểm tra bundle minified, font, lỗi console
+```
+
+`test:prod` cần origin `http://localhost:4173` trong CORS backend (`FRONTEND_PREVIEW_URL`, đã cấu hình mặc định).
+
 ## Ghi chú kỹ thuật
 
 - Token lưu `localStorage` (`token`, `user`); tự xóa khi nhận 401.
 - Màu thương hiệu nằm ở `src/styles/theme.css` (biến `--brand`) - đổi một chỗ là đổi cả app.
-- Style cố tình tối giản (barebone): dùng utility của Bootstrap, ít CSS tự viết.
+- Design system "sổ tay thuê trọ": giấy ấm + mực xanh ngọc, amber cho đánh giá/flag, font Bricolage Grotesque (tiêu đề), Be Vietnam Pro (thân) và IBM Plex Mono (số liệu) - tự host qua Fontsource, không CDN. Toàn bộ style nằm trong `theme.css`.

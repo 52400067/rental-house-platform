@@ -13,8 +13,11 @@ import {
 } from "../../api/format";
 import { errMessage } from "../../api/axiosClient";
 import Pagination from "../../components/Pagination";
+import { useToast } from "../../components/ui/Toast";
+import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
 
 export default function MyListings() {
+    const toast = useToast();
     const [listings, setListings] = useState([]);
     const [meta, setMeta] = useState(null);
     const [page, setPage] = useState(1);
@@ -46,9 +49,10 @@ export default function MyListings() {
             return;
         try {
             await deleteListing(listing.id);
+            toast.success("Đã xóa tin đăng.");
             load(page);
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         }
     }
 
@@ -58,16 +62,17 @@ export default function MyListings() {
             setListings((rows) =>
                 rows.map((l) => (l.id === listing.id ? updated : l))
             );
+            toast.success("Đã cập nhật trạng thái tin đăng.");
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         }
     }
 
     return (
-        <div className="py-4">
+        <div className="py-4 landlord-scope">
             <div className="container">
                 <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                    <div>
+                    <div className="landlord-heading">
                         <h1 className="h3 fw-bold mb-0">Tin đăng của tôi</h1>
                         <span className="text-secondary small">
                             {meta ? `${meta.total} tin` : ""}
@@ -95,9 +100,7 @@ export default function MyListings() {
                 </div>
 
                 {loading && (
-                    <div className="text-center py-5">
-                        <div className="spinner-border" role="status" />
-                    </div>
+                    <ListRowsSkeleton count={5} thumbWidth={72} thumbHeight={54} actions />
                 )}
 
                 {error && <div className="alert alert-warning">{error}</div>}
@@ -116,7 +119,7 @@ export default function MyListings() {
                     {listings.map((l) => (
                         <div
                             key={l.id}
-                            className="list-group-item d-flex gap-3 align-items-center"
+                            className="list-group-item listing-row d-flex gap-3 align-items-center"
                         >
                             {l.cover_image ? (
                                 <img

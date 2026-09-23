@@ -2,15 +2,18 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
     return (
-        <footer className="border-top mt-5 py-4 bg-light">
+        <footer className="footer mt-5 py-5">
             <div className="container">
                 <div className="row g-4">
                     <div className="col-lg-4">
-                        <h5 className="fw-bold" style={{ color: "var(--brand)" }}>
-                            <i className="bi bi-house-heart-fill me-1" />
+                        <h5 className="footer-brand fw-bold mb-2">
+                            <i
+                                className="bi bi-house-heart-fill me-1"
+                                style={{ color: "var(--brand-soft)" }}
+                            />
                             TroTot
                         </h5>
-                        <p className="small text-secondary mb-0">
+                        <p className="small mb-0" style={{ color: "#b5bcd2" }}>
                             Nền tảng tìm kiếm và đăng phòng trọ dành cho sinh viên
                             và chủ nhà.
                         </p>
@@ -46,18 +49,12 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link
-                                    to="/ai/roommates"
-                                    className="text-decoration-none"
-                                >
+                                <Link to="/ai/roommates" className="text-decoration-none">
                                     Tìm bạn cùng phòng
                                 </Link>
                             </li>
                             <li>
-                                <Link
-                                    to="/ai/area-suggestions"
-                                    className="text-decoration-none"
-                                >
+                                <Link to="/ai/area-suggestions" className="text-decoration-none">
                                     Gợi ý khu vực
                                 </Link>
                             </li>
@@ -81,9 +78,10 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <hr />                    <p className="small text-secondary text-center mb-0">
-                        © 2026 TroTot. Bảo lưu mọi quyền.
-                    </p>
+                <hr />
+                <p className="small text-center mb-0" style={{ color: "#8d94a8" }}>
+                    © 2026 TroTot. Bảo lưu mọi quyền.
+                </p>
             </div>
         </footer>
     );

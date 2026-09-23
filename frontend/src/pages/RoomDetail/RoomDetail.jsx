@@ -19,11 +19,14 @@ import { useAuth } from "../../context/AuthContext";
 import { errMessage } from "../../api/axiosClient";
 import AiDisclaimer from "../../components/AiDisclaimer";
 import Pagination from "../../components/Pagination";
+import { useToast } from "../../components/ui/Toast";
+import RoomDetailSkeleton from "../../components/ui/RoomDetailSkeleton";
 
 export default function RoomDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const toast = useToast();
 
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -94,8 +97,11 @@ export default function RoomDetail() {
                 await socialApi.addFavorite(listing.id);
             }
             setListing((l) => ({ ...l, is_favorited: !l.is_favorited }));
+            toast.success(
+                listing.is_favorited ? "Đã bỏ khỏi yêu thích." : "Đã thêm vào yêu thích."
+            );
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         }
     }
 
@@ -105,7 +111,7 @@ export default function RoomDetail() {
             const conv = await socialApi.startConversation(listing.id);
             navigate(`/messages/${conv.id}`);
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         } finally {
             setChatBusy(false);
         }
@@ -130,19 +136,17 @@ export default function RoomDetail() {
             await createReview(listing.id, reviewForm);
             setListing((l) => ({ ...l, can_review: false }));
             loadReviews(1);
+            toast.success("Cảm ơn bạn đã đánh giá!");
         } catch (err) {
-            alert(errMessage(err));
+            toast.error(errMessage(err));
         } finally {
             setReviewBusy(false);
         }
     }
 
+
     if (loading) {
-        return (
-            <div className="container py-5 text-center">
-                <div className="spinner-border" role="status" />
-            </div>
-        );
+        return <RoomDetailSkeleton />;
     }
 
     if (error || !listing) {

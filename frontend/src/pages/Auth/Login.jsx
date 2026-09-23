@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { errMessage } from "../../api/axiosClient";
-import "../../styles/auth.css";
 
 export default function Login() {
     const { login } = useAuth();
@@ -31,9 +30,36 @@ export default function Login() {
 
     return (
         <div className="auth-page">
-            <div className="container">
-                <div className="row justify-content-center">
-                    <div className="col-lg-5 col-md-7">
+            <div className="auth-split">
+                {/* Visual pane (decorative) */}
+                <aside className="auth-visual d-none d-lg-flex" aria-hidden="true">
+                    <h2 className="mb-2">
+                        Sổ tay thuê trọ<br />
+                        của bạn.
+                    </h2>
+                    <p className="mb-4" style={{ color: "#b5bcd2", maxWidth: 420 }}>
+                        Ghi lại phòng ưng ý, hỏi chủ trọ trực tiếp, nhận gợi ý
+                        phù hợp — tất cả trong một nơi.
+                    </p>
+                    <div className="d-flex flex-column gap-2" style={{ maxWidth: 420 }}>
+                        <div className="auth-point">
+                            <i className="bi bi-geo-alt" />
+                            <span>Tin đăng kèm khoảng cách tới trường của bạn</span>
+                        </div>
+                        <div className="auth-point">
+                            <i className="bi bi-chat-dots" />
+                            <span>Nhắn tin trực tiếp với chủ trọ, không qua trung gian</span>
+                        </div>
+                        <div className="auth-point">
+                            <i className="bi bi-robot" />
+                            <span>Gợi ý khu vực và bạn cùng phòng do AI tham khảo</span>
+                        </div>
+                    </div>
+                </aside>
+
+                {/* Form pane */}
+                <div className="auth-page-mobile d-flex align-items-center justify-content-center">
+                    <div className="w-100" style={{ maxWidth: 460 }}>
                         <div className="auth-card">
                             <div className="text-center mb-3">
                                 <Link to="/" className="auth-logo-link">
@@ -88,6 +114,11 @@ export default function Login() {
                                             className="btn btn-outline-secondary"
                                             onClick={() => setShowPassword(!showPassword)}
                                             tabIndex={-1}
+                                            aria-label={
+                                                showPassword
+                                                    ? "Ẩn mật khẩu"
+                                                    : "Hiện mật khẩu"
+                                            }
                                         >
                                             <i
                                                 className={

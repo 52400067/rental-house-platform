@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import * as bootstrap from "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { useAuth } from "../../context/AuthContext";
 import { getConversations } from "../../api/socialApi";
-import "../../styles/navbar.css";
 
 export default function Navbar() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const [unread, setUnread] = useState(0);
+    const [scrolled, setScrolled] = useState(false);
     const timerRef = useRef(null);
 
     // Total unread badge = sum of unread_count from GET /conversations.
@@ -37,13 +38,34 @@ export default function Navbar() {
         };
     }, [user]);
 
+    // Elevation once the page scrolls (paper lifts off the ruled background).
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 8);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, []);
+
+    // Close the mobile menu after navigating (Bootstrap keeps it open).
+    useEffect(() => {
+        if (window.innerWidth >= 992) return undefined;
+        const el = document.getElementById("navbarContent");
+        if (!el) return undefined;
+        const inst = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+        const hide = () => inst.hide();
+        el.addEventListener("click", hide);
+        return () => el.removeEventListener("click", hide);
+    }, []);
+
     async function handleLogout() {
         await logout();
         navigate("/");
     }
 
     return (
-        <nav className="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+        <nav
+            className={`navbar navbar-expand-lg sticky-top${scrolled ? " is-scrolled" : ""}`}
+        >
             <div className="container">
                 <Link className="navbar-brand fw-bold" to="/">
                     <i className="bi bi-house-heart-fill me-1" style={{ color: "var(--brand)" }} />
@@ -55,6 +77,7 @@ export default function Navbar() {
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#navbarContent"
+                    aria-label="Mở menu điều hướng"
                 >
                     <span className="navbar-toggler-icon" />
                 </button>
