@@ -414,6 +414,18 @@ main { flex: 1 0 auto; }
     font-variant-numeric: tabular-nums;
 }
 
+/* Post titles read as ink (#1f1e1d), not link-rust: they are headings
+   first, links second. Hover warms them to the book-cloth rust so the
+   click affordance is preserved. */
+.listing-card .card-title a,
+.landlord-scope .listing-row a.fw-semibold {
+    color: var(--ink);
+}
+.listing-card .card-title a:hover,
+.landlord-scope .listing-row a.fw-semibold:hover {
+    color: var(--brand-dark);
+}
+
 /* Amber index tab on new listings (JS toggles .is-new) */
 .listing-card.is-new .card-body::before {
     content: "NEW";
