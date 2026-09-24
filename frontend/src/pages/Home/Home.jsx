@@ -30,7 +30,10 @@ export default function Home() {
             <section className="hero-section">
                 <div className="container position-relative">
                     <div className="hero-stack text-center mx-auto" style={{ maxWidth: 720 }}>
-                        <p className="hero-kicker">Dành cho sinh viên toàn quốc</p>
+                        <span className="eyebrow">
+                            <i className="bi bi-geo-alt-fill" />
+                            Dành cho sinh viên toàn quốc
+                        </span>
                         <h1 className="display-5 fw-bold hero-title">
                             Ghi lại phòng ưng ý,
                             <br className="d-none d-sm-inline" />{" "}
@@ -67,17 +70,17 @@ export default function Home() {
                             </button>
                         </form>
 
-                        <ul className="hero-perks">
-                            <li>
+                        <div className="hero-chips d-flex flex-wrap justify-content-center gap-2">
+                            <span className="hero-chip">
                                 <i className="bi bi-shield-check" /> Tin đăng được duyệt
-                            </li>
-                            <li>
+                            </span>
+                            <span className="hero-chip">
                                 <i className="bi bi-lightning-charge" /> Nhắn tin trực tiếp
-                            </li>
-                            <li>
+                            </span>
+                            <span className="hero-chip">
                                 <i className="bi bi-robot" /> Trợ lý AI miễn phí
-                            </li>
-                        </ul>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </section>

@@ -107,7 +107,8 @@ h1.fw-bold, h2.fw-bold, h3.fw-bold {
    utilities (.h4/.h5/.h6) still apply on any heading level. */
 h4, h5, h6,
 h1.h4, h1.h5, h1.h6, h2.h4, h2.h5, h2.h6,
-h4.fw-bold, h5.fw-bold, h6.fw-bold {
+h4.fw-bold, h5.fw-bold, h6.fw-bold,
+.card-header, .modal-title {
     font-family: var(--font-body);
     letter-spacing: 0;
     font-weight: 600 !important;
@@ -121,7 +122,7 @@ h4.fw-bold, h5.fw-bold, h6.fw-bold {
 }
 
 /* Tabular numbers everywhere numbers matter */
-.price, .stat-num, .page-link, .badge,
+.hero-chip, .price, .stat-num, .page-link, .badge,
 .listing-price, .chat-time, .chat-day > span {
     font-variant-numeric: tabular-nums;
 }
@@ -502,8 +503,8 @@ main { flex: 1 0 auto; }
 .hero-stack > * {
     margin: 0 !important;
 }
-.hero-stack > .hero-kicker {
-    margin-bottom: 1rem !important;
+.hero-stack > .eyebrow {
+    margin-bottom: 1.1rem !important;
 }
 .hero-stack > .hero-title {
     margin-bottom: 1.1rem !important;
@@ -520,7 +521,7 @@ main { flex: 1 0 auto; }
     margin-bottom: 1.5rem !important;
     width: 100%;
 }
-.hero-stack > .hero-perks {
+.hero-stack > .hero-chips {
     margin-bottom: 0 !important;
 }
 @media (max-width: 575.98px) {
@@ -587,46 +588,37 @@ main { flex: 1 0 auto; }
     border-color: var(--brand);
 }
 
-/* Hero kicker: small caps flanked by hairlines - typographic, no box.
-   The search field stays the ONLY boxed element in the hero. */
-.hero-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.9rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--brand-dark);
-}
-.hero-kicker::before,
-.hero-kicker::after {
-    content: "";
-    width: 2.4rem;
-    height: 1px;
-    background: var(--line-strong);
-}
-
-/* Perks: quiet text row, dot-ish gaps instead of chip boxes */
-.hero-perks {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.35rem 1.4rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.85rem;
-    color: var(--muted);
-}
-.hero-perks li {
+/* Eyebrow labels: index-card tab feel */
+.eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--brand-dark);
+    background: var(--brand-softer);
+    border: 1px solid var(--brand-soft);
+    border-radius: 999px;
+    padding: 0.28rem 0.85rem;
 }
-.hero-perks .bi {
+
+/* Quick stat chips */
+.hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.9);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.875rem;
+    color: var(--muted);
+}
+.hero-chip .bi {
     color: var(--brand);
-    font-size: 0.95rem;
 }
 
 /* ---------------------------------------------------------
