@@ -38,11 +38,11 @@ with sync_playwright() as p:
 
     nav_link = page.locator(".navbar .nav-link").first
     link_color = nav_link.evaluate("el => getComputedStyle(el).color")
-    # First link may be active (white) or resting (light lilac) depending
-    # on the current route - both are correct dark-bar states.
+    # First link may be active (navy on lime pill) or resting (light)
+    # depending on the current route - both are correct dark-bar states.
     check(
         "nav links are light",
-        link_color in ("rgb(245, 245, 242)", "rgb(255, 255, 255)"),
+        link_color in ("rgb(232, 233, 238)", "rgb(255, 255, 255)", "rgb(25, 26, 35)"),
         link_color,
     )
 
@@ -78,13 +78,13 @@ with sync_playwright() as p:
     footer_bg = page.locator("footer").evaluate("el => getComputedStyle(el).backgroundColor")
     check("footer is navy-black", footer_bg == "rgb(25, 26, 35)", footer_bg)
 
-    # Emerald active-nav underline
+    # Active nav is a lime pill (replaces the old underline check)
     page.goto(BASE + "/rooms", wait_until="domcontentloaded")
     page.wait_for_timeout(800)
-    underline = page.locator(".navbar .nav-link.active").first.evaluate(
-        "el => getComputedStyle(el, '::after').backgroundColor"
+    active_bg = page.locator(".navbar .nav-link.active").first.evaluate(
+        "el => getComputedStyle(el).backgroundColor"
     )
-    check("active underline lime", underline == "rgb(185, 255, 102)", underline)
+    check("active nav pill lime", active_bg == "rgb(185, 255, 102)", active_bg)
 
     page.goto(BASE + "/", wait_until="networkidle")
     page.screenshot(path=SHOTS + "recolor-home.png", full_page=True)
