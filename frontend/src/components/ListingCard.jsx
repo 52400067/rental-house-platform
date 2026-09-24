@@ -83,7 +83,7 @@ export default function ListingCard({ listing, onToggleFavorite, isNew }) {
                     )}
                     {listing.avg_rating != null && (
                         <span>
-                            <i className="bi bi-star-fill me-1" style={{ color: "var(--ink)" }} />
+                            <i className="bi bi-star-fill me-1" style={{ color: "var(--brand)" }} />
                             {listing.avg_rating} ({listing.reviews_count})
                         </span>
                     )}
