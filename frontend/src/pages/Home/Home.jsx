@@ -49,8 +49,8 @@ export default function Home() {
                             Bootstrap's input-group radius resets don't apply.
                             Icon-only submit: the action is universal. */}
                         <form className="hero-search d-flex" onSubmit={submitSearch}>
-                            <span className="input-group-text bg-white border-end-0 ps-3">
-                                <i className="bi bi-search text-secondary" />
+                            <span className="input-group-text border-end-0 ps-3">
+                                <i className="bi bi-search" />
                             </span>
                             <input
                                 type="search"
