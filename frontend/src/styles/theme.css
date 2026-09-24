@@ -913,18 +913,9 @@ main { flex: 1 0 auto; }
 .chat-row.mine {
     justify-content: flex-end;
 }
-.chat-row.first:not(.mine) .chat-bubble { border-top-left-radius: 0.25rem; }
-.chat-row.last:not(.mine) .chat-bubble  { border-bottom-left-radius: 0.25rem; }
-.chat-row.first.mine .chat-bubble { border-top-right-radius: 0.25rem; }
-.chat-row.last.mine .chat-bubble  { border-bottom-right-radius: 0.25rem; }
-.chat-row:not(.first):not(.last) .chat-bubble {
-    border-top-left-radius: 0.25rem;
-    border-bottom-left-radius: 0.25rem;
-}
-.chat-row.mine:not(.first):not(.last) .chat-bubble {
-    border-top-right-radius: 0.25rem;
-    border-bottom-right-radius: 0.25rem;
-}
+/* ONE shape for every bubble, no exceptions: uniform 1.1rem corners.
+   The old first/last tail-corner rules made mid-thread bubbles grow
+   two square corners - bubbles looked like different components. */
 .chat-row + .chat-row.same-day-gap {
     margin-top: 0.75rem;
 }
@@ -932,18 +923,18 @@ main { flex: 1 0 auto; }
     max-width: min(75%, 34rem);
     padding: 0.45rem 0.8rem;
     border-radius: 1.1rem;
+    border: 1px solid var(--line-strong);
     font-size: 0.925rem;
     line-height: 1.35;
     overflow-wrap: anywhere;
 }
+/* Same border everywhere; only the fill flips (lime = mine). */
 .chat-row:not(.mine) .chat-bubble {
     background: var(--paper-raised);
-    border: 1px solid var(--line);
     color: var(--ink);
 }
 .chat-row.mine .chat-bubble {
     background: var(--brand);
-    border: 1px solid var(--ink);
     color: var(--ink);
 }
 .chat-attachment {
