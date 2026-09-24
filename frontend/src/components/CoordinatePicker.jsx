@@ -39,8 +39,9 @@ export async function reverseGeocode(lat, lng) {
     }
 }
 
+// Red pin (var(--danger)) to match the map page markers.
 const brandIcon = L.divIcon({
-    html: '<i class="bi bi-geo-alt-fill" style="color:#9a4630;font-size:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))"></i>',
+    html: '<i class="bi bi-geo-alt-fill" style="color:var(--danger);font-size:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))"></i>',
     className: "",
     iconSize: [30, 30],
     iconAnchor: [15, 30],

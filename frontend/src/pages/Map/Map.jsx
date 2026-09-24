@@ -7,8 +7,9 @@ import { getListings, getSchools, getCities } from "../../api/listingApi";
 import { TYPE_LABELS, formatPriceTrieu } from "../../api/format";
 
 // Markers as inline divIcons - no external image assets needed.
+// Red pin (var(--danger)) - high visibility on any tile palette.
 const roomIcon = L.divIcon({
-    html: '<i class="bi bi-geo-alt-fill" style="color:#9a4630;font-size:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))"></i>',
+    html: '<i class="bi bi-geo-alt-fill" style="color:var(--danger);font-size:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))"></i>',
     className: "",
     iconSize: [26, 26],
     iconAnchor: [13, 26],

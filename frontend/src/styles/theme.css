@@ -494,13 +494,17 @@ main { flex: 1 0 auto; }
 .hero-section .hero-stack > .lead {
     color: #b8bac2;
 }
-/* White search field keeps its ink hairline; the hard offset shadow
-   flips to lime so it stays visible on navy. */
+/* White search field: hairline flips to WHITE (ink border would vanish
+   on the navy panel) + lime hard shadow keeps it crisp. */
+.hero-section .hero-search > input.form-control,
+.hero-section .hero-search > .input-group-text {
+    border-color: #ffffff;
+}
 .hero-section .hero-search > input.form-control {
-    box-shadow: 0 2px 0 var(--brand);
+    box-shadow: 0 3px 0 var(--brand);
 }
 .hero-section .hero-search:focus-within > input.form-control {
-    box-shadow: 0 2px 0 var(--brand), 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
+    box-shadow: 0 3px 0 var(--brand), 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
 }
 .hero-title {
     letter-spacing: -0.02em;
