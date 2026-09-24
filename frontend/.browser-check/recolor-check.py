@@ -60,8 +60,14 @@ with sync_playwright() as p:
     check("search cap is compact", 50 <= btn_w <= 70, f"{btn_w}px")
     btn_txt = (btn.text_content() or "").strip()
     check("no 'Tìm kiếm' text on button", btn_txt == "", repr(btn_txt))
-    btn_radius = btn.evaluate("el => getComputedStyle(el).borderRadius")
-    check("cap rounded right only", btn_radius == "0px 12px 12px 0px", btn_radius)
+    # The pill is ONE element now: the form owns radius + border + shadow,
+    # the cap is clipped by it (no radius of its own).
+    form_radius = page.locator(".hero-search").first.evaluate(
+        "el => getComputedStyle(el).borderTopLeftRadius"
+    )
+    check("pill is one rounded element", form_radius == "20px", form_radius)
+    cap_border = btn.evaluate("el => getComputedStyle(el).borderLeftColor")
+    check("cap has ink divider", cap_border == "rgb(25, 26, 35)", cap_border)
 
     # Dark footer
     page.locator("footer").scroll_into_view_if_needed()

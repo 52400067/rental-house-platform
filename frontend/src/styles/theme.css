@@ -546,74 +546,66 @@ main { flex: 1 0 auto; }
     white-space: nowrap;
 }
 
+/* The search pill is ONE element: the form owns border + shadow +
+   height + radius, children only paint fills, and overflow:hidden
+   clips everything to the pill shape. Three separately-styled
+   elements could never stay seam-free - heights and borders kept
+   drifting apart (the white core poked out past the lime ends). */
 .hero-search {
+    display: flex;
     max-width: 640px;
     margin: 0 auto;
+    height: 3.4rem;
+    border: 1px solid var(--paper-raised);
+    border-radius: var(--radius-lg);
+    background: var(--paper-raised);
+    box-shadow: 0 4px 0 var(--brand);
+    overflow: hidden;
 }
-/* Pill search: white core, LIME bookends. The left icon zone mirrors
-   the right arrow cap (lime fill, ink hairline, navy glyph) so the
-   pill reads as one object instead of a mismatched trio. */
-.hero-search > .input-group-text {
-    border-top-left-radius: var(--radius);
-    border-bottom-left-radius: var(--radius);
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+.hero-search .search-ico {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 0.85rem 0 1.1rem;
     background: var(--brand);
-    border-color: var(--ink);
+    border-right: 1px solid var(--ink);
 }
-.hero-search .input-group-text .bi {
+.hero-search .search-ico .bi {
+    font-size: 1.1rem;
     color: var(--ink);
 }
-/* The search pill lives ONLY on the dark hero: white core needs a
-   white hairline (ink would vanish on navy) + lime hard shadow. */
-.hero-search > input.form-control {
-    border: 1px solid #ffffff;
-    border-left: none;
+.hero-search .search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: none;
     background: var(--paper-raised);
-    box-shadow: 0 3px 0 var(--brand);
-    height: 3.25rem;
-    padding-left: 0.75rem;
-    border-radius: 0;
+    padding: 0 0.85rem;
+    font-weight: 500;
 }
-.hero-search .btn {
-    height: 3.25rem;
-    border-radius: 0 var(--radius) var(--radius) 0;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+.hero-search .search-input:focus {
+    outline: none;
+    box-shadow: none;
+    background: #fffef9;
 }
-/* Arrow cap: LIME with navy icon - a navy cap vanishes into the dark
-   hero, lime pops and matches the accent-surface rule. Shadow matches
-   the input's lime edge so the pill reads as one piece. */
 .hero-search .btn-search-icon {
-    --bs-btn-bg: var(--brand);
-    --bs-btn-border-color: var(--ink);
-    --bs-btn-color: var(--ink);
-    --bs-btn-hover-bg: var(--brand-soft);
-    --bs-btn-hover-border-color: var(--ink);
-    --bs-btn-hover-color: var(--ink);
-    --bs-btn-active-bg: var(--brand-soft);
-    --bs-btn-active-border-color: var(--ink);
-    --bs-btn-active-color: var(--ink);
-    --bs-btn-disabled-bg: var(--brand);
-    --bs-btn-disabled-border-color: var(--ink);
-    --bs-btn-disabled-color: var(--ink);
-    box-shadow: 0 3px 0 var(--brand);
-    width: 4rem;
     flex: 0 0 auto;
-    padding: 0;
+    width: 4rem;
+    border: none;
+    border-left: 1px solid var(--ink);
+    background: var(--brand);
+    color: var(--ink);
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.15s;
+}
+.hero-search .btn-search-icon:hover {
+    background: var(--brand-soft);
 }
 .hero-search .btn-search-icon .bi {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     line-height: 1;
-}
-/* Focus: input keeps its white hairline (ink would vanish on navy);
-   the lime bookends stay ink-edged. Glow adds the affordance. */
-.hero-search:focus-within > input.form-control {
-    border-color: #ffffff;
-    box-shadow: 0 3px 0 var(--brand), 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
 }
 
 /* Eyebrow labels: navy pill with lime text — inverted chip */

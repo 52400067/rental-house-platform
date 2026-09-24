@@ -55,13 +55,13 @@ with sync_playwright() as p:
     def _search_pill():
         form = page.locator(".hero-search")
         expect(form).to_be_visible()
-        # button rust, input flat, span pill-left
-        assert form.locator("button.btn-primary").evaluate(
+        # pill is ONE element: lime cap, white core, form owns the shape
+        assert form.locator(".btn-search-icon").evaluate(
             "el => getComputedStyle(el).backgroundColor"
         ) == "rgb(185, 255, 102)", "search button not lime"
-        assert form.locator("input.form-control").evaluate(
-            "el => getComputedStyle(el).borderRadius"
-        ) == "0px", "input corners not flat"
+        assert form.evaluate(
+            "el => getComputedStyle(el).borderTopLeftRadius"
+        ) == "20px", "pill radius not owned by form"
         page.screenshot(path=SHOTS + "e2e-01-home.png")
     check("search bar pill + brand color", _search_pill)
 

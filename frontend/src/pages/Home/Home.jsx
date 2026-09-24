@@ -45,23 +45,25 @@ export default function Home() {
                             trực tiếp với chủ trọ.
                         </p>
 
-                        {/* Search bar - d-flex instead of input-group so
-                            Bootstrap's input-group radius resets don't apply.
-                            Icon-only submit: the action is universal. */}
-                        <form className="hero-search d-flex" onSubmit={submitSearch}>
-                            <span className="input-group-text border-end-0 ps-3">
+                        {/* Search pill: ONE element owns the border, shadow
+                            and height (form.hero-search) - children just fill
+                            it and overflow-hidden clips them to the shape.
+                            Three separately-styled elements could never stay
+                            seam-free (heights/borders/shadows kept drifting). */}
+                        <form className="hero-search" onSubmit={submitSearch}>
+                            <span className="search-ico">
                                 <i className="bi bi-search" />
                             </span>
                             <input
                                 type="search"
-                                className="form-control border-start-0 flex-grow-1"
+                                className="search-input"
                                 placeholder="Nhập khu vực, trường học hoặc tên đường..."
                                 value={q}
                                 onChange={(e) => setQ(e.target.value)}
                                 aria-label="Tìm phòng trọ"
                             />
                             <button
-                                className="btn btn-primary btn-search-icon"
+                                className="btn-search-icon"
                                 type="submit"
                                 aria-label="Tìm kiếm"
                                 title="Tìm kiếm"
