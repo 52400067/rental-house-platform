@@ -22,18 +22,12 @@
     --faint: #9a9caa;
     --line: #e4e4e6;
     --line-strong: #191a23;  /* hairlines go BLACK now */
-    --rule: #ececec;
     --paper-raised: #ffffff;
-    --brand-dark: #9be84f;
-    --brand-darker: #7fd63a;
-    --brand-soft: #d9ffa1;
-    --brand-softer: #eeffda;
+    --brand-darker: #7fd63a;   /* hover deepen: underline, active */
+    --brand-soft: #d9ffa1;     /* hover tint on lime surfaces */
 
     /* Semantic */
     --danger: #dc2626;
-    --amber: #b9ff66;        /* legacy name → lime */
-    --amber-deep: #191a23;
-    --amber-soft: #d9ffa1;
 
     /* Shape & motion: big radii, springy ease */
     --radius: 12px;
@@ -45,7 +39,6 @@
        Hard offsets ALWAYS carry negative spread so the corner arcs
        stay inside the element silhouette (offset-only shadows read
        wider than the box on rounded corners). */
-    --shadow-sm: 0 1px 2px rgba(25, 26, 35, 0.06);
     --shadow-hard-xs: 0 2px 0 -1px var(--ink);   /* buttons (radius 12) */
     --shadow-hard-sm: 0 3px 0 -1px var(--ink);   /* cards (radius 20) */
     --shadow-md: 0 2px 0 -1px var(--ink);
@@ -56,8 +49,6 @@
     /* Fonts: one family, two voices */
     --font-body: "Space Grotesk Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-display: "Space Grotesk Variable", system-ui, sans-serif;
-    --font-serif: "Space Grotesk Variable", system-ui, sans-serif;
-    --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
     /* Bootstrap overrides */
     --bs-body-font-family: var(--font-body);
