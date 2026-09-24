@@ -55,7 +55,7 @@ with sync_playwright() as p:
     btn = page.locator(".hero-search .btn-search-icon")
     check("icon-only search button exists", btn.count() == 1)
     btn_bg = btn.evaluate("el => getComputedStyle(el).backgroundColor")
-    check("search cap is navy ink", btn_bg == "rgb(25, 26, 35)", btn_bg)
+    check("search cap is lime", btn_bg == "rgb(185, 255, 102)", btn_bg)
     btn_w = btn.evaluate("el => el.getBoundingClientRect().width")
     check("search cap is compact", 50 <= btn_w <= 70, f"{btn_w}px")
     btn_txt = (btn.text_content() or "").strip()

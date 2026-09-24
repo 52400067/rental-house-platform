@@ -584,7 +584,23 @@ main { flex: 1 0 auto; }
     padding-left: 1.5rem;
     padding-right: 1.5rem;
 }
+/* Arrow cap: LIME with navy icon - a navy cap vanishes into the dark
+   hero, lime pops and matches the accent-surface rule. Shadow matches
+   the input's lime edge so the pill reads as one piece. */
 .hero-search .btn-search-icon {
+    --bs-btn-bg: var(--brand);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-color: var(--ink);
+    --bs-btn-hover-bg: var(--brand-soft);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-active-bg: var(--brand-soft);
+    --bs-btn-active-border-color: var(--ink);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-disabled-bg: var(--brand);
+    --bs-btn-disabled-border-color: var(--ink);
+    --bs-btn-disabled-color: var(--ink);
+    box-shadow: 0 3px 0 var(--brand);
     width: 4rem;
     flex: 0 0 auto;
     padding: 0;
