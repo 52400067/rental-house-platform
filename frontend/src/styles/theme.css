@@ -10,6 +10,8 @@
 :root {
     /* Palette: 4 values, straight from the reference */
     --ink: #191a23;          /* navy-black: text, chrome, hard shadows */
+    --ink-lift: #23242e;     /* one step lighter: the hero panel, so it
+                                separates from the navbar above it */
     --brand: #b9ff66;        /* acid lime: accent SURFACE only */
     --gray: #f3f3f3;         /* warm gray card fill */
     --paper: #ffffff;        /* canvas */
@@ -480,7 +482,9 @@ main { flex: 1 0 auto; }
    with the navbar into one dark top; lime elements pop.
    --------------------------------------------------------- */
 .hero-section {
-    background: var(--ink);
+    /* One step lighter than the navbar navy: the dark top reads as
+       bar + panel, not one continuous slab. */
+    background: var(--ink-lift);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     padding: 4.5rem 0;
     position: relative;
@@ -756,6 +760,8 @@ main { flex: 1 0 auto; }
    Footer: the back cover (navy, lime accents)
    --------------------------------------------------------- */
 .footer {
+    /* Same navy as the navbar - header and footer bookend the page,
+       the hero panel between them is the lighter layer. */
     background: var(--ink);
     color: #b8bac2;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
