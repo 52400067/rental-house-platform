@@ -562,11 +562,13 @@ main { flex: 1 0 auto; }
     height: 3.4rem;
     /* Ink border (not white): it doubles as the separator between the
        fills and the lime shadow below - same hairline language as the
-       ink dividers inside the pill. */
+       ink dividers inside the pill. Shadow uses negative spread so its
+       corner arcs stay INSIDE the pill silhouette - an offset-only
+       shadow makes the lime read wider than the box. */
     border: 1px solid var(--ink);
     border-radius: var(--radius-lg);
     background: var(--paper-raised);
-    box-shadow: 0 4px 0 var(--brand);
+    box-shadow: 0 3px 0 -1px var(--brand);
     overflow: hidden;
 }
 .hero-search .search-ico {
