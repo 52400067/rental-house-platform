@@ -39,7 +39,7 @@ export default function Home() {
                             <span className="text-brand">gần trường</span> và
                             đúng ngân sách.
                         </h1>
-                        <p className="lead text-secondary mb-4">
+                        <p className="lead prose text-secondary mb-4">
                             Tìm phòng trọ, khám phá khu vực phù hợp và kết nối
                             trực tiếp với chủ trọ.
                         </p>

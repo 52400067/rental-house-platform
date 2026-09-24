@@ -1,8 +1,9 @@
 /* =========================================================
    TroTot design system — "Sổ tay thuê trọ" (the rental notebook).
-   Paper-warm neutrals, teal ink accent, amber reserved for ratings,
-   flags and landlord actions. Bricolage Grotesque display,
-   Be Vietnam Pro body, IBM Plex Mono for every number that matters.
+   Paper-warm neutrals, book-cloth rust accent, amber reserved for
+   ratings, flags and landlord actions. Archivo for headlines & UI chrome,
+   Literata for long-form prose and editorial headings (the
+   Anthropic-style serif/sans split). Both ship Vietnamese subsets.
    ========================================================= */
 
 :root {
@@ -48,10 +49,14 @@
     --shadow-lg: 0 4px 12px rgba(31, 30, 29, 0.1), 0 18px 40px rgba(31, 30, 29, 0.12);
     --shadow-card-hover: 0 3px 8px rgba(31, 30, 29, 0.09), 0 18px 34px rgba(31, 30, 29, 0.13);
 
-    /* Fonts */
-    --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display: "Bricolage Grotesque Variable", "Be Vietnam Pro", sans-serif;
-    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+    /* Fonts: sans for chrome, serif for prose + editorial headings.
+       Anthropic's own faces (Styrene/Galaxie Copernicus) are proprietary;
+       Archivo and Literata are the closest free pairs that support
+       vietnamese diacritics well. */
+    --font-body: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Archivo Variable", system-ui, sans-serif;
+    --font-serif: "Literata Variable", Georgia, "Times New Roman", serif;
+    --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
     /* Bootstrap overrides */
     --bs-body-font-family: var(--font-body);
@@ -86,12 +91,20 @@ h1, h2, h3, h4, h5, h6,
 }
 
 h1, h2, h3, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
-    font-family: var(--font-display);
-    letter-spacing: -0.025em;
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+    font-weight: 620;
 }
 
 h6 {
     letter-spacing: -0.01em;
+}
+
+/* Long-form prose reads as serif, like Anthropic's body copy.
+   Family + rhythm only - size stays with Bootstrap utilities. */
+.prose {
+    font-family: var(--font-serif);
+    line-height: 1.7;
 }
 
 /* Tabular numbers everywhere numbers matter */
@@ -406,10 +419,10 @@ main { flex: 1 0 auto; }
     transform: scale(1.05);
 }
 
-/* Price set in "pen": mono, tabular, brand-dark */
+/* Price set in ink: sans, tabular, brand-dark */
 .listing-price {
-    font-family: var(--font-mono);
-    font-weight: 600;
+    font-family: var(--font-body);
+    font-weight: 700;
     color: var(--brand-dark);
     font-variant-numeric: tabular-nums;
 }
@@ -432,7 +445,7 @@ main { flex: 1 0 auto; }
     position: absolute;
     top: 0;
     right: 1rem;
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-weight: 700;
     font-size: 0.62rem;
     letter-spacing: 0.12em;
@@ -477,7 +490,7 @@ main { flex: 1 0 auto; }
     overflow: hidden;
 }
 .hero-title {
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
 }
 /* Highlight painted within the span's own background (never behind) */
 .hero-title .text-brand {
@@ -570,7 +583,7 @@ main { flex: 1 0 auto; }
 }
 .navbar-brand {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.02em;
 }
 .navbar-brand i {
@@ -694,7 +707,7 @@ main { flex: 1 0 auto; }
 }
 .footer .footer-brand {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     color: #fff;
 }
 
@@ -736,9 +749,7 @@ main { flex: 1 0 auto; }
     justify-content: center;
 }
 .auth-visual h2 {
-    font-family: var(--font-display);
     color: #fff;
-    letter-spacing: -0.02em;
 }
 .auth-visual .auth-point {
     display: flex;
@@ -763,7 +774,7 @@ main { flex: 1 0 auto; }
 .auth-logo-link {
     font-family: var(--font-display);
     font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 700;
     color: var(--brand);
     text-decoration: none;
     letter-spacing: -0.02em;
@@ -903,7 +914,7 @@ main { flex: 1 0 auto; }
     display: block;
     margin-top: 0.15rem;
     font-size: 0.68rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     color: var(--muted);
     user-select: none;
 }

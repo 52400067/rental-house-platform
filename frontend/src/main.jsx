@@ -3,16 +3,13 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 
 // Self-hosted fonts (vietnamese subsets included) - no CDN, no FOUT flash:
-// Bricolage Grotesque = display, Be Vietnam Pro = body, IBM Plex Mono = data.
-import "@fontsource-variable/bricolage-grotesque";
-import "@fontsource/be-vietnam-pro/400.css";
-import "@fontsource/be-vietnam-pro/500.css";
-import "@fontsource/be-vietnam-pro/600.css";
-import "@fontsource/be-vietnam-pro/700.css";
-import "@fontsource/ibm-plex-mono/500.css";
-import "@fontsource/ibm-plex-mono/600.css";
+// Archivo = headlines & UI chrome (sans, Styrene-like), Literata = long-form
+// prose AND large editorial headings (serif, Copernicus-like) - the
+// Anthropic-style serif/sans split.
+import "@fontsource-variable/archivo";
+import "@fontsource-variable/literata";
 
-// Bootstrap first, theme AFTER so brand overrides (btn-primary = teal,
+// Bootstrap first, theme AFTER so brand overrides (btn-primary = rust,
 // form-focus rings, etc.) win the cascade instead of being reversed by
 // Bootstrap's own CSS-variable defaults.
 import "bootstrap/dist/css/bootstrap.min.css";

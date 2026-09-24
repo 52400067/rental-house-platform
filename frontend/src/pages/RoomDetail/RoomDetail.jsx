@@ -300,7 +300,7 @@ export default function RoomDetail() {
                         {listing.description && (
                             <div className="mb-4">
                                 <h5 className="fw-bold mb-2">Mô tả</h5>
-                                <p className="text-body mb-0" style={{ whiteSpace: "pre-wrap" }}>
+                                <p className="text-body prose mb-0" style={{ whiteSpace: "pre-wrap" }}>
                                     {listing.description}
                                 </p>
                             </div>
@@ -509,7 +509,7 @@ export default function RoomDetail() {
                                             {"☆".repeat(5 - r.landlord_rating)}
                                         </span>
                                     </div>
-                                    {r.comment && <p className="small mb-0 mt-1">{r.comment}</p>}
+                                    {r.comment && <p className="small prose mb-0 mt-1">{r.comment}</p>}
                                 </div>
                             ))
                         )}
