@@ -58,7 +58,11 @@ export default function Rooms() {
     const [meta, setMeta] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [showFilters, setShowFilters] = useState(true);
+    // Filters start hidden on mobile (they take the whole column there)
+    // and visible from lg up where they sit as a sidebar.
+    const [showFilters, setShowFilters] = useState(
+        typeof window !== "undefined" && window.innerWidth >= 992
+    );
     const firstRender = useRef(true);
 
     useEffect(() => {
@@ -222,6 +226,8 @@ export default function Rooms() {
                             showFilters ? "" : "d-none d-lg-block"
                         }`}
                     >
+                        {/* Mobile: full-width collapsible panel right under
+                            the toolbar; the toggle button lives next to sort */}
                         <div className="card">
                             <div className="card-body">
                                 <div className="d-flex justify-content-between align-items-center mb-3">
