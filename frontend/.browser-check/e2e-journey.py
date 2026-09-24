@@ -58,7 +58,7 @@ with sync_playwright() as p:
         # button rust, input flat, span pill-left
         assert form.locator("button.btn-primary").evaluate(
             "el => getComputedStyle(el).backgroundColor"
-        ) == "rgb(184, 85, 55)", "search button not rust"
+        ) == "rgb(25, 26, 35)", "search button not navy ink"
         assert form.locator("input.form-control").evaluate(
             "el => getComputedStyle(el).borderRadius"
         ) == "0px", "input corners not flat"

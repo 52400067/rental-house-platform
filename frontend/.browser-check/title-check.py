@@ -1,5 +1,5 @@
-# Post-title ink verification: card titles + landlord row titles must
-# read as ink (#1f1e1d), not link-rust; hover warms to book-cloth rust.
+# Post-title ink verification: card titles + landlord row titles read
+# as ink (#191a23); hover affordance is an underline, color stays ink.
 import os
 import sys
 
@@ -13,8 +13,7 @@ CHROME = os.environ.get(
 )
 SHOTS = os.path.join(os.path.dirname(__file__), "shots") + "/"
 
-INK = "rgb(31, 30, 29)"
-RUST_HOVER = "rgb(154, 70, 48)"  # --brand-dark #9a4630
+INK = "rgb(25, 26, 35)"  # --ink #191a23
 
 issues = []
 
@@ -46,12 +45,14 @@ with sync_playwright() as p:
         color_of(page, ".listing-card .card-title a"),
     )
 
-    # Hover affordance still works: title warms to rust
+    # Hover affordance: underline appears (color stays ink)
     title = page.locator(".listing-card .card-title a").first
     title.hover()
     page.wait_for_timeout(150)
-    hover_color = title.evaluate("el => getComputedStyle(el).color")
-    check("card title hover is rust", hover_color == RUST_HOVER, hover_color)
+    deco = title.evaluate(
+        "el => getComputedStyle(el).textDecorationLine + ' ' + getComputedStyle(el).textDecorationColor"
+    )
+    check("card title hover underlines", "underline" in deco, deco)
 
     # --- /rooms: card titles ---------------------------------------------
     page.goto(BASE + "/rooms", wait_until="networkidle")

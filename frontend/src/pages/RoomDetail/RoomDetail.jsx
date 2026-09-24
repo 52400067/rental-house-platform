@@ -256,7 +256,7 @@ export default function RoomDetail() {
                         {/* Stats row */}
                         <div className="d-flex flex-wrap gap-4 my-3">
                             <div>
-                                <div className="fw-bold fs-4" style={{ color: "var(--brand)" }}>
+                                <div className="fw-bold fs-4" style={{ color: "var(--ink)" }}>
                                     {formatVnd(listing.price)}
                                     <span className="fw-normal small text-secondary">/tháng</span>
                                 </div>
@@ -523,7 +523,7 @@ export default function RoomDetail() {
                                 <div className="d-flex align-items-center mb-3">
                                     <i
                                         className="bi bi-person-circle fs-1 me-3"
-                                        style={{ color: "var(--brand)" }}
+                                        style={{ color: "var(--ink)" }}
                                     />
                                     <div>
                                         <strong>{listing.landlord?.name}</strong>

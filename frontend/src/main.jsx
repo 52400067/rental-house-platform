@@ -2,13 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
-// Self-hosted fonts (vietnamese subsets included) - no CDN, no FOUT flash:
-// Noto Sans = headlines & UI chrome (sans), Noto Serif = long-form prose
-// AND large editorial headings (serif) - the Anthropic-style serif/sans
-// split with bulletproof Vietnamese coverage.
-import "@fontsource-variable/noto-sans";
-import "@fontsource-variable/noto-serif";
-import "@fontsource-variable/noto-serif/wght-italic.css";
+// Self-hosted font (vietnamese subset included) - no CDN, no FOUT flash:
+// Space Grotesk is the single family for the whole site. Personality
+// comes from weight contrast (500 body / 700 display), not from
+// mixing faces - the Positivus way.
+import "@fontsource-variable/space-grotesk";
 
 // Bootstrap first, theme AFTER so brand overrides (btn-primary = rust,
 // form-focus rings, etc.) win the cascade instead of being reversed by

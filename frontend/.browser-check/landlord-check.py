@@ -51,7 +51,7 @@ with sync_playwright() as p:
 
     cta = page.locator("a[href='/landlord/new'].btn-primary").first
     cta_bg = cta.evaluate("el => getComputedStyle(el).backgroundColor")
-    check("CTA is ink (mono ledger)", cta_bg == "rgb(31, 30, 29)", cta_bg)
+    check("CTA is navy ink", cta_bg == "rgb(25, 26, 35)", cta_bg)
 
     cta_color = cta.evaluate("el => getComputedStyle(el).color")
     check("CTA text is white", cta_color == "rgb(255, 255, 255)", cta_color)
@@ -67,8 +67,8 @@ with sync_playwright() as p:
     page.wait_for_timeout(250)
     row_bg_after = row.evaluate("el => getComputedStyle(el).backgroundColor")
     check(
-        "row hover inks manilla",
-        row_bg_before != row_bg_after and row_bg_after == "rgb(245, 237, 216)",
+        "row hover tints lime-soft",
+        row_bg_before != row_bg_after and row_bg_after == "rgb(217, 255, 161)",
         f"{row_bg_before} -> {row_bg_after}",
     )
 
@@ -85,17 +85,17 @@ with sync_playwright() as p:
     tab_bg = card.evaluate(
         "el => getComputedStyle(el, '::before').backgroundColor"
     )
-    check("form card has gold folder tab", tab_bg == "rgb(217, 119, 6)", tab_bg)
+    check("form card has lime folder tab", tab_bg == "rgb(185, 255, 102)", tab_bg)
 
     first_input = page.locator("form.card input.form-control").first
     first_input.focus()
     page.wait_for_timeout(150)
     shadow = first_input.evaluate("el => getComputedStyle(el).boxShadow")
-    check("focus ring is ink", "31, 30, 29" in shadow, shadow[:60])
+    check("focus ring is lime", "185, 255, 102" in shadow, shadow[:60])
 
     ai_btn = page.locator("button:has-text('Viết mô tả giúp tôi')").first
     ai_color = ai_btn.evaluate("el => getComputedStyle(el).color")
-    check("AI button text is ink", "31, 30, 29" in ai_color, ai_color)
+    check("AI button text is ink", "25, 26, 35" in ai_color, ai_color)
     page.screenshot(path=SHOTS + "landlord-form.png", full_page=True)
 
     real_errors = [

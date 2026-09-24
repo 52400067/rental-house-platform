@@ -228,7 +228,7 @@ export default function ConversationDetail() {
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="chat-empty">
-                        <i className="bi bi-chat-square-heart fs-1" style={{ color: "var(--brand)" }} />
+                        <i className="bi bi-chat-square-heart fs-1" style={{ color: "var(--ink)" }} />
                         <strong className="mt-2">Chưa có tin nhắn nào</strong>
                         <span className="small">Hãy chào {other?.name || "người kia"} và hỏi về phòng.</span>
                     </div>

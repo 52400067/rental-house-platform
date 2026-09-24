@@ -28,15 +28,14 @@ with sync_playwright() as p:
     page.goto(BASE + "/", wait_until="networkidle")
     h1 = (page.locator("h1").first.text_content() or "").strip()
     cards = page.locator(".listing-card").count()
-    font_loaded = page.evaluate("document.fonts.check(\"16px 'Noto Sans Variable'\")")
-    serif_loaded = page.evaluate("document.fonts.check(\"16px 'Noto Serif Variable'\")")
+    font_loaded = page.evaluate("document.fonts.check(\"16px 'Space Grotesk Variable'\")")
 
     page.goto(BASE + "/rooms", wait_until="networkidle")
     rooms_cards = page.locator(".listing-card").count()
 
     print("prod h1:", h1[:60])
     print("prod home cards:", cards, "| rooms cards:", rooms_cards)
-    print("body font loaded:", font_loaded, "| serif prose loaded:", serif_loaded)
+    print("body font loaded:", font_loaded)
     print("console/page errors:", errors if errors else "clean")
     page.screenshot(path=SHOTS + "prod-home.png")
     browser.close()

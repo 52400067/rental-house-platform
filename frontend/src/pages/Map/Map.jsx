@@ -262,7 +262,7 @@ export default function Map() {
                                     )}
                                     <div className="small overflow-hidden">
                                         <div className="text-truncate fw-semibold">{l.title}</div>
-                                        <div style={{ color: "var(--brand)" }}>
+                                        <div style={{ color: "var(--ink)" }}>
                                             {formatPriceTrieu(l.price)}/tháng
                                         </div>
                                         {l.distance_km != null && (
