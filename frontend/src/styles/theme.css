@@ -476,14 +476,31 @@ main { flex: 1 0 auto; }
 }
 
 /* ---------------------------------------------------------
-   Hero: the noticeboard headline
+   Hero: the noticeboard headline — DARK panel. Navy merges
+   with the navbar into one dark top; lime elements pop.
    --------------------------------------------------------- */
 .hero-section {
-    background: var(--paper);
-    border-bottom: 1px solid var(--line-strong);
+    background: var(--ink);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     padding: 4.5rem 0;
     position: relative;
     overflow: hidden;
+}
+/* Dark-panel text flips (declared after .hero-stack rules so the
+   same-specificity base rules are overridden by source order). */
+.hero-section .hero-stack > .hero-title {
+    color: #ffffff;
+}
+.hero-section .hero-stack > .lead {
+    color: #b8bac2;
+}
+/* White search field keeps its ink hairline; the hard offset shadow
+   flips to lime so it stays visible on navy. */
+.hero-section .hero-search > input.form-control {
+    box-shadow: 0 2px 0 var(--brand);
+}
+.hero-section .hero-search:focus-within > input.form-control {
+    box-shadow: 0 2px 0 var(--brand), 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
 }
 .hero-title {
     letter-spacing: -0.02em;
