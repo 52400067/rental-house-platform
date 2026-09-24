@@ -556,7 +556,10 @@ main { flex: 1 0 auto; }
     max-width: 640px;
     margin: 0 auto;
     height: 3.4rem;
-    border: 1px solid var(--paper-raised);
+    /* Ink border (not white): it doubles as the separator between the
+       fills and the lime shadow below - same hairline language as the
+       ink dividers inside the pill. */
+    border: 1px solid var(--ink);
     border-radius: var(--radius-lg);
     background: var(--paper-raised);
     box-shadow: 0 4px 0 var(--brand);
