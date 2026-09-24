@@ -222,7 +222,7 @@ export default function Map() {
                     </div>
 
                     <div className="col-lg-4">
-                        <div className="panel-dark border rounded-3 h-100 overflow-auto" style={{ maxHeight: 480 }}>
+                        <div className="border rounded-3 h-100 overflow-auto" style={{ maxHeight: 480 }}>
                             <div className="p-2 border-bottom d-flex justify-content-between align-items-center">
                                 <strong className="small">
                                     {loading ? "Đang tải..." : `${listings.length} phòng`}
@@ -263,7 +263,7 @@ export default function Map() {
                                     )}
                                     <div className="small overflow-hidden">
                                         <div className="text-truncate fw-semibold">{l.title}</div>
-                                        <div style={{ color: "var(--brand)" }}>
+                                        <div style={{ color: "var(--ink)" }}>
                                             {formatPriceTrieu(l.price)}/tháng
                                         </div>
                                         {l.distance_km != null && (

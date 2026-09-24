@@ -222,7 +222,7 @@ export default function Rooms() {
                             showFilters ? "" : "d-none d-lg-block"
                         }`}
                     >
-                        <div className="card panel-dark">
+                        <div className="card">
                             <div className="card-body">
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     <strong>Bộ lọc</strong>
