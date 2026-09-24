@@ -1,4 +1,4 @@
-# TroTot - Frontend
+# TROSV - Frontend
 
 React 18 + Vite + Bootstrap 5. Gọi toàn bộ API qua Backend (`docs/API_CONTRACT.md`).
 

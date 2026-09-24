@@ -11,7 +11,7 @@ export default function Footer() {
                                 className="bi bi-house-heart-fill me-1"
                                 style={{ color: "var(--brand-soft)" }}
                             />
-                            TroTot
+                            TROSV
                         </h5>
                         <p className="small mb-0" style={{ color: "#b5bcd2" }}>
                             Nền tảng tìm kiếm và đăng phòng trọ dành cho sinh viên
@@ -80,7 +80,7 @@ export default function Footer() {
 
                 <hr />
                 <p className="small text-center mb-0" style={{ color: "#8d94a8" }}>
-                    © 2026 TroTot. Bảo lưu mọi quyền.
+                    © 2026 TROSV. Bảo lưu mọi quyền.
                 </p>
             </div>
         </footer>

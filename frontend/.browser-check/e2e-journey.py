@@ -1,4 +1,4 @@
-"""TroTot E2E user journey (per webapp-testing skill).
+"""TROSV E2E user journey (per webapp-testing skill).
 
 Runs against the LIVE stack (Vite :5173 + Laravel :8000 must be up).
 Covers: home -> search -> login -> rooms filter -> listing detail ->

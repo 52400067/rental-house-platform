@@ -63,7 +63,7 @@ export default function Login() {
                         <div className="auth-card">
                             <div className="text-center mb-3">
                                 <Link to="/" className="auth-logo-link">
-                                    TroTot
+                                    TROSV
                                 </Link>
                                 <p className="text-secondary small mb-0">
                                     Nền tảng tìm trọ dành cho sinh viên

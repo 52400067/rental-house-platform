@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# TroTot - fast demo deploy (Fedora Linux)
+# TROSV - fast demo deploy (Fedora Linux)
 #
 # Mot lenh chay toan bo stack demo:
 #   PostgreSQL  -> kiem tra / huong dan start
@@ -12,8 +12,8 @@
 #   bash deploy.sh --quick    # bo qua install, GIU DB hien tai
 #   bash deploy.sh --stop     # dung toan bo service demo
 #
-# Log:  /tmp/trotot-api.log  /tmp/trotot-web.log
-# PID:  /tmp/trotot-demo.pids
+# Log:  /tmp/trosv-api.log  /tmp/trosv-web.log
+# PID:  /tmp/trosv-demo.pids
 #
 # Demo accounts (sau khi seed):
 #   student1@example.com  /  password   (sinh vien)
@@ -27,9 +27,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND="$ROOT/backend"
 FRONTEND="$ROOT/frontend"
-API_LOG=/tmp/trotot-api.log
-WEB_LOG=/tmp/trotot-web.log
-PID_FILE=/tmp/trotot-demo.pids
+API_LOG=/tmp/trosv-api.log
+WEB_LOG=/tmp/trosv-web.log
+PID_FILE=/tmp/trosv-demo.pids
 
 c_green='\033[0;32m'; c_red='\033[0;31m'; c_yel='\033[0;33m'; c_off='\033[0m'
 ok()   { echo -e "${c_green}[OK]${c_off} $1"; }
@@ -55,7 +55,7 @@ stop_all() {
 [[ "${1:-}" == "--stop" ]] && stop_all
 
 echo "=============================================="
-echo " TroTot demo deploy - $(date '+%H:%M:%S')"
+echo " TROSV demo deploy - $(date '+%H:%M:%S')"
 echo "=============================================="
 
 # ------------------------------------------------------------
