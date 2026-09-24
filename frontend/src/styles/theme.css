@@ -981,14 +981,16 @@ main { flex: 1 0 auto; }
     gap: 0.5rem;
     padding-top: 0.75rem;
 }
-.chat-composer textarea {
+.chat-composer textarea,
+.chat-composer input.form-control {
     resize: none;
     max-height: 120px;
     height: 2.75rem;
     border-radius: 999px;
     padding: 0.65rem 1.1rem;
 }
-.chat-composer textarea:focus {
+.chat-composer textarea:focus,
+.chat-composer input.form-control:focus {
     box-shadow: 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
 }
 .chat-composer .btn {

@@ -73,14 +73,14 @@ export default function AiChat() {
                     </div>
                 )}
 
-                <div
-                    className="border rounded-3 p-3 mb-3 bg-light overflow-auto"
-                    style={{ height: 420 }}
-                >
+                {/* Same bubble language as user-to-user chat:
+                    .chat-thread canvas + .chat-row/.chat-bubble. Mine
+                    (user) = lime fill with INK text - never white on lime. */}
+                <div className="chat-thread mb-3" style={{ height: 460 }}>
                     {messages.length === 0 && !busy && (
-                        <div className="text-center py-4">
-                            <i className="bi bi-robot fs-1 text-secondary" />
-                            <p className="small text-secondary mt-2 mb-0">
+                        <div className="chat-empty">
+                            <i className="bi bi-robot fs-1" />
+                            <p className="small mb-0">
                                 Ví dụ: "Tiền cọc thường là bao nhiêu?" hoặc "Khu vực nào
                                 gần ĐHQG mà rẻ?"
                             </p>
@@ -90,24 +90,11 @@ export default function AiChat() {
                     {messages.map((m, i) => (
                         <div
                             key={i}
-                            className={`d-flex mb-2 ${
-                                m.role === "user"
-                                    ? "justify-content-end"
-                                    : "justify-content-start"
-                            }`}
+                            className={`chat-row ${m.role === "user" ? "mine" : ""}`}
                         >
                             <div
-                                className={`px-3 py-2 rounded-3 small ${
-                                    m.role === "user"
-                                        ? "text-white"
-                                        : "bg-white border"
-                                }`}
-                                style={{
-                                    maxWidth: "80%",
-                                    whiteSpace: "pre-wrap",
-                                    backgroundColor:
-                                        m.role === "user" ? "var(--brand)" : undefined,
-                                }}
+                                className="chat-bubble"
+                                style={{ whiteSpace: "pre-wrap" }}
                             >
                                 {m.content}
                             </div>
@@ -115,8 +102,8 @@ export default function AiChat() {
                     ))}
 
                     {busy && (
-                        <div className="d-flex justify-content-start">
-                            <div className="px-3 py-2 rounded-3 bg-white border small">
+                        <div className="chat-row">
+                            <div className="chat-bubble">
                                 <span
                                     className="spinner-grow spinner-grow-sm me-2"
                                     role="status"
@@ -132,7 +119,7 @@ export default function AiChat() {
                     <div className="alert alert-warning py-2 small">{error}</div>
                 )}
 
-                <form onSubmit={send} className="d-flex gap-2">
+                <form onSubmit={send} className="chat-composer">
                     <input
                         className="form-control"
                         placeholder="Nhập câu hỏi của bạn..."
@@ -140,7 +127,12 @@ export default function AiChat() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                     />
-                    <button className="btn btn-primary" disabled={busy || !input.trim()}>
+                    <button
+                        className="btn btn-send"
+                        disabled={busy || !input.trim()}
+                        aria-label="Gửi"
+                        title="Gửi"
+                    >
                         <i className="bi bi-send" />
                     </button>
                 </form>
