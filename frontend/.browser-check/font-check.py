@@ -1,4 +1,4 @@
-# Font verification: Archivo (sans) for chrome, Literata (serif) for
+# Font verification: Noto Sans (sans) for chrome, Noto Serif (serif) for
 # headings + prose; all superseded fonts fully gone from the bundle.
 import os
 import sys
@@ -11,8 +11,8 @@ CHROME = os.environ.get(
 )
 SHOTS = os.path.join(os.path.dirname(__file__), "shots") + "/"
 
-SANS = "Archivo Variable"
-SERIF = "Literata Variable"
+SANS = "Noto Sans Variable"
+SERIF = "Noto Serif Variable"
 
 issues = []
 
@@ -56,19 +56,21 @@ with sync_playwright() as p:
     check(f"{SERIF} loaded", SERIF in fams)
     old_left = [
         f for f in fams
-        if any(o in f for o in ("Be Vietnam", "Bricolage", "Plex Mono", "Space Grotesk", "Source Serif"))
+        if any(o in f for o in ("Be Vietnam", "Bricolage", "Plex Mono", "Space Grotesk", "Source Serif", "Archivo", "Literata"))
     ]
     check("superseded fonts fully removed", not old_left, str(old_left))
 
     # Body & UI chrome = sans
     ok, fam = starts(page, "body", SANS)
-    check("body is Archivo (sans)", ok, fam[:60])
+    check("body is Noto Sans (sans)", ok, fam[:60])
     ok, fam = starts(page, ".navbar .navbar-brand", SANS)
     check("navbar brand is sans", ok, fam[:60])
 
     # Large headings = serif editorial
     ok, fam = starts(page, "h1", SERIF)
-    check("h1 is Literata (serif)", ok, fam[:60])
+    check("h1 is Noto Serif (serif)", ok, fam[:60])
+    h1_w = page.locator("h1").first.evaluate("el => getComputedStyle(el).fontWeight")
+    check("h1 weight eased below bold (560)", h1_w == "560", h1_w)
 
     # Prices & small chrome: sans, no mono
     page.wait_for_selector(".listing-price", timeout=15000)
@@ -83,8 +85,26 @@ with sync_playwright() as p:
     lead_fam = lead.evaluate("el => getComputedStyle(el).fontFamily")
     check("hero lead is serif prose", SERIF in lead_fam, lead_fam[:60])
 
-    # Vietnamese diacritics render inside the webfont (not a fallback):
-    # compare measured width against the same string in a fallback-only stack
+    # Vietnamese coverage: fonts.check() with real diacritic chars proves the
+    # loaded webfont face covers them. Width comparison uses DejaVu as the
+    # fallback because Fedora ships system Noto fonts (same metrics), which
+    # would make a Noto-vs-Noto comparison vacuous.
+    coverage = page.evaluate("""() => ({
+        sans: ['ệ', 'ổ', 'ẫ', 'Ư'].map((c) =>
+            document.fonts.check(`16px 'Noto Sans Variable'`, c)),
+        serif: ['ệ', 'ễ', 'ở', ' ỡ'].map((c) =>
+            document.fonts.check(`16px 'Noto Serif Variable'`, c)),
+    })""")
+    check(
+        "vietnamese glyph coverage (sans)",
+        all(coverage["sans"]),
+        str(coverage["sans"]),
+    )
+    check(
+        "vietnamese glyph coverage (serif)",
+        all(coverage["serif"]),
+        str(coverage["serif"]),
+    )
     diacritics_sans = page.evaluate("""() => {
         const mk = (ff) => {
             const s = document.createElement('span');
@@ -96,12 +116,12 @@ with sync_playwright() as p:
             return w;
         };
         return {
-            webfont: mk(`'Archivo Variable'`),
-            fallback: mk(`'Noto Sans', sans-serif`),
+            webfont: mk(`'Noto Sans Variable'`),
+            fallback: mk(`'DejaVu Sans', sans-serif`),
         };
     }""")
     check(
-        "vietnamese glyphs come from webfont (sans)",
+        "vietnamese glyphs measured from webfont (sans)",
         abs(diacritics_sans["webfont"] - diacritics_sans["fallback"]) > 0.5,
         f"{diacritics_sans['webfont']:.1f} vs {diacritics_sans['fallback']:.1f}",
     )
@@ -116,12 +136,12 @@ with sync_playwright() as p:
             return w;
         };
         return {
-            webfont: mk(`'Literata Variable'`),
-            fallback: mk(`'Noto Serif', serif`),
+            webfont: mk(`'Noto Serif Variable'`),
+            fallback: mk(`'DejaVu Serif', serif`),
         };
     }""")
     check(
-        "vietnamese glyphs come from webfont (serif)",
+        "vietnamese glyphs measured from webfont (serif)",
         abs(diacritics_serif["webfont"] - diacritics_serif["fallback"]) > 0.5,
         f"{diacritics_serif['webfont']:.1f} vs {diacritics_serif['fallback']:.1f}",
     )
@@ -136,6 +156,8 @@ with sync_playwright() as p:
         check("room description is serif", ok, fam[:60])
     else:
         check("room description is serif", False, "no .prose element found")
+    rh_w = page.locator("h1").first.evaluate("el => getComputedStyle(el).fontWeight")
+    check("rooms page h1 weight eased (560)", rh_w == "560", rh_w)
 
     # Auth visual quote = serif
     page.goto(BASE + "/login", wait_until="networkidle")

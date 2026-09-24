@@ -3,11 +3,11 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 
 // Self-hosted fonts (vietnamese subsets included) - no CDN, no FOUT flash:
-// Archivo = headlines & UI chrome (sans, Styrene-like), Literata = long-form
-// prose AND large editorial headings (serif, Copernicus-like) - the
-// Anthropic-style serif/sans split.
-import "@fontsource-variable/archivo";
-import "@fontsource-variable/literata";
+// Noto Sans = headlines & UI chrome (sans), Noto Serif = long-form prose
+// AND large editorial headings (serif) - the Anthropic-style serif/sans
+// split with bulletproof Vietnamese coverage.
+import "@fontsource-variable/noto-sans";
+import "@fontsource-variable/noto-serif";
 
 // Bootstrap first, theme AFTER so brand overrides (btn-primary = rust,
 // form-focus rings, etc.) win the cascade instead of being reversed by

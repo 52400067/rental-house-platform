@@ -28,8 +28,8 @@ with sync_playwright() as p:
     page.goto(BASE + "/", wait_until="networkidle")
     h1 = (page.locator("h1").first.text_content() or "").strip()
     cards = page.locator(".listing-card").count()
-    font_loaded = page.evaluate("document.fonts.check(\"16px 'Archivo Variable'\")")
-    serif_loaded = page.evaluate("document.fonts.check(\"16px 'Literata Variable'\")")
+    font_loaded = page.evaluate("document.fonts.check(\"16px 'Noto Sans Variable'\")")
+    serif_loaded = page.evaluate("document.fonts.check(\"16px 'Noto Serif Variable'\")")
 
     page.goto(BASE + "/rooms", wait_until="networkidle")
     rooms_cards = page.locator(".listing-card").count()

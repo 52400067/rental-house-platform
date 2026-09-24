@@ -1,8 +1,8 @@
 /* =========================================================
    TROSV design system — "Sổ tay thuê trọ" (the rental notebook).
    Paper-warm neutrals, book-cloth rust accent, amber reserved for
-   ratings, flags and landlord actions. Archivo for headlines & UI chrome,
-   Literata for long-form prose and editorial headings (the
+   ratings, flags and landlord actions. Noto Sans for headlines & UI
+   chrome, Noto Serif for long-form prose and editorial headings (the
    Anthropic-style serif/sans split). Both ship Vietnamese subsets.
    ========================================================= */
 
@@ -51,11 +51,11 @@
 
     /* Fonts: sans for chrome, serif for prose + editorial headings.
        Anthropic's own faces (Styrene/Galaxie Copernicus) are proprietary;
-       Archivo and Literata are the closest free pairs that support
-       vietnamese diacritics well. */
-    --font-body: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display: "Archivo Variable", system-ui, sans-serif;
-    --font-serif: "Literata Variable", Georgia, "Times New Roman", serif;
+       the Noto families are the reference pair with bulletproof
+       vietnamese diacritics coverage. */
+    --font-body: "Noto Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Noto Sans Variable", system-ui, sans-serif;
+    --font-serif: "Noto Serif Variable", Georgia, "Times New Roman", serif;
     --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
     /* Bootstrap overrides */
@@ -90,10 +90,15 @@ h1, h2, h3, h4, h5, h6,
     color: var(--ink);
 }
 
-h1, h2, h3, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+h1, h2, h3, .display-1, .display-2, .display-3, .display-4, .display-5, .display-6,
+h1.fw-bold, h2.fw-bold, h3.fw-bold {
     font-family: var(--font-serif);
     letter-spacing: -0.01em;
-    font-weight: 620;
+    /* Noto Serif reads heavier than the grotesques - keep headings a
+       notch below semibold. The .fw-bold selectors must stay: Bootstrap's
+       utility is 700 !important at class strength (0,1,0), so plain
+       element selectors lose the !important cascade tie-break. */
+    font-weight: 560 !important;
 }
 
 h6 {
@@ -490,7 +495,10 @@ main { flex: 1 0 auto; }
     overflow: hidden;
 }
 .hero-title {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
+    /* One step under Bootstrap's .display-5 (3rem) - serif needs less
+       bulk at display sizes. */
+    font-size: 2.75rem;
 }
 /* Highlight painted within the span's own background (never behind) */
 .hero-title .text-brand {

@@ -89,4 +89,4 @@ npm run test:prod        # smoke test bản build production (vite preview :4173
 
 - Token lưu `localStorage` (`token`, `user`); tự xóa khi nhận 401.
 - Màu thương hiệu nằm ở `src/styles/theme.css` (biến `--brand`) - đổi một chỗ là đổi cả app.
-- Design system "sổ tay thuê trọ": giấy ấm + rust book-cloth, Archivo (tiêu đề & UI), Literata (văn bản dài & heading lớn) theo lối Anthropic serif/sans - tự host qua Fontsource, đủ subset tiếng Việt, không CDN. Toàn bộ style nằm trong `theme.css`.
+- Design system "sổ tay thuê trọ": giấy ấm + rust book-cloth, Noto Sans (tiêu đề & UI), Noto Serif (văn bản dài & heading lớn) theo lối Anthropic serif/sans - tự host qua Fontsource, đủ subset tiếng Việt, không CDN. Toàn bộ style nằm trong `theme.css`.
