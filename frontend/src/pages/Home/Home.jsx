@@ -29,17 +29,15 @@ export default function Home() {
             {/* HERO — the noticeboard */}
             <section className="hero-section">
                 <div className="container position-relative">
-                    <div className="text-center mx-auto" style={{ maxWidth: 720 }}>
-                        <span className="eyebrow mb-3">
-                            <i className="bi bi-geo-alt-fill" />
-                            Dành cho sinh viên toàn quốc
-                        </span>
-                        <h1 className="display-5 fw-bold mb-3 hero-title mt-3">
-                            Ghi lại phòng ưng ý,{" "}
-                            <span className="text-brand">gần trường</span> và
+                    <div className="hero-stack text-center mx-auto" style={{ maxWidth: 720 }}>
+                        <p className="hero-kicker">Dành cho sinh viên toàn quốc</p>
+                        <h1 className="display-5 fw-bold hero-title">
+                            Ghi lại phòng ưng ý,
+                            <br className="d-none d-sm-inline" />{" "}
+                            <span className="hero-em">gần trường</span> và
                             đúng ngân sách.
                         </h1>
-                        <p className="lead prose text-secondary mb-4">
+                        <p className="lead prose">
                             Tìm phòng trọ, khám phá khu vực phù hợp và kết nối
                             trực tiếp với chủ trọ.
                         </p>
@@ -47,7 +45,7 @@ export default function Home() {
                         {/* Search bar - d-flex instead of input-group so
                             Bootstrap's input-group radius resets don't apply.
                             Icon-only submit: the action is universal. */}
-                        <form className="hero-search d-flex mb-4" onSubmit={submitSearch}>
+                        <form className="hero-search d-flex" onSubmit={submitSearch}>
                             <span className="input-group-text bg-white border-end-0 ps-3">
                                 <i className="bi bi-search text-secondary" />
                             </span>
@@ -69,17 +67,17 @@ export default function Home() {
                             </button>
                         </form>
 
-                        <div className="d-flex flex-wrap justify-content-center gap-2">
-                            <span className="hero-chip">
+                        <ul className="hero-perks">
+                            <li>
                                 <i className="bi bi-shield-check" /> Tin đăng được duyệt
-                            </span>
-                            <span className="hero-chip">
+                            </li>
+                            <li>
                                 <i className="bi bi-lightning-charge" /> Nhắn tin trực tiếp
-                            </span>
-                            <span className="hero-chip">
+                            </li>
+                            <li>
                                 <i className="bi bi-robot" /> Trợ lý AI miễn phí
-                            </span>
-                        </div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </section>

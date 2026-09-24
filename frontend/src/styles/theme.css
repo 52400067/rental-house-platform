@@ -113,7 +113,7 @@ h6 {
 }
 
 /* Tabular numbers everywhere numbers matter */
-.hero-chip, .price, .stat-num, .page-link, .badge,
+.price, .stat-num, .page-link, .badge,
 .listing-price, .chat-time, .chat-day > span {
     font-variant-numeric: tabular-nums;
 }
@@ -327,22 +327,6 @@ main { flex: 1 0 auto; }
     background: linear-gradient(180deg, var(--brand), var(--brand-soft));
 }
 
-/* Eyebrow labels: index-card tab feel */
-.eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--brand-dark);
-    background: var(--brand-softer);
-    border: 1px solid var(--brand-soft);
-    border-radius: 999px;
-    padding: 0.28rem 0.85rem;
-}
-
 /* ---------------------------------------------------------
    Cards (generic): raised paper
    --------------------------------------------------------- */
@@ -500,8 +484,47 @@ main { flex: 1 0 auto; }
        bulk at display sizes. */
     font-size: 2.75rem;
 }
-/* Highlight painted within the span's own background (never behind) */
-.hero-title .text-brand {
+/* Single vertical rhythm for the whole hero: one place controls the
+   gaps, so utility margins can never double up between the layers. */
+.hero-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.hero-stack > * {
+    margin: 0 !important;
+}
+.hero-stack > .hero-kicker {
+    margin-bottom: 1rem !important;
+}
+.hero-stack > .hero-title {
+    margin-bottom: 1.1rem !important;
+}
+.hero-stack > .lead {
+    margin-bottom: 1.75rem !important;
+    max-width: 34rem;
+    /* Bootstrap .text-secondary was too faint under the serif; ink-soft
+       keeps the line readable without shouting. */
+    color: var(--ink-soft);
+    font-size: 1.15rem;
+}
+.hero-stack > .hero-search {
+    margin-bottom: 1.5rem !important;
+    width: 100%;
+}
+.hero-stack > .hero-perks {
+    margin-bottom: 0 !important;
+}
+@media (max-width: 575.98px) {
+    .hero-title {
+        font-size: 2.1rem;
+    }
+}
+/* Emphasis word: true italic + rust (the Anthropic move), highlight
+   painted within the span's own background (never behind). The <br>
+   only fires on >=sm so mobile keeps short natural lines. */
+.hero-title .hero-em {
+    font-style: italic;
     color: var(--brand);
     white-space: nowrap;
     background-image: linear-gradient(180deg, transparent 62%, var(--brand-soft) 62%);
@@ -556,21 +579,46 @@ main { flex: 1 0 auto; }
     border-color: var(--brand);
 }
 
-/* Quick stat chips */
-.hero-chip {
+/* Hero kicker: small caps flanked by hairlines - typographic, no box.
+   The search field stays the ONLY boxed element in the hero. */
+.hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brand-dark);
+}
+.hero-kicker::before,
+.hero-kicker::after {
+    content: "";
+    width: 2.4rem;
+    height: 1px;
+    background: var(--line-strong);
+}
+
+/* Perks: quiet text row, dot-ish gaps instead of chip boxes */
+.hero-perks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.hero-perks li {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    background: rgba(255, 253, 248, 0.9);
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow-sm);
-    font-size: 0.875rem;
-    color: var(--muted);
 }
-.hero-chip .bi {
+.hero-perks .bi {
     color: var(--brand);
+    font-size: 0.95rem;
 }
 
 /* ---------------------------------------------------------

@@ -8,6 +8,7 @@ import App from "./App";
 // split with bulletproof Vietnamese coverage.
 import "@fontsource-variable/noto-sans";
 import "@fontsource-variable/noto-serif";
+import "@fontsource-variable/noto-serif/wght-italic.css";
 
 // Bootstrap first, theme AFTER so brand overrides (btn-primary = rust,
 // form-focus rings, etc.) win the cascade instead of being reversed by
