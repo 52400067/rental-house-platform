@@ -46,10 +46,14 @@ with sync_playwright() as p:
         link_color,
     )
 
-    # Hairline dividers between nav items
+    # Nav links are pills - no separators, active is a lime pill
     second_item = page.locator(".navbar .nav-item").nth(1)
     sep = second_item.evaluate("el => getComputedStyle(el).borderLeftWidth")
-    check("nav divider present", sep == "1px", sep)
+    check("nav separator removed", sep == "0px", sep)
+    active_pill = page.locator(".navbar .nav-link.active").first.evaluate(
+        "el => getComputedStyle(el).backgroundColor"
+    )
+    check("active nav is lime pill", active_pill == "rgb(185, 255, 102)", active_pill)
 
     # Icon-only search button: emerald cap, no text
     btn = page.locator(".hero-search .btn-search-icon")

@@ -676,46 +676,30 @@ main { flex: 1 0 auto; }
 .navbar-brand:hover i {
     transform: scale(1.15) rotate(-6deg);
 }
+/* Nav links: pill buttons with generous gap - NO separators. The
+   shape of each link IS the separation (the Positivus/Stripe way):
+   hover paints a soft white pill, active keeps a lime tick inside. */
 .navbar .nav-link {
     position: relative;
     font-weight: 500;
-    padding-bottom: 0.35rem;
-    color: #f5f5f2;
-}
-.navbar .nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0.5rem;
-    right: 0.5rem;
-    bottom: 0;
-    height: 3px;
+    color: #e8e9ee;
+    padding: 0.45rem 0.95rem;
     border-radius: 999px;
-    background: var(--brand);
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.2s var(--ease);
+    transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
 }
-.navbar .nav-link:hover::after,
-.navbar .nav-link.active::after {
-    transform: scaleX(1);
-}
-.navbar .nav-link:hover,
-.navbar .nav-link.active {
+.navbar .nav-link:hover {
     color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
 }
-.navbar .nav-item + .nav-item {
-    border-left: 1px solid rgba(255, 255, 255, 0.12);
+.navbar .nav-link.active {
+    color: var(--ink);
+    background: var(--brand);
+    font-weight: 700;
 }
-@media (min-width: 992px) {
-    .navbar .nav-item + .nav-item .nav-link {
-        padding-left: 1.1rem;
-    }
+.navbar .nav-link.active:hover {
+    background: var(--brand-soft);
 }
-@media (max-width: 991.98px) {
-    .navbar .nav-item + .nav-item {
-        border-left: none;
-    }
-}
+.navbar .nav-link::after { content: none; }
 /* Ghost buttons on the dark bar */
 .navbar .btn-outline-secondary {
     --bs-btn-color: #f5f5f2;
