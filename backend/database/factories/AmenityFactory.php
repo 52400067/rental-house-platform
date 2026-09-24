@@ -14,7 +14,7 @@ class AmenityFactory extends Factory
     {
         return [
             'name' => fake()->unique()->randomElement([
-                'Wifi', 'Máy lạnh', 'Máy nước nóng', 'Máy giặt', 'Tủ lạnh',
+                'Wi-Fi', 'Máy lạnh', 'Máy nước nóng', 'Máy giặt', 'Tủ lạnh',
                 'Bếp', 'WC riêng', 'Chỗ để xe', 'Bảo vệ', 'Giờ giấc tự do',
                 'Ban công', 'Cửa sổ',
             ]),

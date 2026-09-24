@@ -61,7 +61,7 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 ```json
 { "description": "...", "created_at": "2026-09-20T08:30:00Z",
   "images": [ { "id": 1, "url": "http://localhost:8000/storage/listings/1.jpg" } ],
-  "amenities": [ { "id": 1, "name": "Wifi" } ],
+  "amenities": [ { "id": 1, "name": "Wi-Fi" } ],
   "landlord": { "id": 5, "name": "Trần Thị B", "phone": "0909999999" },
   "ratings": { "listing_avg": 4.3, "landlord_avg": 4.6, "area_avg": 4.1 },
   "my_conversation_id": null, "can_review": false }

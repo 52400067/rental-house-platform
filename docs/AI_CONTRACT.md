@@ -62,7 +62,7 @@ Request:
 ```json
 {
   "listing": { "type": "room", "price": 2500000, "area_m2": 22.5, "ward": "Thủ Đức",
-               "amenities": ["Wifi", "Máy lạnh"] },
+               "amenities": ["Wi-Fi", "Máy lạnh"] },
   "stats": { "count": 12, "min": 1800000, "median": 2300000, "max": 3200000 }
 }
 ```
@@ -102,7 +102,7 @@ Request:
   "message": "Tiền cọc thường là bao nhiêu?",
   "history": [ { "role": "user", "content": "..." }, { "role": "assistant", "content": "..." } ],
   "listing": { "title": "Phòng trọ gần ĐHQG", "price": 2500000, "area_m2": 22.5, "address": "12 Đường số 5",
-               "ward": "Thủ Đức", "amenities": ["Wifi"], "description": "..." }
+               "ward": "Thủ Đức", "amenities": ["Wi-Fi"], "description": "..." }
 }
 ```
 `history` có tối đa 10 phần tử. `listing` là `null` khi câu hỏi mang tính chung chung. Response:
@@ -118,7 +118,7 @@ Viết mô tả tin đăng từ các thông tin cơ bản.
 Request:
 ```json
 { "title": "Phòng trọ gần ĐHQG", "type": "room", "price": 2500000, "area_m2": 22.5,
-  "address": "12 Đường số 5", "ward": "Thủ Đức", "amenities": ["Wifi", "Máy lạnh"] }
+  "address": "12 Đường số 5", "ward": "Thủ Đức", "amenities": ["Wi-Fi", "Máy lạnh"] }
 ```
 Mọi trường trừ `title` có thể là `null` hoặc bị thiếu. Response:
 ```json

@@ -10,7 +10,7 @@ class AmenitySeeder extends Seeder
     public function run(): void
     {
         $names = [
-            'Wifi', 'Máy lạnh', 'Máy nước nóng', 'Máy giặt', 'Tủ lạnh',
+            'Wi-Fi', 'Máy lạnh', 'Máy nước nóng', 'Máy giặt', 'Tủ lạnh',
             'Bếp', 'WC riêng', 'Chỗ để xe', 'Bảo vệ', 'Giờ giấc tự do',
         ];
 

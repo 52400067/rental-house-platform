@@ -389,7 +389,7 @@ class AiProxyTest extends TestCase
     public function test_description_converts_ids_to_names(): void
     {
         $ward = Ward::factory()->create(['name' => 'Phường Thủ Đức']);
-        $amenity = Amenity::factory()->create(['name' => 'Wifi']);
+        $amenity = Amenity::factory()->create(['name' => 'Wi-Fi']);
 
         Http::fake([
             '*/description' => Http::response(['description' => 'Phòng trọ thoáng mát gần trường.']),
@@ -411,7 +411,7 @@ class AiProxyTest extends TestCase
             $body = $request->data();
 
             return $body['ward'] === 'Phường Thủ Đức'
-                && $body['amenities'] === ['Wifi']
+                && $body['amenities'] === ['Wi-Fi']
                 && ! array_key_exists('ward_id', $body)
                 && ! array_key_exists('amenity_ids', $body);
         });

@@ -162,7 +162,7 @@ class ListingBrowseTest extends TestCase
 
     public function test_filter_by_amenities_requires_all(): void
     {
-        $wifi = Amenity::factory()->create(['name' => 'Wifi']);
+        $wifi = Amenity::factory()->create(['name' => 'Wi-Fi']);
         $ac = Amenity::factory()->create(['name' => 'Máy lạnh']);
         $park = Amenity::factory()->create(['name' => 'Chỗ để xe']);
 
