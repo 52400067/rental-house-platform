@@ -40,7 +40,9 @@ jobs:
         run: ./vendor/bin/pint --test
 
       - name: Copy env for tests
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
 
       - name: Tests
         run: php artisan test
