@@ -1,0 +1,59 @@
+# ============================================================
+# TROSV - DEMO OVERRIDE for a fresh VPS.
+#
+# Dung KEM docker-compose.yml (compose tu merge):
+#   cp .env.example .env   (neu chua co)
+#   # sua .env: DOMAIN=demo.tenban.com  REVERB_APP_*  APP_KEY=...
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+#
+# Khac biet so voi dev stack:
+#   *tat ca* service deu cong public (80, 8000, 8080) - dung cho demo
+#   frontend build bake URL public (VITE_*) thay vi localhost
+#   backend migrate --seed lan dau nen co du lieu demo san
+#   APP_ENV=production + APP_DEBUG=false (trang loi khong lo stack trace)
+#
+# DEMO = KHONG hardening: HTTP thuan, mat khau demo public. Khong dung
+# du lieu that. Sau demo: docker compose down -v (xoa ca DB volume).
+# ============================================================
+
+services:
+  backend:
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?Set APP_KEY=base64:... trong .env}
+      APP_URL: ${FRONTEND_URL:?Set FRONTEND_URL trong .env}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL trong .env}
+      FRONTEND_EXTRA_URLS: ""
+    command: >
+      sh -c "php artisan migrate --force
+      && php artisan db:seed --force
+      && php artisan storage:link || true
+      && php artisan serve --host=0.0.0.0 --port=8000"
+
+  reverb:
+    ports:
+      - "8080:8080"
+    environment:
+      APP_KEY: ${APP_KEY:?Set APP_KEY trong .env}
+
+  queue:
+    environment:
+      APP_KEY: ${APP_KEY:?Set APP_KEY trong .env}
+
+  scheduler:
+    environment:
+      APP_KEY: ${APP_KEY:?Set APP_KEY trong .env}
+
+  frontend:
+    ports:
+      - "80:80"
+    build:
+      args:
+        VITE_API_URL: ${FRONTEND_URL}/api
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-my-app-key}
+        VITE_REVERB_HOST: ${WS_HOST:?Set WS_HOST trong .env}
+        VITE_REVERB_PORT: "8080"
+        VITE_REVERB_SCHEME: http
