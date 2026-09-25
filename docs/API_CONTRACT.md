@@ -78,11 +78,13 @@ Các trường chỉ dành cho sinh viên sẽ là `null` với chủ nhà. `cle
 
 **Message (tin nhắn)**
 ```json
-{ "id": 901, "sender_id": 1, "is_mine": true, "body": "Phòng còn trống không ạ?",
+{ "id": 901, "sender_id": 1, "is_mine": true, "is_unsent": false, "body": "Phòng còn trống không ạ?",
   "attachment_name": "hop-dong.pdf", "attachment_url": "http://localhost:8000/attachments/901?signature=...",
   "created_at": "2026-09-20T08:30:00Z" }
 ```
 `attachment_url` là link tạm thời có chữ ký (hiệu lực 60 phút). Mở thẳng trong tab trình duyệt, không cần token. Cả hai trường tệp đính kèm là `null` khi tin nhắn không có tệp.
+
+`is_unsent` là `true` khi người gửi đã thu hồi tin (xem `DELETE /messages/{id}`): `body`, `attachment_name`, `attachment_url` đều là `null` và mọi client hiển thị tombstone "Tin nhắn đã được thu hồi". Tin đã bị xóa "chỉ ở phía mình" không xuất hiện trong kết quả của người đó nữa (bị lọc khỏi danh sách).
 
 **Review (đánh giá)**
 ```json
@@ -150,11 +152,47 @@ Với bản đồ, Frontend gọi `GET /listings` với cùng bộ lọc và `pe
 | `POST /conversations` | Student | `listing_id` | `data: Conversation`. Nếu đã có thì trả hội thoại cũ |
 | `POST /users/{id}/message` | Student | không có | Get-or-create hội thoại **trực tiếp** giữa 2 sinh viên (không qua tin đăng, `listing` = null). Đích là chủ nhà hoặc chính mình → 404. Trả `201` khi tạo mới, `200` khi đã có |
 | `GET /conversations` | User | | `data: [Conversation]`, hoạt động mới nhất trước (không phân trang) |
-| `GET /conversations/{id}/messages` | Participant | `after_id` (tùy chọn, chỉ lấy tin mới hơn) | `data: [Message]` cũ nhất trước. Frontend có thể gọi lặp lại mỗi 5 giây |
-| `POST /conversations/{id}/messages` | Participant | JSON `{ body }` (tối đa 1000 ký tự), hoặc multipart `body` + `file` (pdf, jpg, png, docx, tối đa 5 MB) | 201 `data: Message` |
+| `GET /conversations/{id}/messages` | Participant | `after_id` (tùy chọn, chỉ lấy tin mới hơn) | `data: [Message]` cũ nhất trước, đã ẩn các tin bị xóa "chỉ ở phía mình" với người gọi. Dùng cho lần tải đầu; tin mới đến qua WebSocket (xem mục *WebSocket realtime* bên dưới), không còn polling 5 giây |
+| `POST /conversations/{id}/messages` | Participant | JSON `{ body }` (tối đa 1000 ký tự), hoặc multipart `body` + `file` (pdf, jpg, png, docx, tối đa 5 MB) | 201 `data: Message`. Đồng thời broadcast `.message.sent` qua WebSocket (xem mục *WebSocket realtime* bên dưới) |
 | `POST /conversations/{id}/read` | Participant | | `data: null`. Đánh dấu đã đọc các tin của người kia |
+| `DELETE /messages/{id}` | Participant | query `scope` = `unsent` hoặc `self` (mặc định) | `data: null`. `unsent` = **Thu hồi** cho cả hai phía: tin thành tombstone (`is_unsent: true`), chỉ người gửi được gọi (403 nếu không phải), chỉ trong 1 giờ sau khi gửi (422 nếu quá), gọi hai lần vẫn an toàn. `self` = **Xóa chỉ ở phía mình**: ẩn tin với người gọi, người kia vẫn thấy bình thường, không có confirm, gọi hai lần vẫn an toàn |
 
-Participant = một trong hai người tham gia hội thoại. Người ngoài nhận 404. Số tin chưa đọc trên thanh menu = tổng `unread_count` từ `GET /conversations`.
+Participant = một trong hai người tham gia hội thoại. Người ngoài nhận 404. Số tin chưa đọc trên thanh menu = tổng `unread_count` từ `GET /conversations` (lần đầu), sau đó cập nhật realtime qua WebSocket (xem mục *WebSocket realtime* bên dưới).
+
+### WebSocket realtime (Laravel Reverb)
+
+Tin nhắn và sự kiện xóa được đẩy realtime qua WebSocket, thay cho polling 5 giây trước đây. Giao thức là Pusher protocol; frontend dùng `laravel-echo` + `pusher-js` (xem `src/api/echo.js`). Server: `ws://localhost:8080/app/{REVERB_APP_KEY}` — key khai báo ở `REVERB_APP_KEY` (backend `.env`) và **phải trùng** `VITE_REVERB_APP_KEY` (frontend `.env`); key lệch thì Reverb trả lỗi `4001 Application does not exist`. `bash deploy.sh` tự khởi động Reverb cùng stack.
+
+**Xác thực private channel:** Echo gọi `POST /broadcasting/auth` (cùng origin với API nhưng **không có** tiền tố `/api`) với header `Authorization: Bearer {token}` và body JSON `{ socket_id, channel_name }`, nhận `{ auth }` để hoàn tất subscribe. Route này chạy trong nhóm `api` + `auth:sanctum` (đăng ký qua `withBroadcasting` trong `bootstrap/app.php`); CORS đã mở cho `broadcasting/auth`.
+
+**Kênh (đều là private):**
+
+| Kênh | Ai được subscribe | Sự kiện |
+|---|---|---|
+| `conversation.{id}` | Hai người trong hội thoại (người khác bị từ chối) | `.message.sent`, `.message.deleted` |
+| `App.Models.User.{id}` | Chính chủ | `.message.sent`, `.message.deleted` (badge chưa đọc, sidebar) |
+
+Tên sự kiện phía client có dấu chấm đầu (do backend dùng `broadcastAs`): `.listen('.message.sent', ...)`. `chat.{id}` của user-to-user không dùng riêng — hội thoại trực tiếp cũng nằm trong `conversation.{id}`.
+
+**`.message.sent`** — payload dùng chung cho cả hai phía nên **không có** `is_mine`; client tự so `sender_id` với user hiện tại:
+```json
+{ "conversation_id": 33,
+  "message": { "id": 902, "sender_id": 1, "body": "Còn phòng không ạ?",
+    "attachment_name": null, "attachment_url": null, "created_at": "2026-09-25T09:00:00Z" } }
+```
+UI thread đang mở lắng nghe `conversation.{id}` (append bubble nếu chưa có — event thường đến trước HTTP response của chính tin đó); badge + sidebar lắng nghe `App.Models.User.{id}` (badge +1 nếu `sender_id` khác mình; người đang mở hội thoại gọi `POST /conversations/{id}/read` như cũ).
+
+**`.message.deleted`** — payload:
+```json
+{ "conversation_id": 33, "message_id": 902, "sender_id": 1,
+  "removed": true, "deleted_for": [],
+  "conversation": { "id": 33, "last_message": { "body": "Tin nhắn đã được thu hồi", "created_at": "..." } } }
+```
+- `removed: true` — thu hồi cho mọi người: bubble thành tombstone, sidebar dùng `conversation.last_message` làm preview mới.
+- `removed: false` — xóa "chỉ ở phía mình": **chỉ** client có id trong `deleted_for` mới ẩn tin; người còn lại bỏ qua event. Khi đó `conversation` là `null`.
+- `sender_id` để client trừ badge nếu tin chưa đọc bị thu hồi.
+
+**Quy tắc fallback:** không còn poll `after_id` lặp lại. `GET /conversations/{id}/messages` chỉ chạy lần đầu khi mở hội thoại và khi Echo mất kết nối (tự reconnect); logout gọi `disconnect()` để đóng socket.
 
 ### Đánh giá (sinh viên)
 
