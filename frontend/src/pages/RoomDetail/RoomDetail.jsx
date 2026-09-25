@@ -1,26 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CoordinatePicker from "../../components/CoordinatePicker";
-import {
-    getListing,
-    getListingReviews,
-    createReview,
-} from "../../api/listingApi";
-import * as socialApi from "../../api/socialApi";
-import { aiPriceAdvice } from "../../api/aiApi";
+import Gallery from "../../components/room/Gallery";
+import PriceAdvicePanel from "../../components/room/PriceAdvicePanel";
+import ReviewForm from "../../components/room/ReviewForm";
+import ReviewList from "../../components/room/ReviewList";
 import {
     STATUS_BADGES,
     STATUS_LABELS,
     TYPE_LABELS,
-    formatDateTime,
     formatVnd,
 } from "../../api/format";
+import * as socialApi from "../../api/socialApi";
+import { createReview } from "../../api/listingApi";
 import { useAuth } from "../../context/AuthContext";
 import { errMessage } from "../../api/axiosClient";
-import AiDisclaimer from "../../components/AiDisclaimer";
-import Pagination from "../../components/Pagination";
 import { useToast } from "../../components/ui/Toast";
 import RoomDetailSkeleton from "../../components/ui/RoomDetailSkeleton";
+import { useRoomDetail } from "../../hooks/useRoomDetail";
 
 export default function RoomDetail() {
     const { id } = useParams();
@@ -28,64 +25,20 @@ export default function RoomDetail() {
     const { user } = useAuth();
     const toast = useToast();
 
-    const [listing, setListing] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const {
+        listing,
+        setListing,
+        loading,
+        error,
+        reviews,
+        reviewMeta,
+        loadReviews,
+    } = useRoomDetail(id, toast);
 
-    const [selectedImage, setSelectedImage] = useState(0);
-
-    // Reviews
-    const [reviews, setReviews] = useState([]);
-    const [reviewMeta, setReviewMeta] = useState(null);
-
-    // Review form
-    const [reviewForm, setReviewForm] = useState({
-        listing_rating: 5,
-        landlord_rating: 5,
-        comment: "",
-    });
     const [reviewBusy, setReviewBusy] = useState(false);
-
-    // AI price advice
-    const [advice, setAdvice] = useState(null);
-    const [adviceBusy, setAdviceBusy] = useState(false);
-    const [adviceError, setAdviceError] = useState("");
-
-    // Chat
     const [chatBusy, setChatBusy] = useState(false);
 
     const isStudent = user?.role === "student";
-
-    const loadReviews = useCallback(
-        (page = 1) => {
-            getListingReviews(id, page)
-                .then(({ data, meta }) => {
-                    setReviews(data);
-                    setReviewMeta(meta);
-                })
-                .catch(() => {});
-        },
-        [id]
-    );
-
-    useEffect(() => {
-        setLoading(true);
-        setSelectedImage(0);
-        setAdvice(null);
-        getListing(id)
-            .then((data) => {
-                setListing(data);
-                loadReviews(1);
-            })
-            .catch((err) =>
-                setError(
-                    err.response?.status === 404
-                        ? "Phòng trọ không tồn tại hoặc đã bị ẩn."
-                        : errMessage(err)
-                )
-            )
-            .finally(() => setLoading(false));
-    }, [id, loadReviews]);
 
     async function toggleFavorite() {
         if (!isStudent) return;
@@ -116,23 +69,10 @@ export default function RoomDetail() {
         }
     }
 
-    async function handleAdvice() {
-        setAdviceBusy(true);
-        setAdviceError("");
-        try {
-            setAdvice(await aiPriceAdvice(listing.id));
-        } catch (err) {
-            setAdviceError(errMessage(err, "Không nhận được tư vấn lúc này."));
-        } finally {
-            setAdviceBusy(false);
-        }
-    }
-
-    async function submitReview(e) {
-        e.preventDefault();
+    async function submitReview(form) {
         setReviewBusy(true);
         try {
-            await createReview(listing.id, reviewForm);
+            await createReview(listing.id, form);
             setListing((l) => ({ ...l, can_review: false }));
             loadReviews(1);
             toast.success("Cảm ơn bạn đã đánh giá!");
@@ -142,7 +82,6 @@ export default function RoomDetail() {
             setReviewBusy(false);
         }
     }
-
 
     if (loading) {
         return <RoomDetailSkeleton />;
@@ -186,40 +125,7 @@ export default function RoomDetail() {
                 <div className="row g-4">
                     {/* LEFT: gallery + description + reviews */}
                     <div className="col-lg-8">
-                        {/* Gallery */}
-                        {images.length > 0 && (
-                            <>
-                                <img
-                                    src={images[selectedImage].url}
-                                    className="img-fluid rounded-3 w-100 mb-2"
-                                    style={{ maxHeight: 460, objectFit: "cover" }}
-                                    alt={listing.title}
-                                />
-                                {images.length > 1 && (
-                                    <div className="d-flex flex-wrap gap-2 mb-4">
-                                        {images.map((img, i) => (
-                                            <img
-                                                key={img.id}
-                                                src={img.url}
-                                                className={`rounded-2 ${i === selectedImage ? "border border-3" : ""}`}
-                                                style={{
-                                                    width: 72,
-                                                    height: 56,
-                                                    objectFit: "cover",
-                                                    cursor: "pointer",
-                                                    borderColor:
-                                                        i === selectedImage
-                                                            ? "var(--brand)"
-                                                            : undefined,
-                                                }}
-                                                onClick={() => setSelectedImage(i)}
-                                                alt=""
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </>
-                        )}
+                        <Gallery images={images} title={listing.title} />
 
                         {/* Title block */}
                         <div className="d-flex justify-content-between align-items-start mb-2">
@@ -352,167 +258,16 @@ export default function RoomDetail() {
                         )}
 
                         {/* AI price advice */}
-                        <div className="border rounded-3 p-3 mb-4">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <h5 className="fw-bold mb-0">
-                                    <i className="bi bi-cash-coin me-1" /> Giá này hợp lý không?
-                                </h5>
-                                {!advice && (
-                                    <button
-                                        className="btn btn-outline-primary btn-sm"
-                                        onClick={handleAdvice}
-                                        disabled={adviceBusy || !isStudent}
-                                        title={
-                                            isStudent
-                                                ? "Gợi ý giá từ AI"
-                                                : "Chỉ dành cho sinh viên"
-                                        }
-                                    >
-                                        {adviceBusy ? "Đang phân tích..." : "Hỏi AI"}
-                                    </button>
-                                )}
-                            </div>
-
-                            {adviceError && (
-                                <div className="alert alert-warning py-2 small mb-0">
-                                    {adviceError}
-                                </div>
-                            )}
-
-                            {advice && (
-                                <div>
-                                    <span
-                                        className={`badge text-bg-${
-                                            advice.verdict === "high"
-                                                ? "danger"
-                                                : advice.verdict === "low"
-                                                  ? "success"
-                                                  : "primary"
-                                        } mb-2`}
-                                    >
-                                        {advice.verdict === "high"
-                                            ? "Cao hơn thị trường"
-                                            : advice.verdict === "low"
-                                              ? "Rẻ hơn thị trường"
-                                              : "Hợp lý"}
-                                    </span>
-                                    <p className="small mb-1">
-                                        Giá tham khảo:{" "}
-                                        <strong>
-                                            {formatVnd(advice.fair_min)} – {formatVnd(advice.fair_max)}
-                                        </strong>{" "}
-                                        (dựa trên {advice.stats.count} tin tương tự, trung vị{" "}
-                                        {formatVnd(advice.stats.median)})
-                                    </p>
-                                    {advice.tips?.length > 0 && (
-                                        <ul className="small mb-2">
-                                            {advice.tips.map((t, i) => (
-                                                <li key={i}>{t}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                    <div className="bg-light rounded-2 p-2 small mb-2">
-                                        <strong>Mẫu tin nhắn gửi chủ nhà:</strong>
-                                        <div className="fst-italic">"{advice.message}"</div>
-                                    </div>
-                                    <AiDisclaimer />
-                                </div>
-                            )}
-                        </div>
+                        <PriceAdvicePanel listingId={listing.id} isStudent={isStudent} />
 
                         {/* Reviews */}
                         <h5 className="fw-bold mb-3">Đánh giá ({listing.reviews_count})</h5>
 
-                        {/* Review form */}
                         {isStudent && listing.can_review && (
-                            <form className="border rounded-3 p-3 mb-4" onSubmit={submitReview}>
-                                <strong className="d-block mb-2">Để lại đánh giá của bạn</strong>
-                                <div className="row g-3 mb-2">
-                                    <div className="col-6">
-                                        <label className="form-label small">Điểm tin đăng</label>
-                                        <select
-                                            className="form-select form-select-sm"
-                                            value={reviewForm.listing_rating}
-                                            onChange={(e) =>
-                                                setReviewForm({
-                                                    ...reviewForm,
-                                                    listing_rating: Number(e.target.value),
-                                                })
-                                            }
-                                        >
-                                            {[5, 4, 3, 2, 1].map((n) => (
-                                                <option key={n} value={n}>
-                                                    {"★".repeat(n)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="col-6">
-                                        <label className="form-label small">Điểm chủ nhà</label>
-                                        <select
-                                            className="form-select form-select-sm"
-                                            value={reviewForm.landlord_rating}
-                                            onChange={(e) =>
-                                                setReviewForm({
-                                                    ...reviewForm,
-                                                    landlord_rating: Number(e.target.value),
-                                                })
-                                            }
-                                        >
-                                            {[5, 4, 3, 2, 1].map((n) => (
-                                                <option key={n} value={n}>
-                                                    {"★".repeat(n)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <textarea
-                                    className="form-control form-control-sm mb-2"
-                                    rows={3}
-                                    maxLength={1000}
-                                    placeholder="Chia sẻ trải nghiệm của bạn (tùy chọn)"
-                                    value={reviewForm.comment}
-                                    onChange={(e) =>
-                                        setReviewForm({ ...reviewForm, comment: e.target.value })
-                                    }
-                                />
-                                <button className="btn btn-primary btn-sm" disabled={reviewBusy}>
-                                    {reviewBusy ? "Đang gửi..." : "Gửi đánh giá"}
-                                </button>
-                            </form>
+                            <ReviewForm onSubmit={submitReview} busy={reviewBusy} />
                         )}
 
-                        {/* Review list */}
-                        {reviews.length === 0 ? (
-                            <p className="text-secondary small">Chưa có đánh giá nào.</p>
-                        ) : (
-                            reviews.map((r) => (
-                                <div className="border-bottom py-3" key={r.id}>
-                                    <div className="d-flex justify-content-between">
-                                        <strong className="small">{r.student?.name}</strong>
-                                        <span className="small text-secondary">
-                                            {formatDateTime(r.created_at)}
-                                        </span>
-                                    </div>
-                                    <div className="small">
-                                        Tin:{" "}
-                                        <span className="text-warning">
-                                            {"★".repeat(r.listing_rating)}
-                                            {"☆".repeat(5 - r.listing_rating)}
-                                        </span>
-                                        {" · "}
-                                        Chủ nhà:{" "}
-                                        <span className="text-warning">
-                                            {"★".repeat(r.landlord_rating)}
-                                            {"☆".repeat(5 - r.landlord_rating)}
-                                        </span>
-                                    </div>
-                                    {r.comment && <p className="small prose mb-0 mt-1">{r.comment}</p>}
-                                </div>
-                            ))
-                        )}
-                        <Pagination meta={reviewMeta} onPage={(p) => loadReviews(p)} />
+                        <ReviewList reviews={reviews} meta={reviewMeta} onPage={loadReviews} />
                     </div>
 
                     {/* RIGHT: landlord + action */}
