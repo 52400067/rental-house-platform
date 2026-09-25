@@ -476,11 +476,24 @@ export default function ConversationDetail() {
                     </div>
                 )}
 
-                {/* Dấu đã xem: hiện một lần dưới cùng bên phải khi người kia
-                    đã đọc tin mới nhất của mình (Messenger-style). */}
-                {!otherTyping && messages.some((m) => m.is_mine && m.seen_at) && (
-                    <div className="chat-seen">Đã xem</div>
-                )}
+                {/* Dấu đã xem kiểu Messenger web: chip avatar nhỏ của người
+                    đọc, dưới bubble mới nhất của mình (chỉ khi tin cuối là
+                    của mình và đã được đọc). */}
+                {(() => {
+                    const lastMsg = messages[messages.length - 1];
+                    if (otherTyping || !lastMsg?.is_mine || !lastMsg.seen_at) return null;
+                    return (
+                        <div
+                            className="chat-seen"
+                            title={`Đã xem bởi ${other?.name || "người kia"}`}
+                            aria-label="Đã xem"
+                        >
+                            <span className="chat-seen-avatar">
+                                {(other?.name || "?").charAt(0).toUpperCase()}
+                            </span>
+                        </div>
+                    );
+                })()}
             </div>
 
             {error && <div className="chat-error">{error}</div>}

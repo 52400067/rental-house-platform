@@ -84,16 +84,17 @@ with sync_playwright() as p:
         b.click(".chat-composer .btn-send")
         # Tin den phia A -> listener cua A tu markRead -> B nhan .message.seen
         expect(a.locator(".chat-bubble", has_text=stamp)).to_be_visible(timeout=6000)
-        expect(b.locator(".chat-seen")).to_have_text("Đã xem", timeout=6000)
-    check("seen: B thay 'Da xem' sau khi A mo thread (realtime)", seen)
+        # Chip avatar tron (chu cai dau) duoi bubble moi nhat - Messenger web.
+        expect(b.locator(".chat-seen .chat-seen-avatar")).to_be_visible(timeout=6000)
+    check("seen: B thay chip avatar sau khi A mo thread (realtime)", seen)
 
     # ---- C. Persist sau reload ---------------------------------------------
     def persisted():
         b.reload(wait_until="networkidle")
         b.wait_for_selector(".chat-thread", timeout=10000)
         b.wait_for_timeout(800)
-        expect(b.locator(".chat-seen").first).to_have_text("Đã xem", timeout=6000)
-    check("seen: 'Da xem' van con sau reload (DB)", persisted)
+        expect(b.locator(".chat-seen .chat-seen-avatar").first).to_be_visible(timeout=6000)
+    check("seen: chip avatar van con sau reload (DB)", persisted)
 
     browser.close()
 
