@@ -26,8 +26,8 @@ with sync_playwright() as p:
     page.wait_for_url(lambda u: "/login" not in u, timeout=10000)
 
     page.goto(BASE + "/messages", wait_until="networkidle")
-    page.wait_for_selector(".list-group-item", timeout=10000)
-    page.locator(".list-group-item").first.click()
+    page.wait_for_selector(".messages-item", timeout=10000)
+    page.locator(".messages-item").first.click()
     page.wait_for_selector(".chat-thread", timeout=10000)
     page.wait_for_timeout(1200)
 

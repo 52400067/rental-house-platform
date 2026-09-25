@@ -38,6 +38,7 @@ export default function ConversationDetail() {
     const toast = useToast();
 
     const [conversation, setConversation] = useState(null);
+    const [convLoaded, setConvLoaded] = useState(false);
     const [messages, setMessages] = useState([]);
     const [loaded, setLoaded] = useState(false);
     const [body, setBody] = useState("");
@@ -58,11 +59,15 @@ export default function ConversationDetail() {
     // Load conversation header (other user, listing).
     useEffect(() => {
         let active = true;
+        setConvLoaded(false);
         getConversations()
             .then((list) => {
                 if (active) setConversation(list.find((c) => String(c.id) === String(id)));
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => {
+                if (active) setConvLoaded(true);
+            });
         return () => {
             active = false;
         };
@@ -334,13 +339,30 @@ export default function ConversationDetail() {
     const other = conversation?.other_user;
     const subject = conversation?.listing;
 
+    // Route con của /messages — spinner lúc đang tải, empty-state nếu
+    // hội thoại không tồn tại (vào thẳng URL lạ).
+    if (!conversation) {
+        return (
+            <div className="chat-page chat-page-empty">
+                {convLoaded ? (
+                    <>
+                        <i className="bi bi-chat-square-heart fs-1" style={{ color: "var(--ink)" }} />
+                        <strong>Không tải được hội thoại</strong>
+                    </>
+                ) : (
+                    <div className="spinner-border text-secondary" role="status" aria-label="Đang tải" />
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="chat-page">
             {/* Header */}
             <div className="chat-header mb-3">
                 <Link
                     to="/messages"
-                    className="btn btn-outline-secondary btn-sm"
+                    className="btn btn-outline-secondary btn-sm chat-back"
                     aria-label="Quay lại danh sách tin nhắn"
                 >
                     <i className="bi bi-arrow-left" />

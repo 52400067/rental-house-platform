@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import { getConversations } from "../../api/socialApi";
 import { getEcho } from "../../api/echo";
 import { timeAgo } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
 import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
 
+/**
+ * Trang Tin nhắn = hai cốp kiểu Messenger/Gmail:
+ *  - Cốp trái: danh sách hội thoại (sidebar, cuộn riêng).
+ *  - Cốp phải: thread đang mở qua <Outlet /> (route con /messages/:id).
+ * Không chọn hội thoại nào thì cốp phải hiện placeholder.
+ */
 export default function Messages() {
     const { user } = useAuth();
+    const { id: activeId } = useParams();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -50,80 +57,74 @@ export default function Messages() {
     }, [user?.id]);
 
     return (
-        <div className="py-4">
-            <div className="container" style={{ maxWidth: 760 }}>
-                <h1 className="h3 fw-bold mb-4">
-                    <i className="bi bi-envelope me-2" />
-                    Tin nhắn
-                </h1>
+        <div className="messages-page">
+            {/* Cốp trái: danh sách hội thoại */}
+            <aside className="messages-sidebar">
+                <div className="messages-sidebar-head">
+                    <h1 className="h6 fw-bold mb-0">
+                        <i className="bi bi-envelope me-2" />
+                        Tin nhắn
+                    </h1>
+                </div>
 
-                {loading && <ListRowsSkeleton count={6} />}
+                <div className="messages-list">
+                    {loading && <ListRowsSkeleton count={6} />}
 
-                {error && <div className="alert alert-warning">{error}</div>}
+                    {error && <div className="alert alert-warning m-3">{error}</div>}
 
-                {!loading && conversations.length === 0 && (
-                    <div className="text-center py-5">
-                        <i className="bi bi-chat-square fs-1 text-secondary" />
-                        <h4 className="mt-3">Chưa có hội thoại nào</h4>
-                        <p className="text-secondary">
-                            Nhắn tin cho chủ nhà từ trang chi tiết phòng để bắt đầu.
-                        </p>
-                        <Link to="/rooms" className="btn btn-primary">
-                            Tìm phòng
-                        </Link>
-                    </div>
-                )}
+                    {!loading && conversations.length === 0 && (
+                        <div className="text-center py-5 px-3">
+                            <i className="bi bi-chat-square fs-1 text-secondary" />
+                            <p className="small text-secondary mt-2 mb-0">
+                                Nhắn tin cho chủ nhà từ trang chi tiết phòng để bắt
+                                đầu.
+                            </p>
+                            <Link to="/rooms" className="btn btn-primary btn-sm mt-3">
+                                Tìm phòng
+                            </Link>
+                        </div>
+                    )}
 
-                <div className="list-group">
                     {conversations.map((c) => (
                         <Link
                             key={c.id}
                             to={`/messages/${c.id}`}
-                            className="list-group-item list-group-item-action d-flex gap-3 py-3"
+                            className={`messages-item d-flex gap-2 align-items-center${
+                                String(c.id) === String(activeId) ? " active" : ""
+                            }`}
                         >
                             {c.listing?.cover_image ? (
                                 <img
                                     src={c.listing.cover_image}
                                     alt=""
-                                    className="rounded"
-                                    style={{
-                                        width: 56,
-                                        height: 56,
-                                        objectFit: "cover",
-                                    }}
+                                    className="messages-item-img"
                                 />
                             ) : (
-                                <div
-                                    className="rounded bg-light d-flex align-items-center justify-content-center"
-                                    style={{ width: 56, height: 56 }}
-                                >
-                                    <i className="bi bi-house-door text-secondary" />
+                                <div className="messages-item-img messages-item-img-empty">
+                                    <i className="bi bi-house-door" />
                                 </div>
                             )}
 
                             <div className="flex-grow-1 overflow-hidden">
-                                <div className="d-flex justify-content-between">
+                                <div className="d-flex justify-content-between gap-2">
                                     <strong className="small text-truncate">
                                         {c.other_user?.name || "Người dùng"}
                                     </strong>
-                                    <span className="small text-secondary text-nowrap ms-2">
+                                    <span className="messages-item-time text-nowrap">
                                         {timeAgo(c.last_message?.created_at)}
                                     </span>
                                 </div>
-                                <div className="small text-secondary text-truncate">
-                                    {c.listing?.title || "Trò chuyện trực tiếp"}
-                                </div>
-                                <div
-                                    className={`small text-truncate ${
-                                        c.unread_count > 0 ? "fw-bold" : ""
-                                    }`}
-                                >
+                                <div className="messages-item-preview text-truncate">
+                                    <span className="text-secondary">
+                                        {c.listing?.title || "Trò chuyện trực tiếp"}
+                                    </span>
+                                    {" · "}
                                     {c.last_message?.body || "Chưa có tin nhắn"}
                                 </div>
                             </div>
 
                             {c.unread_count > 0 && (
-                                <span className="badge rounded-pill text-bg-primary align-self-center">
+                                <span className="badge rounded-pill text-bg-primary">
                                     {c.unread_count}
                                 </span>
                             )}
@@ -132,11 +133,16 @@ export default function Messages() {
                 </div>
 
                 {user?.role === "landlord" && (
-                    <p className="small text-secondary mt-3 mb-0">
-                        Đây là các hội thoại giữa bạn và sinh viên về tin đăng của bạn.
-                    </p>
+                    <div className="messages-sidebar-foot small text-secondary">
+                        Hội thoại giữa bạn và sinh viên về tin đăng của bạn.
+                    </div>
                 )}
-            </div>
+            </aside>
+
+            {/* Cốp phải: thread đang mở (route con /messages/:id) */}
+            <section className="messages-content">
+                <Outlet />
+            </section>
         </div>
     );
 }

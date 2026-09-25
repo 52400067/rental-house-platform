@@ -43,8 +43,8 @@ def login(page, email, password="password"):
 
 def open_conv(page, other_name):
     page.goto(BASE + "/messages", wait_until="networkidle")
-    page.wait_for_selector(".list-group-item", timeout=10000)
-    items = page.locator(".list-group-item")
+    page.wait_for_selector(".messages-item", timeout=10000)
+    items = page.locator(".messages-item")
     for i in range(items.count()):
         item = items.nth(i)
         if other_name in (item.inner_text() or ""):

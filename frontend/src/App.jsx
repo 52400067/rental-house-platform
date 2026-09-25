@@ -45,6 +45,8 @@ export default function App() {
                             <Route path="/register" element={<Register />} />
 
                             {/* Any authenticated user */}
+                            {/* Hai cốp kiểu Messenger/Gmail: layout hội thoại
+                                bên trái, thread bên phải qua Outlet. */}
                             <Route
                                 path="/messages"
                                 element={
@@ -52,15 +54,9 @@ export default function App() {
                                         <Messages />
                                     </ProtectedRoute>
                                 }
-                            />
-                            <Route
-                                path="/messages/:id"
-                                element={
-                                    <ProtectedRoute>
-                                        <ConversationDetail />
-                                    </ProtectedRoute>
-                                }
-                            />
+                            >
+                                <Route path=":id" element={<ConversationDetail />} />
+                            </Route>
                             <Route
                                 path="/profile"
                                 element={

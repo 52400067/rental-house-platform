@@ -45,8 +45,8 @@ def login(page, email, password):
 def open_conv_with(page, other_name):
     """Mo hoi thoai voi other_name tu trang /messages."""
     page.goto(BASE + "/messages", wait_until="networkidle")
-    page.wait_for_selector(".list-group-item", timeout=10000)
-    items = page.locator(".list-group-item")
+    page.wait_for_selector(".messages-item", timeout=10000)
+    items = page.locator(".messages-item")
     n = items.count()
     for i in range(n):
         item = items.nth(i)
