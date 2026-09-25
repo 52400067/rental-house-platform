@@ -138,6 +138,12 @@ class ConversationController extends Controller
 
         $query = $conversation->messages()
             ->with('sender:id')
+            // Facebook "delete for me": hide rows the viewer removed.
+            // JSON array cast: check membership without a LIKE on the raw
+            // text (Postgres) - the ids are stored as ["4",...] or [4,...].
+            ->where(fn ($q) => $q
+                ->whereNull('deleted_for_user_ids')
+                ->orWhereJsonDoesntContain('deleted_for_user_ids', $request->user()->id))
             ->orderBy('id')
             ->limit(500);
 

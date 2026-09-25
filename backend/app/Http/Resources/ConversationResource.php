@@ -25,6 +25,18 @@ class ConversationResource extends JsonResource
 
         $cover = $conversation->listing?->coverImage->first();
 
+        // Sidebar preview: skip rows this viewer deleted for themselves and
+        // render the tombstone text for unsent messages.
+        $last = $conversation->lastMessage;
+        if ($last && $last->isHiddenFor($viewer->id)) {
+            $last = $conversation->messages()
+                ->where(fn ($q) => $q
+                    ->whereNull('deleted_for_user_ids')
+                    ->orWhereJsonDoesntContain('deleted_for_user_ids', $viewer->id))
+                ->orderByDesc('id')
+                ->first();
+        }
+
         return [
             'id' => $conversation->id,
             'listing' => $conversation->listing ? [
@@ -37,9 +49,9 @@ class ConversationResource extends JsonResource
                 'name' => $other->name,
                 'role' => $other->role, // student => link tới hồ sơ công khai
             ] : null,
-            'last_message' => $conversation->lastMessage ? [
-                'body' => $conversation->lastMessage->body,
-                'created_at' => $conversation->lastMessage->created_at->toISOString(),
+            'last_message' => $last ? [
+                'body' => $last->isUnsent() ? 'Tin nhắn đã được thu hồi' : $last->body,
+                'created_at' => $last->created_at->toISOString(),
             ] : null,
             'unread_count' => (int) ($conversation->unread_count ?? 0),
         ];

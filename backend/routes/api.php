@@ -4,6 +4,7 @@ use App\Http\Controllers\AiController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversationController;
+use App\Http\Controllers\MessageDeletionController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
@@ -70,6 +71,11 @@ Route::post('/conversations/{conversation}/messages', [ConversationController::c
     ->middleware(['auth:sanctum', 'throttle.api:30,1'])->whereNumber('conversation');
 Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead'])
     ->middleware('auth:sanctum')->whereNumber('conversation');
+
+// Facebook-style deletion: sender "Thu hồi" (for everyone) or participant
+// "Xóa chỉ ở phía mình". Outsiders get 404 like the rest of messaging.
+Route::delete('/messages/{message}', [MessageDeletionController::class, 'destroy'])
+    ->middleware('auth:sanctum')->whereNumber('message');
 
 // AI proxy (API_CONTRACT §4 - "AI", docs/AI_CONTRACT.md).
 // All endpoints: auth + 10 req/min per user; 503 when the AI service is down.

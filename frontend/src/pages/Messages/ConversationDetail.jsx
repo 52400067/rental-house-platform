@@ -5,6 +5,7 @@ import {
     getMessages,
     sendMessage,
     markRead,
+    deleteMessage,
 } from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";
 import { getEcho } from "../../api/echo";
@@ -43,6 +44,7 @@ export default function ConversationDetail() {
     const [file, setFile] = useState(null);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
+    const [menuFor, setMenuFor] = useState(null); // message id đang mở menu xóa
 
     const threadRef = useRef(null);
     const lastIdRef = useRef(0);
@@ -101,12 +103,33 @@ export default function ConversationDetail() {
                     ...prev,
                     {
                         ...msg,
+                        is_unsent: false,
                         is_mine: msg.sender_id === user?.id,
                     },
                 ];
             });
             lastIdRef.current = Math.max(lastIdRef.current, msg.id);
             if (msg.sender_id !== user?.id) markRead(id).catch(() => {});
+        });
+
+        // Facebook-style deletion: "removed" = unsend cho cả hai phía
+        // (thành tombstone); "removed: false" + deleted_for chứa mình =
+        // ẩn tin (chỉ ảnh hưởng phía mình).
+        privateChan.listen(".message.deleted", (e) => {
+            const mine = user?.id;
+            const affectsMe = e.removed
+                || (e.deleted_for || []).includes(mine);
+            if (!affectsMe) return;
+
+            setMessages((prev) =>
+                e.removed
+                    ? prev.map((m) =>
+                          m.id === e.message_id
+                              ? { ...m, is_unsent: true, body: null, attachment_url: null, attachment_name: null }
+                              : m
+                      )
+                    : prev.filter((m) => m.id !== e.message_id)
+            );
         });
 
         userChan.listen(".message.sent", (e) => {
@@ -181,6 +204,43 @@ export default function ConversationDetail() {
         }
         setError("");
         setFile(f);
+    }
+
+    // Đóng menu xóa khi bấm ra ngoài.
+    useEffect(() => {
+        if (menuFor == null) return undefined;
+        const close = () => setMenuFor(null);
+        window.addEventListener("click", close);
+        return () => window.removeEventListener("click", close);
+    }, [menuFor]);
+
+    const canUnsend = (m) =>
+        m.is_mine &&
+        !m.is_unsent &&
+        Date.now() - new Date(m.created_at).getTime() < 60 * 60 * 1000;
+
+    // Facebook-style: "Thu hồi" (cả hai phía, sender, trong 1h) hoặc
+    // "Xóa chỉ ở phía mình". Cập nhật optimistic - WS event tới sau cũng
+    // idempotent vì listener map/filter cùng hình thức.
+    async function handleDelete(m, scope) {
+        setMenuFor(null);
+        if (scope === "unsent" && !window.confirm("Thu hồi tin nhắn này cho cả hai phía?")) {
+            return;
+        }
+        try {
+            await deleteMessage(m.id, scope);
+            setMessages((prev) =>
+                scope === "unsent"
+                    ? prev.map((x) =>
+                          x.id === m.id
+                              ? { ...x, is_unsent: true, body: null, attachment_url: null, attachment_name: null }
+                              : x
+                      )
+                    : prev.filter((x) => x.id !== m.id)
+            );
+        } catch (err) {
+            toast.error(errMessage(err));
+        }
     }
 
     // Grouping + day separators. A bubble is "first"/"last" of its run when
@@ -278,20 +338,64 @@ export default function ConversationDetail() {
                             <div
                                 className={`chat-row ${m.is_mine ? "mine" : ""} ${first ? "first" : ""} ${last ? "last" : ""}`}
                             >
-                                <div className="chat-bubble">
-                                    {m.body && <div>{m.body}</div>}
-                                    {m.attachment_url && (
-                                        <a
-                                            href={m.attachment_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="chat-attachment"
-                                        >
-                                            <i className="bi bi-paperclip" />
-                                            {m.attachment_name}
-                                        </a>
+                                <div className="chat-bubble-wrap">
+                                    {m.is_unsent ? (
+                                        <div className="chat-bubble chat-bubble-unsent">
+                                            <i className="bi bi-slash-circle me-1" />
+                                            Tin nhắn đã được thu hồi
+                                            <span className="chat-time">{timeLabel(m.created_at)}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="chat-bubble">
+                                            {m.body && <div>{m.body}</div>}
+                                            {m.attachment_url && (
+                                                <a
+                                                    href={m.attachment_url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="chat-attachment"
+                                                >
+                                                    <i className="bi bi-paperclip" />
+                                                    {m.attachment_name}
+                                                </a>
+                                            )}
+                                            <span className="chat-time">{timeLabel(m.created_at)}</span>
+                                        </div>
                                     )}
-                                    <span className="chat-time">{timeLabel(m.created_at)}</span>
+
+                                    <button
+                                        type="button"
+                                        className="chat-menu-btn"
+                                        aria-label="Tùy chọn tin nhắn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMenuFor(menuFor === m.id ? null : m.id);
+                                        }}
+                                    >
+                                        <i className="bi bi-chevron-down" />
+                                    </button>
+
+                                    {menuFor === m.id && (
+                                        <div className="chat-menu" onClick={(e) => e.stopPropagation()}>
+                                            {canUnsend(m) && (
+                                                <button
+                                                    type="button"
+                                                    className="danger"
+                                                    onClick={() => handleDelete(m, "unsent")}
+                                                >
+                                                    <i className="bi bi-arrow-counterclockwise me-2" />
+                                                    Thu hồi
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(m, "self")}
+                                            >
+                                                <i className="bi bi-trash3 me-2" />
+                                                Xóa chỉ ở phía mình
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

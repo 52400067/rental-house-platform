@@ -57,6 +57,12 @@ class MessageDeleted implements ShouldBroadcastNow
             'sender_id' => $this->message->sender_id,
             'removed' => $this->removed,
             'deleted_for' => $this->deletedFor,
+            'conversation' => [
+                'id' => $this->message->conversation_id,
+                'last_message' => $this->message->isUnsent()
+                    ? ['body' => 'Tin nhắn đã được thu hồi', 'created_at' => $this->message->created_at->toISOString()]
+                    : null,
+            ],
         ];
     }
 }

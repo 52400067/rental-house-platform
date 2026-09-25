@@ -18,14 +18,20 @@ class MessageResource extends JsonResource
     {
         /** @var Message $message */
         $message = $this->resource;
+        $viewer = $request->user();
+
+        // Per-user deleted rows are filtered out by the controller; a tombstone
+        // (unsent) still renders as "Tin nh\u00e3n \u0111\u00e3 \u0111\u01b0\u1ee3c thu h\u1ed3i" on every client.
+        $isUnsent = $message->isUnsent();
 
         return [
             'id' => $message->id,
             'sender_id' => $message->sender_id,
-            'is_mine' => $message->sender_id === $request->user()->id,
-            'body' => $message->body,
-            'attachment_name' => $message->attachment_name,
-            'attachment_url' => $message->attachment_path ? URL::temporarySignedRoute(
+            'is_mine' => $message->sender_id === $viewer->id,
+            'is_unsent' => $isUnsent,
+            'body' => $isUnsent ? null : $message->body,
+            'attachment_name' => $isUnsent ? null : $message->attachment_name,
+            'attachment_url' => (! $isUnsent && $message->attachment_path) ? URL::temporarySignedRoute(
                 'attachments.show',
                 now()->addMinutes(60),
                 ['message' => $message->id],

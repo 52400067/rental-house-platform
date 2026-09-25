@@ -17,13 +17,29 @@ class Message extends Model
         'attachment_path',
         'attachment_name',
         'read_at',
+        'deleted_at',
+        'deleted_for_user_ids',
     ];
 
     protected function casts(): array
     {
         return [
             'read_at' => 'datetime',
+            'deleted_at' => 'datetime',
+            'deleted_for_user_ids' => 'array',
         ];
+    }
+
+    /** Facebook "Thu hồi": đã unsend cho mọi người chưa. */
+    public function isUnsent(): bool
+    {
+        return $this->deleted_at !== null;
+    }
+
+    /** Message này bị ẩn với user id $userId không (delete-for-me)? */
+    public function isHiddenFor(int $userId): bool
+    {
+        return in_array($userId, $this->deleted_for_user_ids ?? [], true);
     }
 
     public function conversation(): BelongsTo

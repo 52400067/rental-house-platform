@@ -16,6 +16,11 @@ export const removeFavorite = (listingId) =>
 export const getConversations = () =>
     api.get("/conversations").then((r) => r.data.data);
 
+// Facebook-style deletion: scope "unsent" (Thu hồi, sender only) or
+// "self" (Xóa chỉ ở phía mình). Server returns 204-style null data.
+export const deleteMessage = (messageId, scope) =>
+    api.delete(`/messages/${messageId}`, { params: { scope } }).then((r) => r.data.data);
+
 export const startConversation = (listingId) =>
     api.post("/conversations", { listing_id: listingId }).then((r) => r.data.data);
 
