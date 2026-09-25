@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import * as bootstrap from "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { useAuth } from "../../context/AuthContext";

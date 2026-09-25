@@ -7,7 +7,6 @@ import {
     getAmenities,
     getCities,
 } from "../../api/listingApi";
-import { TYPE_LABELS } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
 import * as socialApi from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";

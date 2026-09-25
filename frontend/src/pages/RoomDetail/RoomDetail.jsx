@@ -55,7 +55,6 @@ export default function RoomDetail() {
     const [chatBusy, setChatBusy] = useState(false);
 
     const isStudent = user?.role === "student";
-    const isOwner = user && listing && user.id === listing.landlord?.id;
 
     const loadReviews = useCallback(
         (page = 1) => {

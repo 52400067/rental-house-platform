@@ -11,6 +11,10 @@
     "test:e2e": "python3 .browser-check/e2e-journey.py",
     "test:skeletons": "python3 .browser-check/skeleton-check.py",
     "test:prod": "python3 .browser-check/prod-smoke.py",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test:e2e:ci": "playwright test"
   },
   "dependencies": {
@@ -27,8 +31,15 @@
     "react-router-dom": "^7.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
     "terser": "^5.51.2",
     "vite": "^6.0.7"
   }
