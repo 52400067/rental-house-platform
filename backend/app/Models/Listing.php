@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Listing extends Model
 {
@@ -94,17 +95,37 @@ class Listing extends Model
         return $this->hasMany(Review::class);
     }
 
-    /** Average listing_rating across reviews (null when unrated). */
-    public function avgRating(): ?float
-    {
-        $avg = $this->reviews()->avg('listing_rating');
-
-        return $avg === null ? null : round((float) $avg, 1);
-    }
+    /**
+     * Haversine distance (km) between a point and listings - PostgreSQL
+     * flavor from ERD §4 (parameters must be CAST to float8; placeholder
+     * order: point lat, point lng, point lat).
+     */
+    public const DISTANCE_SQL = '6371 * ACOS(LEAST(1, COS(RADIANS(CAST(? AS float8))) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(CAST(? AS float8))) + SIN(RADIANS(CAST(? AS float8))) * SIN(RADIANS(latitude))))';
 
     /** Scope: public listings only. */
     public function scopeVisible(Builder $query): Builder
     {
         return $query->where('status', '!=', self::STATUS_HIDDEN);
+    }
+
+    /**
+     * Scope: add a `distance_km` select from the given point, optionally
+     * filtering to listings within $maxKm. Callers can `orderBy('distance_km')`
+     * afterwards. Bindings follow the placeholder order in DISTANCE_SQL;
+     * 'select' bindings are flattened BEFORE 'where' bindings by the query
+     * builder, matching the placeholder order in the SQL above.
+     */
+    public function scopeNearby(Builder $query, float $latitude, float $longitude, ?float $maxKm = null): Builder
+    {
+        $bindings = [$latitude, $longitude, $latitude];
+
+        $query->addSelect(DB::raw(self::DISTANCE_SQL.' AS distance_km'));
+        $query->addBinding($bindings, 'select');
+
+        if ($maxKm !== null) {
+            $query->whereRaw(self::DISTANCE_SQL.' <= ?', array_merge($bindings, [$maxKm]));
+        }
+
+        return $query;
     }
 }

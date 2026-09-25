@@ -23,12 +23,7 @@ class ListingController extends Controller
 
     public const PER_PAGE_MAX = 50;
 
-    /**
-     * Haversine distance (km) between a school and listings - PostgreSQL
-     * flavor from ERD §4 (parameters must be CAST to float8; placeholder
-     * order: school lat, school lng, school lat).
-     */
-    private const DISTANCE_SQL = '6371 * ACOS(LEAST(1, COS(RADIANS(CAST(? AS float8))) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(CAST(? AS float8))) + SIN(RADIANS(CAST(? AS float8))) * SIN(RADIANS(latitude))))';
+
 
     public function index(Request $request): JsonResponse
     {
@@ -147,16 +142,8 @@ class ListingController extends Controller
         // ---------------------------------------------------------------
         if (! empty($validated['school_id'])) {
             $school = DB::table('schools')->find($validated['school_id']);
-            $schoolBindings = [(float) $school->latitude, (float) $school->longitude, (float) $school->latitude];
 
-            $query->addSelect(DB::raw(self::DISTANCE_SQL.' AS distance_km'));
-            // 'select' bindings are flattened BEFORE 'where' bindings by the
-            // query builder, matching the placeholder order in the SQL above.
-            $query->addBinding($schoolBindings, 'select');
-
-            if (isset($validated['max_km'])) {
-                $query->whereRaw(self::DISTANCE_SQL.' <= ?', array_merge($schoolBindings, [$validated['max_km']]));
-            }
+            $query->nearby((float) $school->latitude, (float) $school->longitude, isset($validated['max_km']) ? (float) $validated['max_km'] : null);
         }
 
         // ---------------------------------------------------------------
