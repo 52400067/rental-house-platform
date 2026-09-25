@@ -17,11 +17,15 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
+    'allowed_origins' => array_values(array_filter(array_merge(
+        [env('FRONTEND_URL', 'http://localhost:5173')],
+        // Extra origins (comma-separated): e.g. the dockerized frontend on
+        // :5174 when the API runs in Docker, or a local Vite on :5173 when
+        // the API runs in Docker. Empty entries are dropped.
+        explode(',', (string) env('FRONTEND_EXTRA_URLS', '')),
         // Local production-bundle smoke tests (vite preview).
-        env('FRONTEND_PREVIEW_URL', 'http://localhost:4173'),
-    ],
+        [env('FRONTEND_PREVIEW_URL', 'http://localhost:4173')]
+    ))),
 
     'allowed_origins_patterns' => [],
 
