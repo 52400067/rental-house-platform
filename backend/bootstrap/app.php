@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\AiUnavailableException;
+use App\Http\Middleware\AddRequestId;
 use App\Http\Middleware\ApiThrottle;
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -39,6 +40,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // of the contract's JSON 401. A closure returning null disables the redirect
         // so AuthenticationException reaches the JSON 401 handler below.
         $middleware->redirectGuestsTo(fn () => null);
+
+        // Correlate every log line to a request: AddRequestId runs first in the
+        // api group and shares request_id / user_id with all log channels.
+        $middleware->api(prepend: [AddRequestId::class]);
 
         $middleware->alias([
             'role' => EnsureRole::class,

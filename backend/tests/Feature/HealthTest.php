@@ -30,4 +30,16 @@ class HealthTest extends TestCase
         $this->assertStringNotContainsString('pgsql', $body);
         $this->assertStringNotContainsString(PHP_VERSION, $body);
     }
+
+    public function test_health_response_carries_request_id_header(): void
+    {
+        $response = $this->getJson('/api/health');
+
+        $response->assertOk()->assertHeader('X-Request-Id');
+
+        $this->assertMatchesRegularExpression(
+            '/^[A-Za-z0-9-]{8,64}$/',
+            (string) $response->headers->get('X-Request-Id')
+        );
+    }
 }

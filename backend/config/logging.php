@@ -1,5 +1,6 @@
 <?php
 
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -54,6 +55,9 @@ return [
 
         'stack' => [
             'driver' => 'stack',
+            // Local dev: human-readable single file (default).
+            // Production: set LOG_STACK=single_json in .env to ship one JSON object
+            // per line for container log collectors (see .env.production.example).
             'channels' => explode(',', env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,
         ],
@@ -63,6 +67,17 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+        ],
+
+        // Same file as 'single' but Monolog JsonFormatter - one JSON object per
+        // line. AddRequestId shares request_id/user_id into every record's context.
+        'single_json' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'formatter' => JsonFormatter::class,
+            'with' => ['stream' => storage_path('logs/laravel.log')],
+            'level' => env('LOG_LEVEL', 'debug'),
+            'processors' => [PsrLogMessageProcessor::class],
         ],
 
         'daily' => [
