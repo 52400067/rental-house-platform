@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\MessageDeletionController;
@@ -12,6 +13,10 @@ use App\Http\Controllers\MessageReactionController;
 use App\Http\Controllers\ReferenceController;
 use App\Http\Controllers\UserPublicController;
 use Illuminate\Support\Facades\Route;
+
+// Internal liveness probe (load balancers, docker healthcheck, CI smoke).
+// NOT part of docs/API_CONTRACT.md - intentionally unauthenticated, minimal payload.
+Route::get('/health', [HealthController::class, 'show']);
 
 // Authentication and profile (API_CONTRACT §4 - "Xác thực và hồ sơ").
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle.api:10,1');
