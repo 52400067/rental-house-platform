@@ -109,6 +109,7 @@ export default function ConversationDetail() {
                         ...msg,
                         is_unsent: false,
                         is_mine: msg.sender_id === user?.id,
+                        seen_at: null,
                     },
                 ];
             });

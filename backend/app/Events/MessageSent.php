@@ -48,7 +48,8 @@ class MessageSent implements ShouldBroadcastNow
     /**
      * Shape follows MessageResource (API_CONTRACT §3) EXCEPT `is_mine`:
      * the payload is shared by both recipients, so mine/not-mine is
-     * derived on the client from sender_id.
+     * derived on the client from sender_id. `seen_at` is always null on
+     * delivery - the `.message.seen` event flips it later.
      */
     public function broadcastWith(): array
     {
@@ -58,6 +59,7 @@ class MessageSent implements ShouldBroadcastNow
                 'id' => $this->message->id,
                 'sender_id' => $this->message->sender_id,
                 'body' => $this->message->body,
+                'seen_at' => null,
                 'attachment_name' => $this->message->attachment_name,
                 'attachment_url' => $this->message->attachment_path
                     ? URL::temporarySignedRoute(
