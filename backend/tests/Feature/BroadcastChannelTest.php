@@ -23,6 +23,17 @@ class BroadcastChannelTest extends TestCase
     {
         parent::setUp();
 
+        // phpunit.xml dat BROADCAST_CONNECTION=null (suite khong can Reverb
+        // song) NHUNG NullBroadcaster chap nhan moi /broadcasting/auth ma
+        // khong evaluate channel closure. Test nay kiem chung chinh ranh gioi
+        // do, nen phai pin connection that: PusherBroadcaster::auth() chi
+        // tinh signature local + chay closure, khong goi HTTP den server.
+        config(['broadcasting.default' => 'reverb']);
+
+        // routes/channels.php duoc include khi app boot voi driver null -
+        // phai include lai de closure duoc bind vao driver reverb.
+        require base_path('routes/channels.php');
+
         $this->conversation = Conversation::factory()->create([
             'student_id' => User::factory()->student()->create()->id,
             'landlord_id' => User::factory()->landlord()->create()->id,

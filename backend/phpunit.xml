@@ -35,6 +35,12 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <!-- Broadcast qua "null": PHPUnit kiem chung HTTP response va event,
+             khong kiem chung transport WebSocket. Truoc day suite phu thuoc
+             ngam vao Reverb song o localhost:8080 - bat luc demo stack bi
+             dung de cho Docker, 5 test bong vang. Chat test dung
+             Broadcast::fake(); channel auth co BroadcastChannelTest rieng. -->
+        <env name="BROADCAST_CONNECTION" value="null" force="true"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
