@@ -161,7 +161,7 @@ class LandlordListingController extends Controller
     /** 403 with the standard message unless the current user owns the listing. */
     private function authorizeOwnership(Request $request, Listing $listing): void
     {
-        if ($listing->user_id !== $request->user()->id) {
+        if (! $request->user()->can('manage', $listing)) {
             // Rendered as { message: "Bạn không có quyền..." } by the handler.
             throw new AuthorizationException;
         }

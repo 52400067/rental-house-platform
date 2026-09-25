@@ -208,13 +208,9 @@ class ListingController extends Controller
 
         // ERD §4: only students who already have a conversation may review.
         // 403 with the contract's specific message (API_CONTRACT §4).
-        $hasConversation = $listing->conversations()
-            ->where('student_id', $user->id)
-            ->exists();
-
-        if (! $hasConversation) {
-            abort(403, 'Bạn cần nhắn tin với chủ nhà trước khi đánh giá.');
-        }
+        // ReviewPolicy::create supplies the decision; abort keeps the
+        // contract message in the 403 body.
+        abort_unless($user->can('review', $listing), 403, 'Bạn cần nhắn tin với chủ nhà trước khi đánh giá.');
 
         // One review per student per listing (unique constraint, ERD §3).
         $alreadyReviewed = Review::query()

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageDeleted;
-use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,17 +24,15 @@ class MessageDeletionController extends Controller
         $user = $request->user();
 
         // Outsiders nhận 404 - giống các endpoint hội thoại khác.
-        $conversation = Conversation::find($message->conversation_id);
-        if (! $conversation
-            || ($conversation->student_id !== $user->id
-                && $conversation->landlord_id !== $user->id)) {
+        // (participate rides the ConversationPolicy mapping on Message.)
+        if (! $user->can('participate', $message)) {
             abort(404);
         }
 
         $scope = $request->string('scope', 'self')->toString();
 
         if ($scope === 'unsent') {
-            if ($message->sender_id !== $user->id) {
+            if (! $user->can('unsend', $message)) {
                 return response()->json([
                     'message' => 'Chỉ người gửi mới thu hồi được tin nhắn.',
                 ], 403);

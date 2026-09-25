@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageReacted;
 use App\Http\Requests\ReactionUpdateRequest;
-use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,10 +19,8 @@ class MessageReactionController extends Controller
     {
         $user = $request->user();
 
-        $conversation = Conversation::find($message->conversation_id);
-        if (! $conversation
-            || ($conversation->student_id !== $user->id
-                && $conversation->landlord_id !== $user->id)) {
+        // Outsiders nhận 404 (không phải 403) - không lộ sự tồn tại.
+        if (! $user->can('participate', $message)) {
             abort(404);
         }
 
@@ -50,10 +47,8 @@ class MessageReactionController extends Controller
     {
         $user = $request->user();
 
-        $conversation = Conversation::find($message->conversation_id);
-        if (! $conversation
-            || ($conversation->student_id !== $user->id
-                && $conversation->landlord_id !== $user->id)) {
+        // Outsiders nhận 404 (không phải 403) - không lộ sự tồn tại.
+        if (! $user->can('participate', $message)) {
             abort(404);
         }
 

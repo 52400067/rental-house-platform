@@ -209,13 +209,12 @@ class ConversationController extends Controller
 
     /**
      * Participant check - anyone else gets 404 (contract: "Người ngoài
-     * nhận 404"), never 403 which would leak existence.
+     * nhận 404"), never 403 which would leak existence. Delegates to
+     * ConversationPolicy::participate.
      */
     private function authorizeParticipant(Request $request, Conversation $conversation): void
     {
-        $user = $request->user();
-
-        if ($conversation->student_id !== $user->id && $conversation->landlord_id !== $user->id) {
+        if (! $request->user()->can('participate', $conversation)) {
             abort(404);
         }
     }
