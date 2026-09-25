@@ -45,6 +45,7 @@ export default function ConversationDetail() {
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
     const [menuFor, setMenuFor] = useState(null); // tin nhắn đang mở menu tùy chọn
+    const [menuUp, setMenuUp] = useState(false); // menu lật lên khi anchor gần đáy
     const [confirmUnsend, setConfirmUnsend] = useState(null); // tin chờ xác nhận thu hồi
     const [otherTyping, setOtherTyping] = useState(false); // "người kia đang soạn"
 
@@ -262,6 +263,24 @@ export default function ConversationDetail() {
         echo.private(`conversation.${id}`).whisper("typing", { user_id: user?.id });
     }
 
+    // Mở menu tùy chọn; lật lên trên nếu anchor nằm gần đáy thread để menu
+    // không bao giờ bị cắt (bấm bubble hoặc nút chevron đều dùng hàm này).
+    function openMenuFor(m, anchorEl) {
+        if (menuFor === m.id) {
+            setMenuFor(null);
+            return;
+        }
+        const wrap = anchorEl.closest(".chat-bubble-wrap");
+        const thread = threadRef.current;
+        if (wrap && thread) {
+            const wr = wrap.getBoundingClientRect();
+            const tr = thread.getBoundingClientRect();
+            const MENU_H = 110;
+            setMenuUp(tr.bottom - wr.bottom < MENU_H);
+        }
+        setMenuFor(m.id);
+    }
+
     // Facebook-style: "Thu hồi" (cả hai phía, sender, trong 1h) hoặc
     // "Xóa chỉ ở phía mình". Cập nhật optimistic - WS event tới sau cũng
     // idempotent vì listener map/filter cùng hình thức.
@@ -399,7 +418,7 @@ export default function ConversationDetail() {
                                             className="chat-bubble"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setMenuFor(menuFor === m.id ? null : m.id);
+                                                openMenuFor(m, e.currentTarget);
                                             }}
                                             title="Tùy chọn tin nhắn"
                                         >
@@ -422,18 +441,21 @@ export default function ConversationDetail() {
                                     <button
                                         type="button"
                                         className="chat-menu-btn"
-                                        aria-label="Tùy chọn tin nhắn"
-                                        onClick={(e) => {
+                                        aria-label="Tùy chọn tin nhắn"                                        onClick={(e) => {
                                             e.stopPropagation();
-                                            setMenuFor(menuFor === m.id ? null : m.id);
+                                            openMenuFor(m, e.currentTarget);
                                         }}
-                                    >                                        <i className="bi bi-chevron-down" />
+                                    >
+                                        <i className="bi bi-chevron-down" />
                                     </button>
 
                                     {/* Messenger web menu: nhỏ, neo vào bubble,
                                         mục tùy theo quyền trên tin này. */}
                                     {menuFor === m.id && (
-                                        <div className="chat-menu" onClick={(e) => e.stopPropagation()}>
+                                        <div
+                                            className={`chat-menu${menuUp ? " up" : ""}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             {m.body && (
                                                 <button type="button" onClick={() => copyText(m)}>
                                                     <i className="bi bi-clipboard me-2" />

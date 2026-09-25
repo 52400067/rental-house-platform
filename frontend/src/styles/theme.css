@@ -1246,23 +1246,35 @@ main { flex: 1 0 auto; }
     border-color: #b91c1c;
 }
 
-/* Thin chat scrollbar: subtle gray thumb, ink on hover, no track. */
-.chat-thread {
-    scrollbar-width: thin;
-    scrollbar-color: var(--faint) transparent;
-}
+/* Chat scrollbar: same geometry as the global bar (10px, rounded), but a
+   MUTED thumb - faint on the gray thread canvas was nearly invisible.
+   Do NOT set scrollbar-width/color here: Chromium 121+ honors the standard
+   props and DISABLES ::-webkit-* styling entirely. */
 .chat-thread::-webkit-scrollbar {
-    width: 6px;
+    width: 10px;
 }
 .chat-thread::-webkit-scrollbar-track {
     background: transparent;
 }
 .chat-thread::-webkit-scrollbar-thumb {
-    background: var(--faint);
+    background: var(--muted);
+    border: 2px solid var(--paper);
     border-radius: 999px;
 }
 .chat-thread:hover::-webkit-scrollbar-thumb {
-    background: var(--muted);
+    background: var(--ink-soft);
+}
+@supports not selector(::-webkit-scrollbar) {
+    .chat-thread {
+        scrollbar-width: thin;
+        scrollbar-color: var(--muted) transparent;
+    }
+}
+
+/* Menu flip: when the anchor sits near the thread bottom, open upward. */
+.chat-menu.up {
+    top: auto;
+    bottom: calc(100% + 0.3rem);
 }
 @media (max-width: 575.98px) {
     .chat-page {
