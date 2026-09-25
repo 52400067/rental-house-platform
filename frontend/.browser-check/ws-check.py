@@ -6,55 +6,17 @@
   C. Khong con request polling GET /conversations/{id}/messages lap lai
 Chay can: API :8000 + Reverb :8080 + dev :5173 + DB.
 """
-import os
 import time
 
 from playwright.sync_api import expect, sync_playwright
 
-BASE = os.environ.get("E2E_BASE", "http://localhost:5173")
-STUDENT = (os.environ.get("E2E_EMAIL", "student1@example.com"), "password")
-LANDLORD = ("landlord1@example.com", "password")
-# Ten hien thi trong seeder (sidebar khong hien email).
-STUDENT_NAME = "Nguyễn Văn An"
-LANDLORD_NAME = "Trần Văn Thành"
-CHROME = os.environ.get(
-    "CHROME_PATH", "/usr/lib64/chromium-browser/chromium-browser"
-)
+from checklib import (BASE, CHROME, LANDLORD, LANDLORD_NAME, STUDENT,
+                      STUDENT_NAME, login, make_checker, open_conv)
 
-results = []
+check, finish = make_checker()
 
-
-def check(name, fn):
-    try:
-        fn()
-        results.append((name, "PASS"))
-        print(f"  [PASS] {name}")
-    except Exception as e:  # noqa: BLE001
-        results.append((name, "FAIL"))
-        print(f"  [FAIL] {name}: {str(e)[:200]}")
-
-
-def login(page, email, password):
-    page.goto(BASE + "/login", wait_until="networkidle")
-    page.fill("#email", email)
-    page.fill("#password", password)
-    page.click("button[type=submit]")
-    page.wait_for_url(lambda u: "/login" not in u, timeout=10000)
-
-
-def open_conv_with(page, other_name):
-    """Mo hoi thoai voi other_name tu trang /messages."""
-    page.goto(BASE + "/messages", wait_until="networkidle")
-    page.wait_for_selector(".messages-item", timeout=10000)
-    items = page.locator(".messages-item")
-    n = items.count()
-    for i in range(n):
-        item = items.nth(i)
-        if other_name in (item.inner_text() or ""):
-            item.click()
-            page.wait_for_selector(".chat-thread", timeout=10000)
-            return True
-    return False
+# open_conv_with cu = open_conv (tra True/False) trong checklib.
+open_conv_with = open_conv
 
 
 with sync_playwright() as p:
@@ -122,6 +84,4 @@ with sync_playwright() as p:
 
     browser.close()
 
-fails = [n for n, s in results if s == "FAIL"]
-print(f"\n{len(results) - len(fails)}/{len(results)} checks passed")
-assert not fails, f"failed: {fails}"
+finish()

@@ -9,24 +9,14 @@ import os
 
 from playwright.sync_api import expect, sync_playwright
 
+from checklib import CHROME, login, make_checker
+
+# Script nay chay tren PREVIEW BUILD :4173, khac phan con lai (:5173 dev).
 BASE = os.environ.get("E2E_BASE", "http://localhost:4173")
 EMAIL = os.environ.get("E2E_EMAIL", "student1@example.com")
 PASSWORD = os.environ.get("E2E_PASSWORD", "password")
-CHROME = os.environ.get(
-    "CHROME_PATH", "/usr/lib64/chromium-browser/chromium-browser"
-)
 
-results = []
-
-
-def check(name, fn):
-    try:
-        fn()
-        results.append((name, "PASS"))
-        print(f"  [PASS] {name}")
-    except Exception as e:  # noqa: BLE001
-        results.append((name, "FAIL"))
-        print(f"  [FAIL] {name}: {str(e)[:200]}")
+check, finish = make_checker()
 
 
 def is_bottom_right(box, vw, vh):
@@ -104,13 +94,8 @@ with sync_playwright() as p:
     if not api_up():
         print("  [SKIP] authed checks (API/Postgres down - start Postgres + :8000)")
     else:
-        def login():
-            page.goto(BASE + "/login", wait_until="networkidle")
-            page.fill("#email", EMAIL)
-            page.fill("#password", PASSWORD)
-            page.click("button[type=submit]")
-            page.wait_for_url(lambda u: "/login" not in u, timeout=10000)
-        check("login as student1", login)
+        authed_login = lambda: login(page, EMAIL, PASSWORD, base=BASE)
+        check("login as student1", authed_login)
 
         def authed_send():
             page.goto(BASE + "/rooms", wait_until="networkidle")
@@ -193,6 +178,4 @@ with sync_playwright() as p:
 
     browser.close()
 
-fails = [n for n, s in results if s == "FAIL"]
-print(f"\n{len(results) - len(fails)}/{len(results)} checks passed")
-assert not fails, f"failed: {fails}"
+finish()
