@@ -151,6 +151,7 @@ fi
 [[ -f "$PID_FILE" ]] && { while read -r pid; do kill "$pid" 2>/dev/null || true; done < "$PID_FILE"; rm -f "$PID_FILE"; sleep 1; }
 pkill -f "php artisan serve" 2>/dev/null || true
 pkill -f "0.0.0.0:8000" 2>/dev/null || true
+pkill -f "php artisan reverb:start" 2>/dev/null || true
 pkill -f "node.*vite" 2>/dev/null || true
 
 : > "$API_LOG"; : > "$WEB_LOG"
@@ -158,6 +159,10 @@ pkill -f "node.*vite" 2>/dev/null || true
 echo ">> start Laravel API :8000 ..."
 cd "$BACKEND"
 PHP_CLI_SERVER_WORKERS=4 setsid nohup php artisan serve --host=0.0.0.0 --port=8000 >> "$API_LOG" 2>&1 &
+echo $! >> "$PID_FILE"
+
+echo ">> start Reverb WebSocket :8080 ..."
+setsid nohup php artisan reverb:start --host=0.0.0.0 --port=8080 >> "$API_LOG" 2>&1 &
 echo $! >> "$PID_FILE"
 
 echo ">> start Vite dev server :5173 ..."
@@ -187,6 +192,7 @@ echo -e " ${c_green}DEMO SAN SANG${c_off}"
 echo "=============================================="
 echo "  Web : http://localhost:5173"
 echo "  API : http://localhost:8000/api"
+echo "  WS  : ws://localhost:8080 (Reverb)"
 echo ""
 echo "  Tai khoan demo (mat khau: password)"
 echo "    Sinh vien : student1@example.com"

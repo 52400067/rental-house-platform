@@ -20,7 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
+        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
+    )
+    ->withBroadcasting(
+        // The SPA authenticates with Sanctum PERSONAL ACCESS TOKENS (Bearer),
+        // not the web cookie session, so /broadcasting/auth must run inside the
+        // "api" middleware group with sanctum. The web group is kept as well so
+        // default Laravel behavior still works if a session-based client appears.
+        __DIR__.'/../routes/channels.php',
+        ['middleware' => ['api', 'auth:sanctum']],
     )
     ->withMiddleware(function (Middleware $middleware) {
         // API-only app: no named "login" route exists, so the framework default

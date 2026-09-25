@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import * as bootstrap from "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { useAuth } from "../../context/AuthContext";
 import { getConversations } from "../../api/socialApi";
+import { getEcho, disconnectEcho } from "../../api/echo";
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -10,31 +11,52 @@ export default function Navbar() {
 
     const [unread, setUnread] = useState(0);
     const [scrolled, setScrolled] = useState(false);
-    const timerRef = useRef(null);
 
     // Total unread badge = sum of unread_count from GET /conversations.
-    // Polls only while logged in; stops after unmount or logout.
+    // Initial fetch once, then realtime increments via the user's private
+    // WebSocket channel (no more 15s polling).
     useEffect(() => {
         if (!user) {
             setUnread(0);
+            disconnectEcho();
             return undefined;
         }
         let active = true;
-        const poll = () =>
-            getConversations()
-                .then((list) => {
-                    if (active) {
-                        setUnread(
-                            list.reduce((sum, c) => sum + (c.unread_count || 0), 0)
-                        );
-                    }
-                })
-                .catch(() => {});
-        poll();
-        timerRef.current = setInterval(poll, 15000);
+        getConversations()
+            .then((list) => {
+                if (active) {
+                    setUnread(
+                        list.reduce((sum, c) => sum + (c.unread_count || 0), 0)
+                    );
+                }
+            })
+            .catch(() => {});
+
+        const echo = getEcho();
+        if (!echo) return () => { active = false; };
+
+        const chan = echo.private(`App.Models.User.${user.id}`);
+        chan.listen(".message.sent", (e) => {
+            // Someone else's message = one unread for me.
+            if (e.message?.sender_id !== user.id) {
+                setUnread((u) => u + 1);
+            }
+        });
+        chan.listen(".message.deleted", (e) => {
+            // Unsend-for-everyone of an unread incoming message: badge down.
+            if (
+                e.removed &&
+                e.deleted_for?.includes(user.id) &&
+                e.sender_id &&
+                e.sender_id !== user.id
+            ) {
+                setUnread((u) => Math.max(0, u - 1));
+            }
+        });
+
         return () => {
             active = false;
-            clearInterval(timerRef.current);
+            echo.leave(`App.Models.User.${user.id}`);
         };
     }, [user]);
 

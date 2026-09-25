@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageDeleted;
+use App\Events\MessageSent;
 use App\Http\Resources\ConversationResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
@@ -199,6 +201,9 @@ class ConversationController extends Controller
 
         // Touch so GET /conversations sorts by latest activity.
         $conversation->touch();
+
+        // Realtime bubble delivery over Reverb (replaces 5s client polling).
+        broadcast(new MessageSent($message->load('sender:id')));
 
         return response()->json([
             'data' => (new MessageResource($message->load('sender:id')))->resolve($request),

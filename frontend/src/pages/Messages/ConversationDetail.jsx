@@ -7,6 +7,7 @@ import {
     markRead,
 } from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";
+import { getEcho } from "../../api/echo";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ui/Toast";
 
@@ -61,25 +62,17 @@ export default function ConversationDetail() {
         };
     }, [id]);
 
-    // Full load, then poll for newer messages every 5s (API_CONTRACT §4).
-    const poll = useCallback(async () => {
+    // Initial load (polls replaced by the Reverb WebSocket subscription below).
+    const load = useCallback(async () => {
         try {
-            const rows = await getMessages(id, lastIdRef.current);
-            if (rows.length > 0) {
-                lastIdRef.current = rows[rows.length - 1].id;
-                setMessages((prev) => {
-                    const merged = prev.length === 0 ? rows : [...prev, ...rows];
-                    // Dedup: optimistic sends can race the poll.
-                    const seen = new Set();
-                    return merged.filter((m) =>
-                        seen.has(m.id) ? false : (seen.add(m.id), true)
-                    );
-                });
-                markRead(id).catch(() => {});
-            }
-            setLoaded(true);
+            const rows = await getMessages(id);
+            lastIdRef.current = rows.length ? rows[rows.length - 1].id : 0;
+            setMessages(rows);
+            markRead(id).catch(() => {});
         } catch {
-            // transient - next poll retries
+            // transient - subscriber below is not affected
+        } finally {
+            setLoaded(true);
         }
     }, [id]);
 
@@ -87,10 +80,48 @@ export default function ConversationDetail() {
         setMessages([]);
         setLoaded(false);
         lastIdRef.current = 0;
-        poll();
-        const timer = setInterval(poll, 5000);
-        return () => clearInterval(timer);
-    }, [id, poll]);
+        load();
+    }, [id, load]);
+
+    // Realtime: bubbles arrive over the conversation channel. The WebSocket
+    // IS the delivery path now (no 5s polling); Echo re-subscribes with the
+    // React keys, cleanup runs on unmount / conversation switch.
+    useEffect(() => {
+        const echo = getEcho();
+        if (!echo) return undefined;
+
+        const privateChan = echo.private(`conversation.${id}`);
+        const userChan = echo.private(`App.Models.User.${user?.id}`);
+
+        privateChan.listen(".message.sent", (e) => {
+            const msg = e.message;
+            setMessages((prev) => {
+                if (prev.some((m) => m.id === msg.id)) return prev;
+                return [
+                    ...prev,
+                    {
+                        ...msg,
+                        is_mine: msg.sender_id === user?.id,
+                    },
+                ];
+            });
+            lastIdRef.current = Math.max(lastIdRef.current, msg.id);
+            if (msg.sender_id !== user?.id) markRead(id).catch(() => {});
+        });
+
+        userChan.listen(".message.sent", (e) => {
+            if (e.message.conversation_id === Number(id)) {
+                // Same conversation is open - the privateChan handler drew it;
+                // keep the thread marked read so unread_count stays 0.
+                markRead(id).catch(() => {});
+            }
+        });
+
+        return () => {
+            echo.leave(`conversation.${id}`);
+            echo.leave(`App.Models.User.${user?.id}`);
+        };
+    }, [id, user?.id]);
 
     // Autoscroll: follow only when the user is already at (or near) the bottom,
     // so reading history is not yanked down while new messages poll in.
@@ -119,7 +150,11 @@ export default function ConversationDetail() {
         setSending(true);
         try {
             const msg = await sendMessage(id, { body: text, file });
-            setMessages((prev) => [...prev, msg]);
+            // The sender's own .message.sent WS event usually lands BEFORE this
+            // HTTP response resolves - skip if the subscriber already drew it.
+            setMessages((prev) =>
+                prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]
+            );
             lastIdRef.current = Math.max(lastIdRef.current, msg.id);
             setBody("");
             setFile(null);

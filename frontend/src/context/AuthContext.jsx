@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import * as authApi from "../api/authApi";
+import { disconnectEcho } from "../api/echo";
 
 const AuthContext = createContext(null);
 
@@ -50,6 +51,7 @@ export function AuthProvider({ children }) {
         }
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        disconnectEcho();
         setUser(null);
     }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getConversations } from "../../api/socialApi";
+import { getEcho } from "../../api/echo";
 import { timeAgo } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
 import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
@@ -17,6 +18,36 @@ export default function Messages() {
             .catch(() => setError("Không tải được hội thoại."))
             .finally(() => setLoading(false));
     }, []);
+
+    // Realtime sidebar: new messages and unsend/delete events update the
+    // preview, ordering and unread badge without polling.
+    useEffect(() => {
+        const echo = getEcho();
+        if (!echo) return undefined;
+
+        const chan = echo.private(`App.Models.User.${user?.id}`);
+
+        chan.listen(".message.sent", (e) => {
+            setConversations((prev) => {
+                const conv = e.conversation;
+                if (!conv) return prev;
+                const rest = prev.filter((c) => c.id !== conv.id);
+                return [conv, ...rest];
+            });
+        });
+
+        chan.listen(".message.deleted", (e) => {
+            setConversations((prev) => {
+                const conv = e.conversation;
+                if (!conv) return prev;
+                return prev.map((c) => (c.id === conv.id ? conv : c));
+            });
+        });
+
+        return () => {
+            echo.leave(`App.Models.User.${user?.id}`);
+        };
+    }, [user?.id]);
 
     return (
         <div className="py-4">
