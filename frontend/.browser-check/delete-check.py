@@ -62,11 +62,13 @@ def send_b(page, text):
 TOMBSTONE = "Tin nhắn đã được thu hồi"
 
 
-def open_menu(page, bubble_text):
+def open_sheet(page, bubble_text):
+    """Click bubble -> modal action sheet kieu Facebook hien ra."""
     row = page.locator(".chat-row", has_text=bubble_text).last
-    row.hover()
-    row.locator(".chat-menu-btn").click()
-    return row.locator(".chat-menu")
+    row.locator(".chat-bubble").first.click()
+    sheet = page.locator(".chat-sheet")
+    expect(sheet).to_be_visible()
+    return sheet
 
 
 with sync_playwright() as p:
@@ -84,16 +86,13 @@ with sync_playwright() as p:
         a.wait_for_timeout(1200); b.wait_for_timeout(1200)
     check("setup: 2 browser vao cung thread", setup)
 
-    # window.confirm phai duoc ACCEPT - dang ky handler truoc khi mo menu.
-    b.on("dialog", lambda d: d.accept())
-
     # ---- A. Unsend (thu hoi) ca hai phia ----------------------------------
     def unsend():
         stamp = f"UNSEND {int(time.time())}"
         send_b(b, stamp)
         expect(a.locator(".chat-bubble", has_text=stamp)).to_be_visible(timeout=6000)
-        menu = open_menu(b, stamp)
-        menu.locator("button.danger").click()  # window.confirm -> accept
+        sheet = open_sheet(b, stamp)
+        sheet.locator(".chat-sheet-btn.danger", has_text="Thu hồi").click()
         # Phia B tombstone
         expect(b.locator(".chat-bubble-unsent").last).to_contain_text(TOMBSTONE, timeout=6000)
         # Phia A tombstone realtime
@@ -105,9 +104,8 @@ with sync_playwright() as p:
         stamp = f"DELME {int(time.time())}"
         send_b(b, stamp)
         expect(a.locator(".chat-bubble", has_text=stamp)).to_be_visible(timeout=6000)
-        menu = open_menu(b, stamp)
-        # Nut khong co .danger = "Xóa chỉ ở phía mình"
-        menu.locator("button:not(.danger)").click()
+        sheet = open_sheet(b, stamp)
+        sheet.locator(".chat-sheet-btn", has_text="phía mình").click()
         b.wait_for_timeout(500)
         # Phia B: bien mat
         expect(b.locator(".chat-bubble", has_text=stamp)).to_have_count(0, timeout=6000)

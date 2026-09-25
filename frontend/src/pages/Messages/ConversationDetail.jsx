@@ -44,7 +44,7 @@ export default function ConversationDetail() {
     const [file, setFile] = useState(null);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
-    const [menuFor, setMenuFor] = useState(null); // message id đang mở menu xóa
+    const [actionMsg, setActionMsg] = useState(null); // tin nhắn đang mở sheet tùy chọn
 
     const threadRef = useRef(null);
     const lastIdRef = useRef(0);
@@ -206,13 +206,15 @@ export default function ConversationDetail() {
         setFile(f);
     }
 
-    // Đóng menu xóa khi bấm ra ngoài.
+    // Esc đóng sheet tùy chọn tin nhắn (bấm overlay cũng đóng).
     useEffect(() => {
-        if (menuFor == null) return undefined;
-        const close = () => setMenuFor(null);
-        window.addEventListener("click", close);
-        return () => window.removeEventListener("click", close);
-    }, [menuFor]);
+        if (!actionMsg) return undefined;
+        const onKey = (e) => {
+            if (e.key === "Escape") setActionMsg(null);
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [actionMsg]);
 
     const canUnsend = (m) =>
         m.is_mine &&
@@ -223,10 +225,7 @@ export default function ConversationDetail() {
     // "Xóa chỉ ở phía mình". Cập nhật optimistic - WS event tới sau cũng
     // idempotent vì listener map/filter cùng hình thức.
     async function handleDelete(m, scope) {
-        setMenuFor(null);
-        if (scope === "unsent" && !window.confirm("Thu hồi tin nhắn này cho cả hai phía?")) {
-            return;
-        }
+        setActionMsg(null);
         try {
             await deleteMessage(m.id, scope);
             setMessages((prev) =>
@@ -346,7 +345,11 @@ export default function ConversationDetail() {
                                             <span className="chat-time">{timeLabel(m.created_at)}</span>
                                         </div>
                                     ) : (
-                                        <div className="chat-bubble">
+                                        <div
+                                            className="chat-bubble"
+                                            onClick={() => setActionMsg(m)}
+                                            title="Tùy chọn tin nhắn"
+                                        >
                                             {m.body && <div>{m.body}</div>}
                                             {m.attachment_url && (
                                                 <a
@@ -369,33 +372,13 @@ export default function ConversationDetail() {
                                         aria-label="Tùy chọn tin nhắn"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setMenuFor(menuFor === m.id ? null : m.id);
+                                            setActionMsg(m);
                                         }}
                                     >
                                         <i className="bi bi-chevron-down" />
                                     </button>
 
-                                    {menuFor === m.id && (
-                                        <div className="chat-menu" onClick={(e) => e.stopPropagation()}>
-                                            {canUnsend(m) && (
-                                                <button
-                                                    type="button"
-                                                    className="danger"
-                                                    onClick={() => handleDelete(m, "unsent")}
-                                                >
-                                                    <i className="bi bi-arrow-counterclockwise me-2" />
-                                                    Thu hồi
-                                                </button>
-                                            )}
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDelete(m, "self")}
-                                            >
-                                                <i className="bi bi-trash3 me-2" />
-                                                Xóa chỉ ở phía mình
-                                            </button>
-                                        </div>
-                                    )}
+
                                 </div>
                             </div>
                         </div>
@@ -461,6 +444,64 @@ export default function ConversationDetail() {
                             if (fileInputRef.current) fileInputRef.current.value = "";
                         }}
                     />
+                </div>
+            )}
+
+            {/* Facebook-style action sheet: preview + stacked actions. */}
+            {actionMsg && (
+                <div className="chat-sheet-overlay" onClick={() => setActionMsg(null)}>
+                    <div
+                        className="chat-sheet"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Tùy chọn tin nhắn"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="chat-sheet-preview">
+                            <div className={`chat-row ${actionMsg.is_mine ? "mine" : ""}`}>
+                                <div className="chat-bubble">
+                                    {actionMsg.body || (
+                                        <span className="chat-attachment">
+                                            <i className="bi bi-paperclip" />
+                                            {actionMsg.attachment_name}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {canUnsend(actionMsg) && (
+                            <button
+                                type="button"
+                                className="chat-sheet-btn danger"
+                                onClick={() => handleDelete(actionMsg, "unsent")}
+                            >
+                                <span className="chat-sheet-label">
+                                    <i className="bi bi-arrow-counterclockwise me-2" />
+                                    Thu hồi
+                                </span>
+                                <span className="chat-sheet-note">Gỡ tin nhắn ở cả hai phía</span>
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className="chat-sheet-btn danger"
+                            onClick={() => handleDelete(actionMsg, "self")}
+                        >
+                            <span className="chat-sheet-label">
+                                <i className="bi bi-trash3 me-2" />
+                                Xóa chỉ ở phía mình
+                            </span>
+                            <span className="chat-sheet-note">Chỉ bạn không còn thấy tin nhắn này</span>
+                        </button>
+                        <button
+                            type="button"
+                            className="chat-sheet-btn cancel"
+                            onClick={() => setActionMsg(null)}
+                        >
+                            Hủy
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
