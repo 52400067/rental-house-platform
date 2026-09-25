@@ -1,125 +1,42 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-    getConversations,
-    getMessages,
-    sendMessage,
-    markRead,
-    deleteMessage,
-    reactToMessage,
-} from "../../api/socialApi";
-import { errMessage } from "../../api/axiosClient";
 import { getEcho } from "../../api/echo";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ui/Toast";
-
-const MAX_FILE = 5 * 1024 * 1024; // contract: 5 MB
-const ALLOWED = /\.(pdf|jpe?g|png|docx)$/i;
-
-/** "Hôm nay" / "Hôm qua" / dd/mm/yyyy for day separators. */
-function dayLabel(iso) {
-    const d = new Date(iso);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const same = (a, b) => a.toDateString() === b.toDateString();
-    if (same(d, today)) return "Hôm nay";
-    if (same(d, yesterday)) return "Hôm qua";
-    return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-/** HH:mm, always absolute (poll-safe, no "x phút trước" drift). */
-function timeLabel(iso) {
-    return new Date(iso).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-}
+import { dayLabel } from "../../components/conversation/labels";
+import ChatBubble from "../../components/conversation/ChatBubble";
+import TypingIndicator from "../../components/conversation/TypingIndicator";
+import SeenReceipt from "../../components/conversation/SeenReceipt";
+import ChatComposer from "../../components/conversation/ChatComposer";
+import MessageMenu from "../../components/conversation/MessageMenu";
+import UnsendConfirmDialog from "../../components/conversation/UnsendConfirmDialog";
+import { useConversationData } from "../../hooks/useConversationData";
+import { useConversationRealtime } from "../../hooks/useConversationRealtime";
+import { useConversationMessages } from "../../hooks/useConversationMessages";
+import { useMessageMenu } from "../../hooks/useMessageMenu";
+import { useStickToBottom } from "../../hooks/useStickToBottom";
 
 export default function ConversationDetail() {
     const { id } = useParams();
     const { user } = useAuth();
     const toast = useToast();
 
-    const [conversation, setConversation] = useState(null);
-    const [convLoaded, setConvLoaded] = useState(false);
-    const [messages, setMessages] = useState([]);
-    const [loaded, setLoaded] = useState(false);
-    const [body, setBody] = useState("");
-    const [file, setFile] = useState(null);
-    const [sending, setSending] = useState(false);
-    const [error, setError] = useState("");
-    const [menuFor, setMenuFor] = useState(null); // tin nhắn đang mở menu tùy chọn
-    const [menuUp, setMenuUp] = useState(false); // menu lật lên khi anchor gần đáy
-    const [confirmUnsend, setConfirmUnsend] = useState(null); // tin chờ xác nhận thu hồi
-    const [otherTyping, setOtherTyping] = useState(false); // "người kia đang soạn"
+    const {
+        conversation,
+        convLoaded,
+        messages,
+        setMessages,
+        loaded,
+        lastIdRef,
+    } = useConversationData(id);
 
-    const threadRef = useRef(null);
-    const lastIdRef = useRef(0);
-    const fileInputRef = useRef(null);
-    const stickToBottom = useRef(true);
-    const typingTimer = useRef(null);
-
-    // Load conversation header (other user, listing).
-    useEffect(() => {
-        let active = true;
-        setConvLoaded(false);
-        getConversations()
-            .then((list) => {
-                if (active) setConversation(list.find((c) => String(c.id) === String(id)));
-            })
-            .catch(() => {})
-            .finally(() => {
-                if (active) setConvLoaded(true);
-            });
-        return () => {
-            active = false;
-        };
-    }, [id]);
-
-    // Initial load (polls replaced by the Reverb WebSocket subscription below).
-    const load = useCallback(async () => {
-        try {
-            const rows = await getMessages(id);
-            lastIdRef.current = rows.length ? rows[rows.length - 1].id : 0;
-            setMessages(rows);
-            markRead(id).catch(() => {});
-        } catch {
-            // transient - subscriber below is not affected
-        } finally {
-            setLoaded(true);
-        }
-    }, [id]);
-
-    useEffect(() => {
-        setMessages([]);
-        setLoaded(false);
-        lastIdRef.current = 0;
-        load();
-    }, [id, load]);
-
-    // Realtime: bubbles arrive over the conversation channel. The WebSocket
-    // IS the delivery path now (no 5s polling); Echo re-subscribes with the
-    // React keys, cleanup runs on unmount / conversation switch.
-    useEffect(() => {
-        const echo = getEcho();
-        if (!echo) return undefined;
-
-        const privateChan = echo.private(`conversation.${id}`);        privateChan.listen(".message.sent", (e) => {
-            const msg = e.message;
-            setOtherTyping(false); // tin đến = người kia ngừng soạn
-            setMessages((prev) => {
-                if (prev.some((m) => m.id === msg.id)) return prev;
-                return [
-                    ...prev,
-                    {
-                        ...msg,
-                        is_unsent: false,
-                        is_mine: msg.sender_id === user?.id,
-                        seen_at: null,
-                    },
-                ];
-            });
-            lastIdRef.current = Math.max(lastIdRef.current, msg.id);
-            // Sidebar preview (Messenger): thread là nguồn sự thật khi đang
-            // mở - phát event để Messages.jsx cập nhật item tương ứng.
+    // Sidebar preview (Messenger): thread là nguồn sự thật khi đang mở -
+    // phát event để Messages.jsx cập nhật item tương ứng.
+    // useCallback: useConversationRealtime effect dùng hàm này trong deps -
+    // một hàm mới mỗi render sẽ leave/re-subscribe kênh Echo liên tục
+    // (regression thật mà ws-check đã bắt).
+    const dispatchPreview = useCallback(
+        (msg) => {
             window.dispatchEvent(
                 new CustomEvent("trosv:conv-preview", {
                     detail: {
@@ -133,188 +50,48 @@ export default function ConversationDetail() {
                     },
                 })
             );
-            if (msg.sender_id !== user?.id) markRead(id).catch(() => {});
-        });
+        },
+        [id]
+    );
 
-        // Typing qua client-event (whisper) - không qua backend, gửi trực
-        // tiếp giữa các subscriber của kênh hội thoại. Debounce 2.5s.
-        privateChan.whisper("typing", { user_id: user?.id });
-        privateChan.listenForWhisper("typing", (e) => {
-            if (e.user_id === user?.id) return;
-            setOtherTyping(true);
-            clearTimeout(typingTimer.current);
-            typingTimer.current = setTimeout(() => setOtherTyping(false), 2500);
-        });
+    const { otherTyping } = useConversationRealtime(
+        id,
+        setMessages,
+        lastIdRef,
+        dispatchPreview
+    );
 
-        // Reaction: merge lại map reactions mới (đặt/đổi/bỏ của bất kỳ ai).
-        privateChan.listen(".message.reacted", (e) => {
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === e.message_id ? { ...m, reactions: e.reactions } : m
-                )
-            );
-        });
+    const { send, remove, react, sending, error } = useConversationMessages(
+        id,
+        setMessages,
+        lastIdRef
+    );
 
-        // Dấu đã xem: người kia markRead -> tất cả tin mine có seen_at.
-        privateChan.listen(".message.seen", (e) => {
-            if (e.reader_id === user?.id) return;
-            setMessages((prev) =>
-                prev.map((m) => (m.is_mine && !m.seen_at ? { ...m, seen_at: e.seen_at } : m))
-            );
-        });
-
-        // Facebook-style deletion: "removed" = unsend cho cả hai phía
-        // (thành tombstone); "removed: false" + deleted_for chứa mình =
-        // ẩn tin (chỉ ảnh hưởng phía mình).
-        privateChan.listen(".message.deleted", (e) => {
-            const mine = user?.id;
-            const affectsMe = e.removed
-                || (e.deleted_for || []).includes(mine);
-            if (!affectsMe) return;
-
-            setMessages((prev) =>
-                e.removed
-                    ? prev.map((m) =>
-                          m.id === e.message_id
-                              ? { ...m, is_unsent: true, body: null, attachment_url: null, attachment_name: null }
-                              : m
-                      )
-                    : prev.filter((m) => m.id !== e.message_id)
-            );
-        });
-
-        return () => {
-            clearTimeout(typingTimer.current);
-            // CHỈ leave kênh conversation (riêng của thread này). Kênh
-            // App.Models.User.{id} là DÙNG CHUNG với Navbar + sidebar —
-            // Echo cache channel theo tên, leave() ở đây sẽ phá subscription
-            // của họ và sidebar/badge ngừng nhận realtime.
-            echo.leave(`conversation.${id}`);
-        };
-    }, [id, user?.id]);
-
-    // Autoscroll: follow only when the user is already at (or near) the bottom,
-    // so reading history is not yanked down while new messages poll in.
-    useEffect(() => {
-        const el = threadRef.current;
-        if (!el) return;
-        const nearBottom =
-            el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-        if (nearBottom) {
-            el.scrollTop = el.scrollHeight;
-        }
-    }, [messages, loaded]);
-
-    function handleScroll() {
-        const el = threadRef.current;
-        if (!el) return;
-        stickToBottom.current =
-            el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-    }
-
-    async function handleSubmit(e) {
-        e?.preventDefault();
-        const text = body.trim();
-        if ((!text && !file) || sending) return;
-        setError("");
-        setSending(true);
-        try {
-            const msg = await sendMessage(id, { body: text, file });
-            // The sender's own .message.sent WS event usually lands BEFORE this
-            // HTTP response resolves - skip if the subscriber already drew it.
-            setMessages((prev) =>
-                prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]
-            );
-            // Gửi xong thì ngừng báo "đang soạn" ở phía người kia.
-            privateWhisper();
-            // Sidebar preview cho tin mình vừa gửi (HTTP response).
-            window.dispatchEvent(
-                new CustomEvent("trosv:conv-preview", {
-                    detail: {
-                        conversation_id: Number(id),
-                        last_message: {
-                            sender_id: msg.sender_id,
-                            body: msg.body,
-                            attachment_name: msg.attachment_name ?? null,
-                            created_at: msg.created_at,
-                        },
-                    },
-                })
-            );
-            lastIdRef.current = Math.max(lastIdRef.current, msg.id);
-            setBody("");
-            setFile(null);
-            if (fileInputRef.current) fileInputRef.current.value = "";
-        } catch (err) {
-            toast.error(errMessage(err));
-        } finally {
-            setSending(false);
-        }
-    }
-
-    function handleFileChange(e) {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        if (!ALLOWED.test(f.name)) {
-            setError("Chỉ nhận tệp pdf, jpg, png hoặc docx.");
-            e.target.value = "";
-            return;
-        }
-        if (f.size > MAX_FILE) {
-            setError("Tệp tối đa 5 MB.");
-            e.target.value = "";
-            return;
-        }
-        setError("");
-        setFile(f);
-    }
-
-    // Đóng menu khi bấm ra ngoài; Esc đóng cả menu lẫn hộp thoại thu hồi.
-    useEffect(() => {
-        if (menuFor == null && !confirmUnsend) return undefined;
-        const close = () => setMenuFor(null);
-        const onKey = (e) => {
-            if (e.key === "Escape") {
-                setMenuFor(null);
-                setConfirmUnsend(null);
-            }
-        };
-        window.addEventListener("click", close);
-        window.addEventListener("keydown", onKey);
-        return () => {
-            window.removeEventListener("click", close);
-            window.removeEventListener("keydown", onKey);
-        };
-    }, [menuFor, confirmUnsend]);
-
-    const canUnsend = (m) =>
-        m.is_mine &&
-        !m.is_unsent &&
-        Date.now() - new Date(m.created_at).getTime() < 60 * 60 * 1000;
+    const { threadRef, handleScroll } = useStickToBottom(messages, loaded);
+    const {
+        menuFor,
+        setMenuFor,
+        menuUp,
+        confirmUnsend,
+        setConfirmUnsend,
+        openMenuFor,
+    } = useMessageMenu(threadRef);
 
     // Whisper "typing" qua kênh hội thoại (client-event, không qua backend).
-    function privateWhisper() {
+    function whisperTyping() {
         const echo = getEcho();
         if (!echo) return;
         echo.private(`conversation.${id}`).whisper("typing", { user_id: user?.id });
     }
 
-    // Mở menu tùy chọn; lật lên trên nếu anchor nằm gần đáy thread để menu
-    // không bao giờ bị cắt (bấm bubble hoặc nút chevron đều dùng hàm này).
-    function openMenuFor(m, anchorEl) {
-        if (menuFor === m.id) {
-            setMenuFor(null);
-            return;
-        }
-        const wrap = anchorEl.closest(".chat-bubble-wrap");
-        const thread = threadRef.current;
-        if (wrap && thread) {
-            const wr = wrap.getBoundingClientRect();
-            const tr = thread.getBoundingClientRect();
-            const MENU_H = 110;
-            setMenuUp(tr.bottom - wr.bottom < MENU_H);
-        }
-        setMenuFor(m.id);
+    async function handleSend(text, file) {
+        const msg = await send(text, file);
+        if (!msg) return false;
+        // Gửi xong thì ngừng báo "đang soạn" ở phía người kia.
+        whisperTyping();
+        // Sidebar preview cho tin mình vừa gửi (HTTP response).
+        dispatchPreview(msg);
+        return true;
     }
 
     // Facebook-style: "Thu hồi" (cả hai phía, sender, trong 1h) hoặc
@@ -323,21 +100,9 @@ export default function ConversationDetail() {
     async function handleDelete(m, scope) {
         setMenuFor(null);
         setConfirmUnsend(null);
-        try {
-            await deleteMessage(m.id, scope);
-            setMessages((prev) =>
-                scope === "unsent"
-                    ? prev.map((x) =>
-                          x.id === m.id
-                              ? { ...x, is_unsent: true, body: null, attachment_url: null, attachment_name: null }
-                              : x
-                      )
-                    : prev.filter((x) => x.id !== m.id)
-            );
-            if (scope === "self") toast.info("Bạn đã xóa tin nhắn ở phía mình.");
-        } catch (err) {
-            toast.error(errMessage(err));
-        }
+        const ok = await remove(m, scope);
+        if (ok && scope === "self") toast.info("Bạn đã xóa tin nhắn ở phía mình.");
+        if (!ok) toast.error("Không xóa được tin nhắn.");
     }
 
     // Messenger menu: "Copy text" giữ nguyên tin ở cả hai phía.
@@ -347,30 +112,10 @@ export default function ConversationDetail() {
         toast.info("Đã sao chép văn bản.");
     }
 
-    // Reaction: PUT toggle (cùng emoji lần nữa = bỏ). Optimistic - WS event
-    // .message.reacted cũng merge map mới nên client nào cũng đồng bộ.
-    const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😠"];
     async function handleReact(m, emoji) {
         setMenuFor(null);
-        const prevMap = m.reactions || {};
-        const mine = String(user?.id);
-        const optimistic = { ...prevMap };
-        if (prevMap[mine] === emoji) delete optimistic[mine];
-        else optimistic[mine] = emoji;
-        setMessages((prev) =>
-            prev.map((x) => (x.id === m.id ? { ...x, reactions: optimistic } : x))
-        );
-        try {
-            const serverMap = await reactToMessage(m.id, emoji);
-            setMessages((prev) =>
-                prev.map((x) => (x.id === m.id ? { ...x, reactions: serverMap } : x))
-            );
-        } catch (err) {
-            toast.error(errMessage(err));
-            setMessages((prev) =>
-                prev.map((x) => (x.id === m.id ? { ...x, reactions: prevMap } : x))
-            );
-        }
+        const ok = await react(m, emoji, user?.id);
+        if (!ok) toast.error("Không thả được cảm xúc.");
     }
 
     // Grouping + day separators. A bubble is "first"/"last" of its run when
@@ -485,38 +230,10 @@ export default function ConversationDetail() {
                             <div
                                 className={`chat-row ${m.is_mine ? "mine" : ""} ${first ? "first" : ""} ${last ? "last" : ""}`}
                             >
-                                <div className="chat-bubble-wrap">
-                                    {m.is_unsent ? (
-                                        <div className="chat-bubble chat-bubble-unsent">
-                                            <i className="bi bi-slash-circle me-1" />
-                                            Tin nhắn đã được thu hồi
-                                            <span className="chat-time">{timeLabel(m.created_at)}</span>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            className="chat-bubble"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openMenuFor(m, e.currentTarget);
-                                            }}
-                                            title="Tùy chọn tin nhắn"
-                                        >
-                                            {m.body && <div>{m.body}</div>}
-                                            {m.attachment_url && (
-                                                <a
-                                                    href={m.attachment_url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="chat-attachment"
-                                                >
-                                                    <i className="bi bi-paperclip" />
-                                                    {m.attachment_name}
-                                                </a>
-                                            )}
-                                            <span className="chat-time">{timeLabel(m.created_at)}</span>
-                                        </div>
-                                    )}
-
+                                <ChatBubble
+                                    m={m}
+                                    onBubbleClick={(el) => openMenuFor(m, el)}
+                                >
                                     {/* Chip reaction bám mép bubble, nhóm theo
                                         emoji - Messenger-style. */}
                                     {Object.keys(m.reactions || {}).length > 0 && (
@@ -541,7 +258,8 @@ export default function ConversationDetail() {
                                     <button
                                         type="button"
                                         className="chat-menu-btn"
-                                        aria-label="Tùy chọn tin nhắn"                                        onClick={(e) => {
+                                        aria-label="Tùy chọn tin nhắn"
+                                        onClick={(e) => {
                                             e.stopPropagation();
                                             openMenuFor(m, e.currentTarget);
                                         }}
@@ -552,69 +270,28 @@ export default function ConversationDetail() {
                                     {/* Messenger web menu: nhỏ, neo vào bubble,
                                         mục tùy theo quyền trên tin này. */}
                                     {menuFor === m.id && (
-                                        <div
-                                            className={`chat-menu${menuUp ? " up" : ""}`}
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <div className="chat-reaction-row">
-                                                {REACTIONS.map((emoji) => (
-                                                    <button
-                                                        key={emoji}
-                                                        type="button"
-                                                        className={`chat-reaction-emoji${
-                                                            (m.reactions || {})[String(user?.id)] === emoji
-                                                                ? " mine"
-                                                                : ""
-                                                        }`}
-                                                        onClick={() => handleReact(m, emoji)}
-                                                        aria-label={`Thả cảm xúc ${emoji}`}
-                                                    >
-                                                        {emoji}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <div className="chat-menu-divider" />
-                                            {m.body && (
-                                                <button type="button" onClick={() => copyText(m)}>
-                                                    <i className="bi bi-clipboard me-2" />
-                                                    Copy văn bản
-                                                </button>
-                                            )}
-                                            {canUnsend(m) && (
-                                                <button
-                                                    type="button"
-                                                    className="danger"
-                                                    onClick={() => {
-                                                        setMenuFor(null);
-                                                        setConfirmUnsend(m);
-                                                    }}
-                                                >
-                                                    <i className="bi bi-arrow-counterclockwise me-2" />
-                                                    Thu hồi
-                                                </button>
-                                            )}
-                                            <button type="button" onClick={() => handleDelete(m, "self")}>
-                                                <i className="bi bi-trash3 me-2" />
-                                                Xóa chỉ ở phía mình
-                                            </button>
-                                        </div>
+                                        <MessageMenu
+                                            m={m}
+                                            myId={user?.id}
+                                            up={menuUp}
+                                            onReact={handleReact}
+                                            onCopy={copyText}
+                                            onDelete={handleDelete}
+                                            onClose={() => setMenuFor(null)}
+                                            onAskUnsend={(x) => {
+                                                setMenuFor(null);
+                                                setConfirmUnsend(x);
+                                            }}
+                                        />
                                     )}
-                                </div>
+                                </ChatBubble>
                             </div>
                         </div>
                     ))
                 )}
 
                 {/* Typing indicator: ba chấm nảy thay bubble của người kia. */}
-                {otherTyping && (
-                    <div className="chat-row">
-                        <div className="chat-bubble chat-typing" aria-label="Đang soạn tin nhắn">
-                            <span className="chat-typing-dot" />
-                            <span className="chat-typing-dot" />
-                            <span className="chat-typing-dot" />
-                        </div>
-                    </div>
-                )}
+                {otherTyping && <TypingIndicator />}
 
                 {/* Dấu đã xem kiểu Messenger web: chip avatar nhỏ của người
                     đọc, dưới bubble mới nhất của mình (chỉ khi tin cuối là
@@ -622,116 +299,21 @@ export default function ConversationDetail() {
                 {(() => {
                     const lastMsg = messages[messages.length - 1];
                     if (otherTyping || !lastMsg?.is_mine || !lastMsg.seen_at) return null;
-                    return (
-                        <div
-                            className="chat-seen"
-                            title={`Đã xem bởi ${other?.name || "người kia"}`}
-                            aria-label="Đã xem"
-                        >
-                            <span className="chat-seen-avatar">
-                                {(other?.name || "?").charAt(0).toUpperCase()}
-                            </span>
-                        </div>
-                    );
+                    return <SeenReceipt name={other?.name} />;
                 })()}
             </div>
 
             {error && <div className="chat-error">{error}</div>}
 
             {/* Composer */}
-            <form className="chat-composer" onSubmit={handleSubmit}>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="d-none"
-                    accept=".pdf,.jpg,.jpeg,.png,.docx"
-                    onChange={handleFileChange}
-                />
-                <button
-                    type="button"
-                    className="btn btn-outline-secondary"
-                    title="Đính kèm tệp (pdf, jpg, png, docx - tối đa 5 MB)"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <i className="bi bi-paperclip" />
-                </button>
-                <textarea
-                    className="form-control"
-                    placeholder="Nhập tin nhắn..."
-                    maxLength={1000}
-                    rows={1}
-                    value={body}
-                    aria-label="Nhập tin nhắn"
-                    onChange={(e) => {
-                        setBody(e.target.value);
-                        // Báo "đang soạn" cho mọi thay đổi (gõ, dán) - whisper
-                        // client-event, receiver tự hết sau 2.5s không gõ tiếp.
-                        privateWhisper();
-                    }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSubmit();
-                        }
-                    }}
-                />
-                <button type="submit" className="btn btn-send" disabled={sending || (!body.trim() && !file)}>
-                    {sending ? (
-                        <span className="spinner-border spinner-border-sm" aria-label="Đang gửi" />
-                    ) : (
-                        <i className="bi bi-send-fill" />
-                    )}
-                </button>
-            </form>
+            <ChatComposer onSend={handleSend} sending={sending} onTyping={whisperTyping} />
 
-            {file && (
-                <div className="chat-file-chip">
-                    <i className="bi bi-file-earmark" />
-                    <span className="text-truncate" style={{ maxWidth: 260 }}>
-                        {file.name}
-                    </span>
-                    <button
-                        type="button"
-                        className="btn-close"
-                        aria-label="Gỡ tệp đính kèm"
-                        onClick={() => {
-                            setFile(null);
-                            if (fileInputRef.current) fileInputRef.current.value = "";
-                        }}
-                    />
-                </div>
-            )}            {/* Messenger-style confirm: hộp thoại nhỏ, chỉ nói hậu quả. */}
+            {/* Messenger-style confirm: hộp thoại nhỏ, chỉ nói hậu quả. */}
             {confirmUnsend && (
-                <div className="chat-sheet-overlay" onClick={() => setConfirmUnsend(null)}>
-                    <div
-                        className="chat-confirm"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label="Thu hồi tin nhắn"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <strong>Thu hồi tin nhắn?</strong>
-                        <p className="small mb-0">
-                            Bạn sẽ gỡ vĩnh viễn tin nhắn này cho mọi người trong cuộc trò chuyện.
-                        </p>
-                        <div className="chat-confirm-actions">
-                            <button
-                                type="button"
-                                className="chat-confirm-btn"
-                                onClick={() => setConfirmUnsend(null)}
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                type="button"
-                                className="chat-confirm-btn primary"
-                                onClick={() => handleDelete(confirmUnsend, "unsent")}
-                            >
-                                Thu hồi
-                            </button>
-                        </div>
-                    </div>
-                    </div>
+                <UnsendConfirmDialog
+                    onCancel={() => setConfirmUnsend(null)}
+                    onConfirm={() => handleDelete(confirmUnsend, "unsent")}
+                />
             )}
         </div>
     );

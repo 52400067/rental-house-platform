@@ -4,6 +4,8 @@ import { aiChat } from "../../api/aiApi";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import AiDisclaimer from "../AiDisclaimer";
+import ChatBubble from "../conversation/ChatBubble";
+import TypingIndicator from "../conversation/TypingIndicator";
 
 // Home tile dispatches this to open the widget instead of navigating.
 export const AI_CHAT_OPEN_EVENT = "trosv:ai-chat-open";
@@ -13,6 +15,10 @@ export const AI_CHAT_OPEN_EVENT = "trosv:ai-chat-open";
  * bottom-right toggles a popup chat box. The thread survives open/close and
  * lives site-wide; guests get a login CTA (the API requires auth, and a
  * failed guest request would trip the axios 401 redirect to /login).
+ *
+ * Bubble/thread/composer markup is the SHARED chat language
+ * (components/conversation/) - the widget maps its role-based messages
+ * onto the same ChatBubble used by user-to-user threads.
  */
 export default function AiChatWidget() {
     const { user } = useAuth();
@@ -128,9 +134,9 @@ export default function AiChatWidget() {
                         </div>
                     ) : (
                         <>
-                            {/* Same bubble language as user-to-user chat:
-                                .chat-thread canvas + .chat-row/.chat-bubble.
-                                Mine (user) = lime fill with INK text. */}
+                            {/* Same bubble language as user-to-user chat, via
+                                the shared ChatBubble: .chat-thread canvas +
+                                .chat-row/.chat-bubble. Mine (user) = lime. */}
                             <div className="chat-thread ai-widget-thread">
                                 {messages.length === 0 && !busy && (
                                     <div className="chat-empty">
@@ -147,26 +153,18 @@ export default function AiChatWidget() {
                                         key={i}
                                         className={`chat-row ${m.role === "user" ? "mine" : ""}`}
                                     >
-                                        <div
-                                            className="chat-bubble"
-                                            style={{ whiteSpace: "pre-wrap" }}
-                                        >
-                                            {m.content}
-                                        </div>
+                                        {/* AI bubbles keep pre-wrap text and no
+                                            timestamp (no created_at - not part
+                                            of the AI contract). */}
+                                        <ChatBubble
+                                            m={{ body: m.content, is_unsent: false }}
+                                            showTime={false}
+                                        />
                                     </div>
                                 ))}
 
-                                {busy && (
-                                    <div className="chat-row">
-                                        <div className="chat-bubble">
-                                            <span
-                                                className="spinner-grow spinner-grow-sm me-2"
-                                                role="status"
-                                            />
-                                            Đang soạn trả lời...
-                                        </div>
-                                    </div>
-                                )}
+                                {busy && <TypingIndicator withText="Đang soạn trả lời..." />}
+
                                 <div ref={bottomRef} />
                             </div>
 
