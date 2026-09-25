@@ -13,7 +13,13 @@ import "@fontsource-variable/space-grotesk";
 // Bootstrap's own CSS-variable defaults.
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
+// TROSV design system, split from the former 1,873-line theme.css.
+// ORDER IS LOAD-BEARING (cascade): theme = tokens + base + Bootstrap
+// overrides, then layout, then page sections, then shared components.
 import "./styles/theme.css";
+import "./styles/layout.css";
+import "./styles/page.css";
+import "./styles/components.css";
 // Bootstrap JS: needed for dropdowns (user menu / logout) and the
 // navbar collapse toggler, which use data-bs-toggle attributes.
 import "bootstrap/dist/js/bootstrap.bundle.min.js";

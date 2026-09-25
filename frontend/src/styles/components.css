@@ -1,0 +1,264 @@
+/* components.css - part of the TROSV design system. Import order in main.jsx is load-bearing: theme (tokens/base) -> layout -> page -> components. Split from the former 1,873-line theme.css; bytes preserved per section. */
+
+.min-width-0 { min-width: 0; }
+
+.ai-widget-launcher {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-hard-lime);
+    transition: transform 0.18s var(--ease), background-color 0.15s;
+}
+.ai-widget-launcher:hover {
+    background: var(--brand-soft);
+    transform: translateY(-2px);
+}
+.ai-widget-launcher:active {
+    transform: translateY(0);
+}
+
+.ai-widget-panel {
+    position: absolute;
+    /* Docked LEFT of the head, bottom-aligned - Facebook web chat. */
+    right: calc(100% + 0.75rem);
+    bottom: 0;
+    width: min(22rem, calc(100vw - 2rem));
+    height: min(30rem, calc(100dvh - 9rem));
+    display: flex;
+    flex-direction: column;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card-hover);
+    overflow: hidden;
+    transform-origin: bottom right;
+    animation: ai-widget-in 0.25s var(--ease);
+}
+@keyframes ai-widget-in {
+    from { opacity: 0; transform: translateY(0.75rem) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Small screens: no room to dock left of the head, so the popup
+   falls back to opening above the launcher (right-aligned). */
+@media (max-width: 575.98px) {
+    .ai-widget-panel {
+        right: 0;
+        bottom: calc(100% + 0.75rem);
+    }
+}
+
+.ai-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--ink);
+    color: var(--paper);
+    flex-shrink: 0;
+}
+.ai-widget-header .fw-bold { color: var(--paper); }
+.ai-widget-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.05rem;
+}
+.ai-widget-status {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+.ai-widget-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--brand);
+    flex-shrink: 0;
+}
+.ai-widget-close {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: transparent;
+    color: var(--paper);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: background-color 0.15s;
+}
+.ai-widget-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--paper);
+}
+
+/* The thread goes full-bleed inside the panel: no own hairline. */
+.ai-widget-thread {
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--line-strong);
+}
+.ai-widget-composer {
+    padding: 0.6rem 0.75rem;
+}
+
+.ai-widget-guest {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.75rem;
+    padding: 1.25rem;
+}
+.ai-widget-guest-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.4rem;
+    box-shadow: var(--shadow-hard-lime);
+}
+
+/* ---------------------------------------------------------
+   Responsive listing rows (landlord "My listings")
+   --------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .listing-row {
+        flex-wrap: wrap;
+    }
+    .listing-row > .form-select {
+        flex: 1 1 auto;
+        min-width: 150px;
+    }
+    .listing-row > .d-flex {
+        margin-left: auto;
+    }
+}
+
+/* ---------------------------------------------------------
+   Landlord scope: the owner's desk — INK stays ink, but lime
+   follows the daisy-chain, so generic brand rules turn lime
+   automatically. Amber-soft maps to lime-soft for row hovers.
+   --------------------------------------------------------- */
+/* NOTE: no custom-property overrides here on purpose — self-referencing
+   a custom prop makes it invalid (guaranteed-invalid value), which would
+   silently kill var(--brand) inside the scope. The accent is lime
+   everywhere now; the scope only retunes buttons/focus/rows below. */
+.landlord-scope .btn-primary {
+    --bs-btn-bg: var(--ink);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-color: #ffffff;
+    --bs-btn-hover-bg: var(--brand);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-active-bg: var(--brand);
+    --bs-btn-active-border-color: var(--ink);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-disabled-bg: var(--ink);
+    --bs-btn-disabled-border-color: var(--ink);
+    --bs-btn-disabled-color: #ffffff;
+    box-shadow: var(--shadow-hard-xs);
+}
+.landlord-scope .btn-primary:hover:not(:disabled) {
+    box-shadow: var(--shadow-hard-xs);
+}
+.landlord-scope .btn-outline-primary {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--line-strong);
+    --bs-btn-hover-bg: var(--brand);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-active-bg: var(--brand);
+    --bs-btn-active-border-color: var(--ink);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-disabled-color: var(--muted);
+    --bs-btn-disabled-border-color: var(--line);
+}
+.landlord-scope .text-primary { color: var(--ink) !important; }
+.landlord-scope .form-control:focus,
+.landlord-scope .form-select:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
+}
+.landlord-scope .form-check-input:checked {
+    background-color: var(--ink);
+    border-color: var(--ink);
+}
+.landlord-scope .form-check-input:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
+}
+.landlord-scope .listing-row {
+    transition: background-color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.landlord-scope .listing-row:hover {
+    background: var(--brand-soft);
+}
+
+/* Landlord heading: lime pill eyebrow + navy rule */
+.landlord-heading {
+    border-bottom: 3px solid var(--brand);
+    padding-bottom: 0.6rem;
+}
+.landlord-heading::before {
+    content: "CHỦ TRỌ";
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    margin-bottom: 0.15rem;
+}
+
+/* Form card: lime folder tab on the first card */
+.landlord-scope .card {
+    position: relative;
+}
+.landlord-scope .card::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 1.5rem;
+    width: 4.5rem;
+    height: 5px;
+    border-radius: 0 0 0.4rem 0.4rem;
+    background: var(--brand);
+}
+
+/* ---------------------------------------------------------
+   Motion preferences
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

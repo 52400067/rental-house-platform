@@ -1,0 +1,982 @@
+/* page.css - part of the TROSV design system. Import order in main.jsx is load-bearing: theme (tokens/base) -> layout -> page -> components. Split from the former 1,873-line theme.css; bytes preserved per section. */
+
+
+/* Quick stat chips: gray fill, black hairline */
+.hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: var(--gray);
+    border: 1px solid var(--line-strong);
+    font-size: 0.875rem;
+    color: var(--ink);
+}
+.hero-chip .bi {
+    color: var(--ink);
+}
+
+/* ---------------------------------------------------------
+   Navbar: navy bar, lime accents
+   --------------------------------------------------------- */
+.navbar {
+    --bs-emphasis-color-rgb: 255, 255, 255;
+    background: var(--ink);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    transition: box-shadow 0.25s var(--ease);
+}
+.navbar.is-scrolled {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+}
+.navbar .navbar-brand {
+    color: #ffffff;
+}
+.navbar-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.navbar-brand i {
+    color: var(--brand);
+    transition: transform 0.25s var(--ease);
+}
+.navbar-brand:hover i {
+    transform: scale(1.15) rotate(-6deg);
+}
+/* Nav links: pill buttons with generous gap - NO separators. The
+   shape of each link IS the separation (the Positivus/Stripe way):
+   hover paints a soft white pill, active keeps a lime tick inside. */
+.navbar .nav-link {
+    position: relative;
+    font-weight: 500;
+    color: #e8e9ee;
+    padding: 0.45rem 0.95rem;
+    border-radius: 999px;
+    transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+/* Breathing room between pills, brand, and the action cluster.
+   Gap lives on the containers so it collapses on mobile. */
+@media (min-width: 992px) {
+    .navbar .navbar-nav {
+        gap: 0.85rem;
+    }
+    .navbar .navbar-brand {
+        margin-right: 2.5rem;
+    }
+    .navbar .collapse > .d-flex,
+    .navbar .collapse > .ms-auto,
+    .navbar .collapse .navbar-nav + .d-flex {
+        margin-left: 2rem;
+    }
+    .navbar .collapse .d-flex {
+        gap: 0.6rem;
+    }
+}
+.navbar .nav-link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+.navbar .nav-link.active {
+    color: var(--ink);
+    background: var(--brand);
+    font-weight: 700;
+}
+.navbar .nav-link.active:hover {
+    background: var(--brand-soft);
+}
+.navbar .nav-link::after { content: none; }
+/* Ghost buttons on the dark bar */
+.navbar .btn-outline-secondary {
+    --bs-btn-color: #f5f5f2;
+    --bs-btn-border-color: rgba(255, 255, 255, 0.25);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--brand);
+    --bs-btn-hover-border-color: var(--brand);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: var(--brand);
+    --bs-btn-active-border-color: var(--brand);
+    --bs-btn-disabled-color: rgba(255, 255, 255, 0.4);
+    --bs-btn-disabled-border-color: rgba(255, 255, 255, 0.15);
+}
+.navbar .btn-outline-primary {
+    /* "Đăng nhập": ghost → lime on hover */
+    --bs-btn-color: #f5f5f2;
+    --bs-btn-border-color: rgba(255, 255, 255, 0.3);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--brand);
+    --bs-btn-hover-border-color: var(--brand);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: var(--brand);
+    --bs-btn-active-border-color: var(--brand);
+}
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.85)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+.navbar .badge {
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+}
+.navbar .badge.text-bg-danger {
+    animation: badge-pulse 2s infinite;
+}
+@keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(185, 255, 102, 0.45); }
+    50% { box-shadow: 0 0 0 4px rgba(185, 255, 102, 0.15); }
+}
+
+/* ---------------------------------------------------------
+   Footer: the back cover (navy, lime accents)
+   --------------------------------------------------------- */
+.footer {
+    /* Same navy as the navbar - header and footer bookend the page,
+       the hero panel between them is the lighter layer. */
+    background: var(--ink);
+    color: #b8bac2;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.footer h6 {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    color: var(--brand);
+    font-weight: 700;
+}
+.footer a {
+    color: #d9dbe1;
+    transition: color 0.12s;
+}
+.footer a:hover {
+    color: var(--brand);
+}
+.footer hr {
+    border-color: rgba(255, 255, 255, 0.12);
+    opacity: 1;
+}
+.footer .footer-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: #fff;
+}
+
+/* ---------------------------------------------------------
+   Auth: split layout — navy visual pane + white form
+   --------------------------------------------------------- */
+.auth-page {
+    min-height: calc(100vh - 57px);
+    display: flex;
+    align-items: stretch;
+}
+.auth-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: calc(100vh - 57px);
+    width: 100%;
+}
+@media (min-width: 992px) {
+    .auth-split {
+        grid-template-columns: 5fr 7fr;
+    }
+    .auth-visual {
+        position: sticky;
+        top: 57px;
+        height: calc(100vh - 57px);
+        overflow: hidden;
+    }
+}
+.auth-visual {
+    background: var(--ink);
+    color: #c9cbd3;
+    padding: 3.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.auth-visual h2 {
+    color: #fff;
+}
+.auth-visual .auth-point {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
+    font-size: 0.92rem;
+}
+.auth-visual .auth-point i {
+    color: var(--brand);
+}
+.auth-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+}
+.auth-logo-link {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+}
+.auth-logo-link i {
+    color: var(--ink);
+    background: var(--brand);
+    border-radius: 0.4rem;
+    padding: 0.1rem 0.25rem;
+}
+.auth-title {
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.auth-page-mobile {
+    padding: 2.5rem 1rem;
+}
+@media (min-width: 992px) {
+    .auth-page-mobile { padding: 0; }
+}
+
+/* ---------------------------------------------------------
+   Messaging: two-pane Messenger/Gmail layout. Left sidebar
+   scrolls INDEPENDENTLY (own webkit bar); right pane is the
+   open thread. Scrollbars stay INSIDE their pane (each pane
+   has radius + overflow hidden), so no bar can leak outside
+   a rounded corner it doesn't belong to.
+   --------------------------------------------------------- */
+.messages-page {
+    display: flex;
+    height: calc(100dvh - 57px);
+    min-height: 480px;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 1rem 0.75rem 0.75rem;
+    gap: 1rem;
+}
+
+.messages-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-hard-sm);
+    overflow: hidden;
+}
+.messages-sidebar-head {
+    padding: 1rem 1.1rem 0.75rem;
+    border-bottom: 1px solid var(--line-strong);
+}
+.messages-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+.messages-sidebar-foot {
+    padding: 0.6rem 1.1rem;
+    border-top: 1px solid var(--line);
+}
+.messages-item {
+    display: flex;
+    padding: 0.75rem 1.1rem;
+    text-decoration: none;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    transition: background-color 0.15s var(--ease);
+}
+.messages-item:hover { background: var(--gray); }
+.messages-item.active {
+    background: var(--gray);
+    box-shadow: inset 4px 0 0 var(--brand);
+}
+.messages-item-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.messages-item-img-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand);
+    color: var(--ink);
+}
+.messages-item-time {
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+.messages-item-preview {
+    font-size: 0.8rem;
+}
+
+/* Mobile (<992px): một cốp tại một thời điểm - list khi chưa chọn,
+   thread full-screen khi đã chọn (nút .chat-back quay về list). */
+@media (max-width: 991.98px) {
+    .messages-page {
+        padding: 0.5rem;
+        gap: 0;
+    }
+    .messages-sidebar {
+        width: 100%;
+    }
+    .messages-content {
+        display: none;
+    }
+    .messages-page:has(.messages-content .chat-page:not(.chat-page-empty)) .messages-sidebar {
+        display: none;
+    }
+    .messages-page:has(.messages-content .chat-page:not(.chat-page-empty)) .messages-content {
+        display: flex;
+    }
+    .messages-content .chat-page {
+        min-height: 0;
+        padding: 0.75rem;
+    }
+}
+
+/* Right pane: the thread card. Radius + overflow hidden clip the
+   thread scrollbar INSIDE the card - the old leak (bar poking out
+   of the rounded corner) is structurally gone. */
+.messages-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.messages-content .chat-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    height: auto;
+}
+
+/* ---------------------------------------------------------
+   Chat: full-height, gray thread canvas, lime for me
+   --------------------------------------------------------- */
+.chat-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 57px);
+    min-height: 520px;
+    padding: 1rem 0.75rem 0.75rem;
+}
+.chat-page-empty {
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--muted);
+}
+.chat-back { display: inline-flex; }
+@media (min-width: 992px) {
+    .chat-back { display: none; }
+}
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line-strong);
+}
+.chat-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--brand);
+    border: 1px solid var(--ink);
+    user-select: none;
+}
+.chat-header-text {
+    min-width: 0;
+}
+.chat-subject {
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.chat-thread {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 1rem;
+    margin: 0;
+    background-color: var(--gray);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+}
+.chat-day {
+    text-align: center;
+    margin: 0.75rem 0;
+}
+.chat-day > span {
+    display: inline-block;
+    padding: 0.15rem 0.75rem;
+    border-radius: 999px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+.chat-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+.chat-row.mine {
+    justify-content: flex-end;
+}
+/* ONE shape for every bubble, no exceptions: uniform 1.1rem corners.
+   The old first/last tail-corner rules made mid-thread bubbles grow
+   two square corners - bubbles looked like different components. */
+.chat-row + .chat-row.same-day-gap {
+    margin-top: 0.75rem;
+}
+.chat-bubble {
+    max-width: min(75%, 34rem);
+    padding: 0.45rem 0.8rem;
+    border-radius: 1.1rem;
+    border: 1px solid var(--line-strong);
+    font-size: 0.925rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+/* Same border everywhere; only the fill flips (lime = mine). */
+.chat-row:not(.mine) .chat-bubble {
+    background: var(--paper-raised);
+    color: var(--ink);
+}
+.chat-row.mine .chat-bubble {
+    background: var(--brand);
+    color: var(--ink);
+}
+.chat-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+.chat-row:not(.mine) .chat-attachment { color: var(--ink); }
+.chat-row.mine .chat-attachment { color: var(--ink); }
+.chat-time {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.68rem;
+    font-family: var(--font-body);
+    color: var(--muted);
+    user-select: none;
+}
+.chat-row.mine .chat-time { color: var(--muted); text-align: right; }
+.chat-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--muted);
+    gap: 0.25rem;
+}
+.chat-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+}
+.chat-composer textarea,
+.chat-composer input.form-control {
+    resize: none;
+    max-height: 120px;
+    height: 2.75rem;
+    border-radius: 999px;
+    padding: 0.65rem 1.1rem;
+}
+.chat-composer textarea:focus,
+.chat-composer input.form-control:focus {
+    box-shadow: 0 0 0 0.22rem rgba(185, 255, 102, 0.55);
+}
+.chat-composer .btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.chat-composer .btn-send {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--brand);
+}
+.chat-composer .btn-send:hover:not(:disabled) {
+    background: var(--brand);
+    border-color: var(--ink);
+    color: var(--ink);
+}
+.chat-composer .btn-send:disabled {
+    background: var(--ink);
+    border-color: var(--ink);
+    opacity: 0.65;
+}
+.chat-file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0;
+    padding: 0.25rem 0.35rem 0.25rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--paper-raised);
+    font-size: 0.8rem;
+}
+.chat-file-chip .btn-close { font-size: 0.6rem; }
+.chat-error {
+    margin: 0.5rem 0 0;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 0.8rem;
+}
+
+/* Facebook-style delete: hover chevron, dropdown menu, tombstone. */
+.chat-bubble-wrap {
+    position: relative;
+    max-width: min(75%, 34rem);
+}
+.chat-row.mine .chat-bubble-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+.chat-row.mine .chat-bubble-wrap .chat-bubble { max-width: 100%; }
+.chat-bubble-wrap .chat-bubble { max-width: 100%; }
+.chat-menu-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    color: var(--faint);
+    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease), background-color 0.15s;
+    cursor: pointer;
+}
+.chat-row:not(.mine) .chat-menu-btn { right: -1.7rem; }
+.chat-row.mine .chat-menu-btn { left: -1.7rem; }
+.chat-bubble-wrap:hover .chat-menu-btn,
+.chat-menu-btn:focus-visible {
+    opacity: 1;
+}
+.chat-menu-btn:hover { background: var(--gray); color: var(--ink); }
+.chat-bubble-unsent {
+    font-style: italic;
+    color: var(--muted);
+    background: var(--gray) !important;
+    border-style: dashed !important;
+}
+.chat-bubble-unsent .chat-time { color: var(--faint); }
+
+/* Messenger menu: small dropdown anchored to the hovered bubble.
+   "Remove for you" runs instantly; "Unsend" opens the small confirm. */
+.chat-menu {
+    position: absolute;
+    top: calc(100% + 0.3rem);
+    z-index: 30;
+    min-width: 11.5rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card-hover);
+    padding: 0.3rem;
+    animation: chat-pop 0.16s var(--ease);
+}
+@keyframes chat-pop {
+    from { opacity: 0; transform: translateY(-0.2rem) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chat-row.mine .chat-menu { right: 0; }
+.chat-row:not(.mine) .chat-menu { left: 0; }
+.chat-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+.chat-menu button:hover { background: var(--gray); }
+.chat-menu button.danger { color: var(--danger); }
+.chat-menu-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 0.3rem 0.4rem;
+}
+
+/* Messenger reaction picker: 6 emoji to, hover phong via; emoji cua
+   minh co vien lime. */
+.chat-reaction-row {
+    display: flex;
+    gap: 0.15rem;
+    padding: 0.35rem 0.45rem 0.25rem;
+}
+.chat-reaction-emoji {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    font-size: 1.15rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s var(--ease), background-color 0.15s;
+}
+.chat-reaction-emoji:hover {
+    background: var(--gray);
+    transform: scale(1.25);
+}
+.chat-reaction-emoji.mine {
+    border-color: var(--brand-darker);
+    background: var(--brand-soft);
+}
+
+/* Reaction chips under the bubble edge, grouped per emoji. */
+.chat-reactions {
+    display: flex;
+    gap: 0.2rem;
+    margin: -0.45rem 0.5rem 0.15rem;
+    position: relative;
+    z-index: 1;
+}
+.chat-row.mine .chat-reactions { justify-content: flex-end; }
+.chat-reaction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.05rem 0.35rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    box-shadow: 0 1px 0 var(--line);
+}
+.chat-reaction-chip b { font-size: 0.68rem; color: var(--muted); }
+
+/* Typing indicator: three bouncing dots in a bubble-sized pill. */
+.chat-typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 0.8rem;
+}
+.chat-typing-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: chat-typing-bounce 1.2s infinite var(--ease);
+}
+.chat-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes chat-typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-0.28rem); opacity: 1; }
+}
+
+/* Seen receipt, Messenger-web style: small round avatar chip of the
+   reader, tucked under the right edge of the last own bubble. */
+.chat-seen {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.15rem 0.15rem 0;
+    user-select: none;
+}
+.chat-seen-avatar {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--brand);
+    border: 1px solid var(--ink);
+}
+/* Gần như không chiếm chiều cao dòng khi nhặt chuột (tooltip vẫn chạy). */
+.chat-seen .chat-seen-avatar { margin-top: -0.1rem; }
+
+/* Unsend confirm: small centered dialog, one sentence, two actions. */
+.chat-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    background: rgba(25, 26, 35, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    animation: chat-fade-in 0.18s var(--ease);
+}
+@keyframes chat-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.chat-confirm {
+    width: min(21rem, 100%);
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card-hover);
+    padding: 1.25rem 1.25rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    animation: chat-pop 0.18s var(--ease);
+}
+.chat-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+.chat-confirm-btn {
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--line-strong);
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.15s var(--ease);
+}
+.chat-confirm-btn:hover { background: var(--gray); }
+.chat-confirm-btn.primary {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+.chat-confirm-btn.primary:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}
+
+/* Scrollbars INSIDE each scrolling pane (sidebar list + chat thread):
+   same 10px geometry as the global bar, MUTED thumb (faint was invisible
+   on gray). Do NOT set scrollbar-width/color here: Chromium 121+ honors
+   the standard props and DISABLES ::-webkit-* styling entirely. */
+.messages-list::-webkit-scrollbar,
+.chat-thread::-webkit-scrollbar {
+    width: 10px;
+}
+.messages-list::-webkit-scrollbar-track,
+.chat-thread::-webkit-scrollbar-track {
+    background: transparent;
+}
+.messages-list::-webkit-scrollbar-thumb,
+.chat-thread::-webkit-scrollbar-thumb {
+    background: var(--muted);
+    border: 2px solid var(--paper);
+    border-radius: 999px;
+}
+.messages-list:hover::-webkit-scrollbar-thumb,
+.chat-thread:hover::-webkit-scrollbar-thumb {
+    background: var(--ink-soft);
+}
+@supports not selector(::-webkit-scrollbar) {
+    .messages-list,
+    .chat-thread {
+        scrollbar-width: thin;
+        scrollbar-color: var(--muted) transparent;
+    }
+}
+
+/* Menu flip: when the anchor sits near the thread bottom, open upward. */
+.chat-menu.up {
+    top: auto;
+    bottom: calc(100% + 0.3rem);
+}
+@media (max-width: 575.98px) {
+    .chat-page {
+        padding: 0.5rem 0.5rem 0.5rem;
+        min-height: 480px;
+    }
+    .chat-thread { padding: 0.75rem; }
+    .chat-bubble { max-width: 85%; }
+}
+
+/* ---------------------------------------------------------
+   Map page: navy links on Leaflet
+   --------------------------------------------------------- */
+.leaflet-control-attribution a,
+.leaflet-container a {
+    color: var(--ink);
+}
+.leaflet-popup-content a {
+    color: var(--ink);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* ---------------------------------------------------------
+   Skeleton loaders (gray shimmer)
+   --------------------------------------------------------- */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--gray);
+    border-radius: 0.5rem;
+}
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.8),
+        transparent
+    );
+    animation: skeleton-shimmer 1.4s infinite;
+}
+@keyframes skeleton-shimmer {
+    100% { transform: translateX(100%); }
+}
+
+/* ---------------------------------------------------------
+   Toasts
+   --------------------------------------------------------- */
+.toast-stack {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+}
+.toast-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-hard-xs);
+    animation: toast-in 0.25s var(--ease);
+}
+.toast-item.leaving {
+    animation: toast-out 0.2s var(--ease) forwards;
+}
+.toast-item .bi {
+    font-size: 1.1rem;
+    line-height: 1.2;
+    margin-top: 0.05rem;
+}
+.toast-item.success { border-left: 4px solid #16a34a; }
+.toast-item.success .bi { color: #16a34a; }
+.toast-item.error { border-left: 4px solid #dc2626; }
+.toast-item.error .bi { color: #dc2626; }
+.toast-item.info { border-left: 4px solid var(--ink); }
+.toast-item.info .bi { color: var(--ink); }
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(0.5rem) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-out {
+    to { opacity: 0; transform: translateX(1rem); }
+}
+
+/* ---------------------------------------------------------
+   Back-to-top floating button: lime circle, navy icon.
+   Same size as the AI chat head so the two stacked corner
+   buttons read as one column.
+   --------------------------------------------------------- */
+.back-to-top {
+    position: fixed;
+    right: 1rem;
+    bottom: 4.75rem;
+    z-index: 1040;
+    width: 3.25rem;
+    height: 3.25rem;
+    font-size: 1.35rem;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+    background: var(--brand);
+    color: var(--ink);
+    box-shadow: var(--shadow-hard-lime);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(0.75rem);
+    pointer-events: none;
+    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease),
+        background-color 0.15s;
+}
+.back-to-top.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.back-to-top:hover {
+    background: var(--brand-soft);
+}
+
+/* ---------------------------------------------------------
+   Floating AI chat widget: Messenger-style head + popup.
+   Launcher & .back-to-top share one size (3.25rem column in
+   the corner); the panel is a docked window LEFT of the head
+   (Facebook web), reusing the chat bubble language
+   (.chat-thread/.chat-row/.chat-bubble).
+   --------------------------------------------------------- */
+.ai-widget {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1050;
+}
