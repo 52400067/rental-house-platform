@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getListings } from "../../api/listingApi";
 import ListingCard from "../../components/ListingCard";
 import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
+import { AI_CHAT_OPEN_EVENT } from "../../components/ui/AiChatWidget";
 import "../../styles/home.css";
 
 export default function Home() {
@@ -152,20 +153,41 @@ export default function Home() {
                             ["ai/area-suggestions", "geo-alt", "Gợi ý khu vực", "AI phân tích trường học, ngân sách và ưu tiên để gợi ý khu vực phù hợp."],
                             ["ai/roommates", "people", "Tìm bạn cùng phòng", "Gợi ý người có thói quen sinh hoạt và sở thích phù hợp với bạn."],
                             ["ai/chat", "robot", "Trợ lý AI", "Hỏi về phòng trọ, khu vực, giá thuê và hợp đồng thuê."],
-                        ].map(([to, icon, label, desc]) => (
-                            <div className="col-lg-4 col-md-6" key={to}>
-                                <Link
-                                    to={`/${to}`}
-                                    className="feature-tile d-block h-100 p-4 text-decoration-none text-body"
-                                >
+                        ].map(([to, icon, label, desc]) => {
+                            const inner = (
+                                <>
                                     <span className="feature-tile-icon mb-3">
                                         <i className={`bi bi-${icon} fs-4`} />
                                     </span>
                                     <h5 className="fw-bold">{label}</h5>
                                     <p className="text-secondary mb-0">{desc}</p>
-                                </Link>
-                            </div>
-                        ))}
+                                </>
+                            );
+                            // Trợ lý AI is now the floating widget, not a page.
+                            const tileClass =
+                                "feature-tile d-block h-100 p-4 text-decoration-none text-body";
+                            return (
+                                <div className="col-lg-4 col-md-6" key={to}>
+                                    {to === "ai/chat" ? (
+                                        <button
+                                            type="button"
+                                            className={`${tileClass} text-start w-100`}
+                                            onClick={() =>
+                                                window.dispatchEvent(
+                                                    new Event(AI_CHAT_OPEN_EVENT)
+                                                )
+                                            }
+                                        >
+                                            {inner}
+                                        </button>
+                                    ) : (
+                                        <Link to={`/${to}`} className={tileClass}>
+                                            {inner}
+                                        </Link>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </section>

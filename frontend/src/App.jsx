@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/ui/Toast";
 import BackToTop from "./components/ui/BackToTop";
+import AiChatWidget from "./components/ui/AiChatWidget";
 
 import Home from "./pages/Home/Home";
 import Rooms from "./pages/Rooms/Rooms";
@@ -22,7 +23,6 @@ import Profile from "./pages/Profile/Profile";
 
 import Roommates from "./pages/Ai/Roommates";
 import AreaSuggestions from "./pages/Ai/AreaSuggestions";
-import AiChat from "./pages/Ai/Chat";
 
 import MyListings from "./pages/Landlord/MyListings";
 import ListingForm from "./pages/Landlord/ListingForm";
@@ -43,7 +43,6 @@ export default function App() {
                             <Route path="/students/:id" element={<StudentPublic />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
-                            <Route path="/ai/chat" element={<AiChat />} />
 
                             {/* Any authenticated user */}
                             <Route
@@ -128,6 +127,7 @@ export default function App() {
                     </main>
                     <Footer />
                     <BackToTop />
+                    <AiChatWidget />
                 </ToastProvider>
             </AuthProvider>
         </BrowserRouter>

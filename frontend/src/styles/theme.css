@@ -1193,6 +1193,152 @@ main { flex: 1 0 auto; }
 }
 
 /* ---------------------------------------------------------
+   Floating AI chat widget: Messenger-style head + popup.
+   Launcher = bigger sibling of .back-to-top (lime circle,
+   ink hairline, lime hard shadow); panel reuses the chat
+   bubble language (.chat-thread/.chat-row/.chat-bubble).
+   --------------------------------------------------------- */
+.ai-widget {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1050;
+}
+.min-width-0 { min-width: 0; }
+
+.ai-widget-launcher {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-hard-lime);
+    transition: transform 0.18s var(--ease), background-color 0.15s;
+}
+.ai-widget-launcher:hover {
+    background: var(--brand-soft);
+    transform: translateY(-2px);
+}
+.ai-widget-launcher:active {
+    transform: translateY(0);
+}
+
+.ai-widget-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.75rem);
+    width: min(22rem, calc(100vw - 2rem));
+    height: min(30rem, calc(100dvh - 9rem));
+    display: flex;
+    flex-direction: column;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card-hover);
+    overflow: hidden;
+    transform-origin: bottom right;
+    animation: ai-widget-in 0.25s var(--ease);
+}
+@keyframes ai-widget-in {
+    from { opacity: 0; transform: translateY(0.75rem) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ai-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--ink);
+    color: var(--paper);
+    flex-shrink: 0;
+}
+.ai-widget-header .fw-bold { color: var(--paper); }
+.ai-widget-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.05rem;
+}
+.ai-widget-status {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+.ai-widget-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--brand);
+    flex-shrink: 0;
+}
+.ai-widget-close {
+    flex-shrink: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: transparent;
+    color: var(--paper);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: background-color 0.15s;
+}
+.ai-widget-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--paper);
+}
+
+/* The thread goes full-bleed inside the panel: no own hairline. */
+.ai-widget-thread {
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    border-bottom: 1px solid var(--line-strong);
+}
+.ai-widget-composer {
+    padding: 0.6rem 0.75rem;
+}
+
+.ai-widget-guest {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.75rem;
+    padding: 1.25rem;
+}
+.ai-widget-guest-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.4rem;
+    box-shadow: var(--shadow-hard-lime);
+}
+
+/* ---------------------------------------------------------
    Responsive listing rows (landlord "My listings")
    --------------------------------------------------------- */
 @media (max-width: 767.98px) {
