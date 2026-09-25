@@ -132,7 +132,7 @@ with sync_playwright() as p:
     run_probe(
         ctx, "messages", "/messages", api_glob(r"/conversations"),
         lambda pg: pg.wait_for_selector(
-            "a.list-group-item, .alert, .text-secondary", timeout=15000
+            ".messages-item, .alert, .text-secondary", timeout=15000
         ),
     )
     run_probe(
