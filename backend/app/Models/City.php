@@ -14,6 +14,7 @@ class City extends Model
     use HasFactory;
 
     public const TYPE_CITY = 'city';       // thành phố trực thuộc TW
+
     public const TYPE_PROVINCE = 'province'; // tỉnh
 
     public $timestamps = false;

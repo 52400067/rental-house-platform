@@ -20,8 +20,7 @@ class MessageReacted implements ShouldBroadcastNow
     public function __construct(
         public Message $message,
         public int $userId,
-    ) {
-    }
+    ) {}
 
     public function broadcastOn(): array
     {

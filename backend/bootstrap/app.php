@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -62,7 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // Laravel converts AuthorizationException into AccessDeniedHttpException
             // via prepareException(), so both must be handled here.
             if ($e instanceof AuthorizationException
-                || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
+                || $e instanceof AccessDeniedHttpException) {
                 return new JsonResponse(['message' => 'Bạn không có quyền thực hiện thao tác này.'], 403);
             }
 

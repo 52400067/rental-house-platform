@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\MessageDeleted;
 use App\Events\MessageSeen;
 use App\Events\MessageSent;
 use App\Http\Resources\ConversationResource;

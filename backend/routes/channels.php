@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Conversation;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Broadcast;
 // subscribe. Outsiders are rejected (false), never 404 - channel auth
 // semantics differ from REST here.
 Broadcast::channel('conversation.{conversationId}', function ($user, int $conversationId) {
-    $conversation = \App\Models\Conversation::find($conversationId);
+    $conversation = Conversation::find($conversationId);
 
     if (! $conversation) {
         return false;

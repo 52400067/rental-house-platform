@@ -23,8 +23,7 @@ class MessageSeen implements ShouldBroadcastNow
         public Conversation $conversation,
         public User $reader,
         public string $seenAt,
-    ) {
-    }
+    ) {}
 
     public function broadcastOn(): array
     {

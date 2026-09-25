@@ -30,8 +30,7 @@ class MessageDeleted implements ShouldBroadcastNow
         public Message $message,
         public bool $removed,
         public array $deletedFor,
-    ) {
-    }
+    ) {}
 
     public function broadcastOn(): array
     {
