@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListingImageUploadRequest;
+use App\Http\Requests\ListingStoreRequest;
+use App\Http\Requests\ListingUpdateRequest;
 use App\Http\Resources\ListingDetailResource;
 use App\Http\Resources\ListingSummaryResource;
 use App\Models\Listing;
@@ -11,7 +14,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 /**
  * Landlord listing management (API_CONTRACT §4 - "Chủ nhà: quản lý tin đăng").
@@ -19,70 +21,6 @@ use Illuminate\Validation\Rule;
  */
 class LandlordListingController extends Controller
 {
-    /** Validation rules shared by store and update. */
-    private function rules(bool $creating = false): array
-    {
-        $rules = [
-            'title' => [$creating ? 'required' : 'sometimes', 'string', 'min:5', 'max:200'],
-            'type' => [$creating ? 'required' : 'sometimes', Rule::in([
-                Listing::TYPE_ROOM, Listing::TYPE_APARTMENT, Listing::TYPE_HOUSE,
-            ])],
-            'price' => [$creating ? 'required' : 'sometimes', 'integer', 'between:100000,100000000'],
-            'area_m2' => [$creating ? 'required' : 'sometimes', 'numeric', 'between:5,1000'],
-            'address' => [$creating ? 'required' : 'sometimes', 'string', 'max:300'],
-            'latitude' => [$creating ? 'required' : 'sometimes', 'numeric', 'between:-90,90'],
-            'longitude' => [$creating ? 'required' : 'sometimes', 'numeric', 'between:-180,180'],
-            'ward_id' => [$creating ? 'required' : 'sometimes', 'integer', 'exists:wards,id'],
-            'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
-            'amenity_ids' => ['sometimes', 'array'],
-            'amenity_ids.*' => ['integer', 'exists:amenities,id'],
-        ];
-
-        if (! $creating) {
-            $rules['status'] = ['sometimes', Rule::in([
-                Listing::STATUS_AVAILABLE, Listing::STATUS_RENTED, Listing::STATUS_HIDDEN,
-            ])];
-        }
-
-        return $rules;
-    }
-
-    private function messages(): array
-    {
-        return [
-            'required' => 'Cần cung cấp :attribute.',
-            'string' => ':attribute phải là chuỗi.',
-            'integer' => ':attribute phải là số nguyên.',
-            'numeric' => ':attribute phải là số.',
-            'array' => ':attribute phải là một mảng.',
-            'min.string' => ':attribute phải có ít nhất :min ký tự.',
-            'max.string' => ':attribute không được vượt quá :max ký tự.',
-            'between.numeric' => ':attribute phải trong khoảng :min đến :max.',
-            'exists' => ':attribute không tồn tại.',
-            'in' => ':attribute không hợp lệ.',
-        ];
-    }
-
-    private function attributes(): array
-    {
-        return [
-            'title' => 'Tiêu đề',
-            'type' => 'Loại tin',
-            'price' => 'Giá',
-            'area_m2' => 'Diện tích',
-            'address' => 'Địa chỉ',
-            'latitude' => 'Vĩ độ',
-            'longitude' => 'Kinh độ',
-            'ward_id' => 'Quận',
-            'description' => 'Mô tả',
-            'amenity_ids' => 'Tiện ích',
-            'amenity_ids.*' => 'Tiện ích',
-            'status' => 'Trạng thái',
-            'images' => 'Ảnh',
-            'images.*' => 'Ảnh',
-        ];
-    }
-
     /**
      * GET /api/my/listings - all statuses, optional status filter, paginated.
      */
@@ -110,9 +48,9 @@ class LandlordListingController extends Controller
     /**
      * POST /api/listings - create a listing, status defaults to available.
      */
-    public function store(Request $request): JsonResponse
+    public function store(ListingStoreRequest $request): JsonResponse
     {
-        $data = $request->validate($this->rules(creating: true), $this->messages(), $this->attributes());
+        $data = $request->validated();
 
         $listing = $request->user()->listings()->create([
             ...collect($data)->except('amenity_ids')->all(),
@@ -131,11 +69,11 @@ class LandlordListingController extends Controller
     /**
      * PUT /api/listings/{id} - partial update, landlord may also change status.
      */
-    public function update(Request $request, Listing $listing): JsonResponse
+    public function update(ListingUpdateRequest $request, Listing $listing): JsonResponse
     {
         $this->authorizeOwnership($request, $listing);
 
-        $data = $request->validate($this->rules(), $this->messages(), $this->attributes());
+        $data = $request->validated();
 
         $listing->update(collect($data)->except('amenity_ids')->all());
 
@@ -170,14 +108,9 @@ class LandlordListingController extends Controller
      * 2 MB each, 5 total per listing). Returns ALL images of the listing;
      * the smallest id is the cover.
      */
-    public function uploadImages(Request $request, Listing $listing): JsonResponse
+    public function uploadImages(ListingImageUploadRequest $request, Listing $listing): JsonResponse
     {
         $this->authorizeOwnership($request, $listing);
-
-        $request->validate([
-            'images' => ['required', 'array', 'min:1'],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-        ], $this->messages(), $this->attributes());
 
         $existingCount = $listing->images()->count();
         $newFiles = $request->file('images', []);

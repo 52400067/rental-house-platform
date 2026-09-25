@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -16,20 +17,9 @@ class AuthController extends Controller
     /**
      * POST /api/register - create an account and log the user in (201).
      */
-    public function register(Request $request): JsonResponse
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            // Emails are stored lowercase (ERD §3), so uniqueness is
-            // effectively case-insensitive on PostgreSQL.
-            'email' => ['required', 'string', 'email', 'max:255', function (string $attribute, mixed $value, \Closure $fail) {
-                if (User::where('email', strtolower((string) $value))->exists()) {
-                    $fail('Email đã được sử dụng.');
-                }
-            }],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', Rule::in([User::ROLE_STUDENT, User::ROLE_LANDLORD])],
-        ]);
+        $data = $request->validated();
 
         // forceCreate: 'role' is deliberately NOT fillable (step 10 security -
         // no endpoint may change roles through mass assignment), but the
@@ -51,12 +41,9 @@ class AuthController extends Controller
      * POST /api/login - issue a Sanctum token. Wrong credentials: 422 with
      * errors.email (API_CONTRACT §4).
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $credentials = $request->validated();
 
         $user = User::where('email', strtolower($credentials['email']))->first();
 

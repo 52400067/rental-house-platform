@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageSeen;
 use App\Events\MessageSent;
+use App\Http\Requests\ConversationStoreRequest;
+use App\Http\Requests\MessageListRequest;
+use App\Http\Requests\MessageSendRequest;
 use App\Http\Resources\ConversationResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
@@ -21,25 +24,13 @@ use Illuminate\Http\Request;
  */
 class ConversationController extends Controller
 {
-    /** Attachment validation per contract: pdf, jpg, png, docx, max 5 MB. */
-    private const ATTACHMENT_MIMES = 'pdf,jpg,jpeg,png,docx';
-
-    private const ATTACHMENT_MAX_KB = 5120;
-
     /**
      * POST /api/conversations (Student) - get-or-create. Calling twice for
      * the same listing returns the existing conversation (contract).
      */
-    public function store(Request $request): JsonResponse
+    public function store(ConversationStoreRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'listing_id' => ['required', 'integer', 'exists:listings,id'],
-        ], [
-            'listing_id.required' => ':attribute là bắt buộc.',
-            'listing_id.exists' => ':attribute không tồn tại.',
-        ], [
-            'listing_id' => 'Tin đăng',
-        ]);
+        $validated = $request->validated();
 
         /** @var User $student */
         $student = $request->user();
@@ -123,18 +114,11 @@ class ConversationController extends Controller
      * GET /api/conversations/{id}/messages (Participant) - oldest first,
      * `after_id` returns only newer messages for cheap polling.
      */
-    public function messages(Request $request, Conversation $conversation): JsonResponse
+    public function messages(MessageListRequest $request, Conversation $conversation): JsonResponse
     {
         $this->authorizeParticipant($request, $conversation);
 
-        $validated = $request->validate([
-            'after_id' => ['nullable', 'integer', 'min:0'],
-        ], [
-            'after_id.integer' => ':attribute phải là số nguyên.',
-            'after_id.min' => ':attribute phải lớn hơn hoặc bằng 0.',
-        ], [
-            'after_id' => 'after_id',
-        ]);
+        $validated = $request->validated();
 
         $query = $conversation->messages()
             ->with('sender:id')
@@ -162,31 +146,13 @@ class ConversationController extends Controller
      * POST /api/conversations/{id}/messages (Participant) - JSON { body } or
      * multipart (body + file: pdf/jpg/png/docx, max 5 MB).
      */
-    public function sendMessage(Request $request, Conversation $conversation): JsonResponse
+    public function sendMessage(MessageSendRequest $request, Conversation $conversation): JsonResponse
     {
         $this->authorizeParticipant($request, $conversation);
 
         $isMultipart = $request->hasFile('file');
 
-        $validated = $request->validate(
-            $isMultipart ? [
-                'body' => ['nullable', 'string', 'max:1000'],
-                'file' => ['required', 'file', 'mimes:'.self::ATTACHMENT_MIMES, 'max:'.self::ATTACHMENT_MAX_KB],
-            ] : [
-                'body' => ['required', 'string', 'max:1000'],
-            ],
-            [
-                'body.required' => 'Nội dung tin nhắn là bắt buộc.',
-                'body.max' => 'Nội dung tin nhắn tối đa 1000 ký tự.',
-                'file.required' => 'Tệp đính kèm là bắt buộc.',
-                'file.mimes' => 'Tệp phải là pdf, jpg, png hoặc docx.',
-                'file.max' => 'Tệp tối đa 5 MB.',
-            ],
-            [
-                'body' => 'Nội dung tin nhắn',
-                'file' => 'Tệp đính kèm',
-            ],
-        );
+        $validated = $request->validated();
 
         $attachmentPath = null;
         $attachmentName = null;

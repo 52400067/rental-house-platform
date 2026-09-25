@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageReacted;
+use App\Http\Requests\ReactionUpdateRequest;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
@@ -15,10 +16,7 @@ use Illuminate\Http\Request;
  */
 class MessageReactionController extends Controller
 {
-    /** Bộ 6 emoji chuẩn của Messenger. */
-    private const ALLOWED = ['👍', '❤️', '😂', '😮', '😢', '😠'];
-
-    public function update(Request $request, Message $message): JsonResponse
+    public function update(ReactionUpdateRequest $request, Message $message): JsonResponse
     {
         $user = $request->user();
 
@@ -29,12 +27,7 @@ class MessageReactionController extends Controller
             abort(404);
         }
 
-        $validated = $request->validate([
-            'emoji' => ['required', 'string', 'in:'.implode(',', self::ALLOWED)],
-        ], [
-            'emoji.required' => 'Emoji là bắt buộc.',
-            'emoji.in' => 'Emoji không nằm trong bộ cho phép.',
-        ]);
+        $validated = $request->validated();
 
         $reactions = $message->reactions ?? [];
         $mine = (string) $user->id;

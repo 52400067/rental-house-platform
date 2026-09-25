@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListingBrowseRequest;
+use App\Http\Requests\ReviewStoreRequest;
 use App\Http\Resources\ListingDetailResource;
 use App\Http\Resources\ListingSummaryResource;
 use App\Http\Resources\ReviewResource;
@@ -11,7 +13,6 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -23,62 +24,12 @@ class ListingController extends Controller
 
     public const PER_PAGE_MAX = 50;
 
-
-
-    public function index(Request $request): JsonResponse
+    public function index(ListingBrowseRequest $request): JsonResponse
     {
-        // ---------------------------------------------------------------
+        $validated = $request->validated();
+
         // Validation (422 with Vietnamese messages, per API_CONTRACT §1)
-        // ---------------------------------------------------------------
-        $messages = [
-            'integer' => ':attribute phải là số nguyên.',
-            'numeric' => ':attribute phải là số.',
-            'string' => ':attribute phải là chuỗi.',
-            'array' => ':attribute phải là một mảng.',
-            'min.numeric' => ':attribute phải tối thiểu :min.',
-            'max.numeric' => ':attribute không được vượt quá :max.',
-            'max.string' => ':attribute không được vượt quá :max ký tự.',
-            'gte' => ':attribute phải lớn hơn hoặc bằng :value.',
-            'exists' => ':attribute không tồn tại.',
-            'in' => ':attribute không hợp lệ.',
-        ];
-
-        $attributes = [
-            'price_min' => 'Giá tối thiểu',
-            'price_max' => 'Giá tối đa',
-            'ward_id' => 'Quận',
-            'type' => 'Loại tin',
-            'amenity_ids' => 'Tiện ích',
-            'max_km' => 'Bán kính (km)',
-            'sort' => 'Sắp xếp',
-            'page' => 'Trang',
-            'per_page' => 'Số tin mỗi trang',
-            'q' => 'Từ khóa',
-            'school_id' => 'Trường',
-        ];
-
-        $validated = $request->validate([
-            'price_min' => ['nullable', 'integer', 'min:0'],
-            // gte:price_min would fail when price_min is absent, so the
-            // cross-field check only runs when both bounds are provided.
-            'price_max' => ['nullable', 'integer', 'min:0', function (string $attribute, mixed $value, \Closure $fail) use ($request) {
-                $min = $request->input('price_min');
-                if ($min !== null && $min !== '' && (int) $value < (int) $min) {
-                    $fail('Giá tối đa phải lớn hơn hoặc bằng giá tối thiểu.');
-                }
-            }],
-            'ward_id' => ['nullable', 'integer', 'exists:wards,id'],
-            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
-            'type' => ['nullable', Rule::in([Listing::TYPE_ROOM, Listing::TYPE_APARTMENT, Listing::TYPE_HOUSE])],
-            'amenity_ids' => ['nullable', 'array'],
-            'amenity_ids.*' => ['integer', 'exists:amenities,id'],
-            'max_km' => ['nullable', 'numeric', 'min:0', 'max:500'],
-            'sort' => ['nullable', Rule::in(['newest', 'price_asc', 'price_desc', 'distance', 'rating'])],
-            'page' => ['nullable', 'integer', 'min:1'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:'.self::PER_PAGE_MAX],
-            'q' => ['nullable', 'string', 'max:200'],
-            'school_id' => ['nullable', 'integer', 'exists:schools,id'],
-        ], $messages, $attributes);
+        // lives in ListingBrowseRequest.
 
         // max_km and sort=distance require school_id.
         if ((isset($validated['max_km']) || ($validated['sort'] ?? null) === 'distance') && empty($validated['school_id'])) {
@@ -249,24 +200,11 @@ class ListingController extends Controller
      * POST /api/listings/{id}/reviews - students only. Requires an existing
      * conversation about this listing; one review per student per listing.
      */
-    public function storeReview(Request $request, Listing $listing): JsonResponse
+    public function storeReview(ReviewStoreRequest $request, Listing $listing): JsonResponse
     {
         $user = $request->user();
 
-        $data = $request->validate([
-            'listing_rating' => ['required', 'integer', 'between:1,5'],
-            'landlord_rating' => ['required', 'integer', 'between:1,5'],
-            'comment' => ['nullable', 'string', 'max:1000'],
-        ], [
-            'required' => 'Cần cung cấp :attribute.',
-            'integer' => ':attribute phải là số nguyên.',
-            'between' => ':attribute phải từ :min đến :max sao.',
-            'max.string' => ':attribute không được vượt quá :max ký tự.',
-        ], [
-            'listing_rating' => 'Điểm tin đăng',
-            'landlord_rating' => 'Điểm chủ nhà',
-            'comment' => 'Bình luận',
-        ]);
+        $data = $request->validated();
 
         // ERD §4: only students who already have a conversation may review.
         // 403 with the contract's specific message (API_CONTRACT §4).

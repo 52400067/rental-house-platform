@@ -9,7 +9,6 @@ use App\Http\Requests\PriceAdviceRequest;
 use App\Http\Requests\RoommatesRequest;
 use App\Services\AiService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * AI proxy endpoints (API_CONTRACT §4 "AI", docs/AI_CONTRACT.md).
