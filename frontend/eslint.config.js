@@ -32,13 +32,13 @@ export default [
             ...js.configs.recommended.rules,
             ...prettier.rules,
             ...reactHooks.configs.recommended.rules,
-            // Compiler-style signals. set-state-in-effect is blocking:
-            // all call sites now reset via the render-phase prev-comparison
-            // idiom or move the reset into the fetch handler. purity/refs
-            // stay as warnings until audited.
+            // Compiler-style signals, all blocking: render stays pure and
+            // refs stay out of render. set-state-in-effect call sites now
+            // reset via the render-phase prev-comparison idiom or move the
+            // reset into the fetch handler.
             "react-hooks/set-state-in-effect": "error",
-            "react-hooks/purity": "warn",
-            "react-hooks/refs": "warn",
+            "react-hooks/purity": "error",
+            "react-hooks/refs": "error",
             "react-refresh/only-export-components": [
                 "warn",
                 {
