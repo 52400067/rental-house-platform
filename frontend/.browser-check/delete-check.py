@@ -62,13 +62,13 @@ def send_b(page, text):
 TOMBSTONE = "Tin nhắn đã được thu hồi"
 
 
-def open_sheet(page, bubble_text):
-    """Click bubble -> modal action sheet kieu Facebook hien ra."""
+def open_menu(page, bubble_text):
+    """Click bubble -> menu nho kieu Messenger neo vao bubble."""
     row = page.locator(".chat-row", has_text=bubble_text).last
     row.locator(".chat-bubble").first.click()
-    sheet = page.locator(".chat-sheet")
-    expect(sheet).to_be_visible()
-    return sheet
+    menu = page.locator(".chat-menu")
+    expect(menu).to_be_visible()
+    return menu
 
 
 with sync_playwright() as p:
@@ -86,32 +86,38 @@ with sync_playwright() as p:
         a.wait_for_timeout(1200); b.wait_for_timeout(1200)
     check("setup: 2 browser vao cung thread", setup)
 
-    # ---- A. Unsend (thu hoi) ca hai phia ----------------------------------
+    # ---- A. Unsend (thu hoi) ca hai phia: menu -> dialog xac nhan ---------
     def unsend():
         stamp = f"UNSEND {int(time.time())}"
         send_b(b, stamp)
         expect(a.locator(".chat-bubble", has_text=stamp)).to_be_visible(timeout=6000)
-        sheet = open_sheet(b, stamp)
-        sheet.locator(".chat-sheet-btn.danger", has_text="Thu hồi").click()
+        menu = open_menu(b, stamp)
+        menu.locator("button", has_text="Thu hồi").click()
+        dialog = b.locator(".chat-confirm")
+        expect(dialog).to_be_visible()
+        # Copy trong dialog noi ro hau qua cho moi nguoi.
+        expect(dialog).to_contain_text("mọi người")
+        dialog.locator(".chat-confirm-btn.primary").click()
         # Phia B tombstone
         expect(b.locator(".chat-bubble-unsent").last).to_contain_text(TOMBSTONE, timeout=6000)
         # Phia A tombstone realtime
         expect(a.locator(".chat-bubble-unsent").last).to_contain_text(TOMBSTONE, timeout=6000)
-    check("unsend: ca hai phia thanh tombstone realtime", unsend)
+    check("unsend: menu -> xac nhan -> tombstone ca hai phia", unsend)
 
     # ---- B. Xoa chi o phia minh -------------------------------------------
+    # ---- B. Xoa chi o phia minh: menu, chay ngay, khong confirm -----------
     def delete_for_me():
         stamp = f"DELME {int(time.time())}"
         send_b(b, stamp)
         expect(a.locator(".chat-bubble", has_text=stamp)).to_be_visible(timeout=6000)
-        sheet = open_sheet(b, stamp)
-        sheet.locator(".chat-sheet-btn", has_text="phía mình").click()
+        menu = open_menu(b, stamp)
+        menu.locator("button", has_text="phía mình").click()
         b.wait_for_timeout(500)
         # Phia B: bien mat
         expect(b.locator(".chat-bubble", has_text=stamp)).to_have_count(0, timeout=6000)
         # Phia A: van con
         expect(a.locator(".chat-bubble", has_text=stamp)).to_be_visible(timeout=3000)
-    check("delete-for-me: chi phia thuc hien mat tin", delete_for_me)
+    check("delete-for-me: chay ngay, chi phia thuc hien mat tin", delete_for_me)
 
     # ---- C. Tombstone ton tai sau reload ----------------------------------
     def persisted():

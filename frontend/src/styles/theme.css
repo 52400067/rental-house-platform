@@ -1107,15 +1107,51 @@ main { flex: 1 0 auto; }
 }
 .chat-bubble-unsent .chat-time { color: var(--faint); }
 
-/* Facebook action sheet: overlay + centered card, stacked full-width
-   actions with a hint line each, message preview up top, Cancel below. */
+/* Messenger menu: small dropdown anchored to the hovered bubble.
+   "Remove for you" runs instantly; "Unsend" opens the small confirm. */
+.chat-menu {
+    position: absolute;
+    top: calc(100% + 0.3rem);
+    z-index: 30;
+    min-width: 11.5rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card-hover);
+    padding: 0.3rem;
+    animation: chat-pop 0.16s var(--ease);
+}
+@keyframes chat-pop {
+    from { opacity: 0; transform: translateY(-0.2rem) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chat-row.mine .chat-menu { right: 0; }
+.chat-row:not(.mine) .chat-menu { left: 0; }
+.chat-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+}
+.chat-menu button:hover { background: var(--gray); }
+.chat-menu button.danger { color: var(--danger); }
+
+/* Unsend confirm: small centered dialog, one sentence, two actions. */
 .chat-sheet-overlay {
     position: fixed;
     inset: 0;
     z-index: 1080;
     background: rgba(25, 26, 35, 0.45);
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     padding: 1.25rem;
     animation: chat-fade-in 0.18s var(--ease);
@@ -1124,67 +1160,44 @@ main { flex: 1 0 auto; }
     from { opacity: 0; }
     to { opacity: 1; }
 }
-.chat-sheet {
-    width: min(24rem, 100%);
+.chat-confirm {
+    width: min(21rem, 100%);
     background: var(--paper-raised);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card-hover);
-    padding: 0.6rem;
+    padding: 1.25rem 1.25rem 1.1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    animation: chat-sheet-up 0.22s var(--ease);
+    gap: 0.4rem;
+    animation: chat-pop 0.18s var(--ease);
 }
-@keyframes chat-sheet-up {
-    from { opacity: 0; transform: translateY(0.9rem); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.chat-sheet-preview {
-    background: var(--gray);
-    border-radius: var(--radius);
-    padding: 0.75rem 0.75rem 0.5rem;
-    margin-bottom: 0.25rem;
-    overflow: hidden;
-}
-.chat-sheet-preview .chat-bubble {
-    max-width: 85%;
-    box-shadow: none;
-}
-.chat-sheet-btn {
+.chat-confirm-actions {
     display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    width: 100%;
-    padding: 0.55rem 0.9rem;
-    border: 0;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+.chat-confirm-btn {
+    padding: 0.4rem 1rem;
     border-radius: var(--radius);
-    background: transparent;
-    text-align: left;
+    border: 1px solid var(--line-strong);
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.85rem;
     cursor: pointer;
     transition: background-color 0.15s var(--ease);
 }
-.chat-sheet-btn:hover { background: var(--gray); }
-.chat-sheet-btn.danger .chat-sheet-label { color: var(--danger); }
-.chat-sheet-btn .chat-sheet-label {
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--ink);
-    display: inline-flex;
-    align-items: center;
+.chat-confirm-btn:hover { background: var(--gray); }
+.chat-confirm-btn.primary {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
 }
-.chat-sheet-btn .chat-sheet-note {
-    font-size: 0.75rem;
-    color: var(--muted);
-}
-.chat-sheet-btn.cancel {
-    border-top: 1px solid var(--line);
-    border-radius: 0 0 var(--radius) var(--radius);
-    justify-content: center;
-    font-weight: 700;
-    color: var(--ink);
-    padding-top: 0.7rem;
-    margin-top: 0.15rem;
+.chat-confirm-btn.primary:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
 }
 
 /* Thin chat scrollbar: subtle gray thumb, ink on hover, no track. */
