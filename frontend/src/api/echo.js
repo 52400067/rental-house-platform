@@ -1,5 +1,6 @@
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
+import { API_BASE, REVERB } from "../config/env";
 
 /**
  * Laravel Echo over Reverb (WebSocket) - replaces HTTP polling for chat.
@@ -16,10 +17,10 @@ let echo = null;
 
 function reverbConfig() {
     return {
-        key: import.meta.env.VITE_REVERB_APP_KEY || "my-app-key",
-        wsHost: import.meta.env.VITE_REVERB_HOST || "localhost",
-        wsPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
-        wssPort: Number(import.meta.env.VITE_REVERB_PORT || 8080),
+        key: REVERB.key,
+        wsHost: REVERB.host,
+        wsPort: REVERB.port,
+        wssPort: REVERB.port,
         forceTLS: false,
         disableStats: true,
         enabledTransports: ["ws", "wss"],
@@ -28,9 +29,7 @@ function reverbConfig() {
         authorizer: (channel) => ({
             authorize: (socketId, callback) => {
                 const token = localStorage.getItem("token");
-                const api = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
-                const base = api.replace(/\/api\/?$/, "");
-                fetch(`${base}/broadcasting/auth`, {
+                fetch(`${API_BASE}/broadcasting/auth`, {
                     method: "POST",
                     body: JSON.stringify({
                         socket_id: socketId,

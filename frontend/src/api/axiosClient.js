@@ -1,8 +1,9 @@
 import axios from "axios";
+import { API_URL } from "../config/env";
 
 // API_CONTRACT §1: base URL, Accept header, Bearer token, clear token on 401.
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
+    baseURL: API_URL,
     headers: { Accept: "application/json" },
 });
 
