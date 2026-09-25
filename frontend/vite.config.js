@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react";
 // ở từng file. Cần restart dev server sau khi đổi file này.
 export default defineConfig({
     plugins: [react()],
+    // Deps cache nam ngoai node_modules: thu muc .vite trong sandbox co
+    // file do root so huu khong the ghi/xoa -> Vite tra 404 cho moi route.
+    cacheDir: "/tmp/trosv-vite-cache",
     build: {
         target: "es2020",
         cssMinify: true,

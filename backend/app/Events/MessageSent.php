@@ -55,6 +55,18 @@ class MessageSent implements ShouldBroadcastNow
     {
         return [
             'conversation_id' => $this->message->conversation_id,
+            // Sidebar preview (Messenger): both parties receive this payload,
+            // so last_message carries sender_id - each client derives
+            // "Bạn: ..." prefix by comparing with its own user id.
+            'conversation' => [
+                'id' => $this->message->conversation_id,
+                'last_message' => [
+                    'sender_id' => $this->message->sender_id,
+                    'body' => $this->message->body,
+                    'attachment_name' => $this->message->attachment_name,
+                    'created_at' => $this->message->created_at->toISOString(),
+                ],
+            ],
             'message' => [
                 'id' => $this->message->id,
                 'sender_id' => $this->message->sender_id,

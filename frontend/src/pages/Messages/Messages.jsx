@@ -39,9 +39,45 @@ export default function Messages() {
                 const conv = e.conversation;
                 if (!conv) return prev;
                 const rest = prev.filter((c) => c.id !== conv.id);
-                return [conv, ...rest];
+                const old = prev.find((c) => c.id === conv.id);
+                // Messenger preview: merge listing/other_user từ bản cũ,
+                // cập nhật preview + đẩy item lên đầu. Tin của NGƯỜI KHÁC
+                // mới tăng unread; tin của mình giữ nguyên badge.
+                const merged = {
+                    ...(old || {}),
+                    ...conv,
+                    unread_count:
+                        Number(e.message?.sender_id) === Number(user?.id)
+                            ? (old?.unread_count || 0)
+                            : (old?.unread_count || 0) + 1,
+                    last_message: {
+                        ...(old?.last_message || {}),
+                        ...conv.last_message,
+                    },
+                };
+                return [merged, ...rest];
             });
         });
+
+        // Thread mở phát window-event này mỗi khi có tin mới (WS hoặc HTTP);
+        // dùng nó làm nguồn cập nhật preview chính xác nhất cho sidebar.
+        const onPreview = (ev) => {
+            const d = ev.detail || {};
+            setConversations((prev) => {
+                if (!d.conversation_id) return prev;
+                const rest = prev.filter((c) => String(c.id) !== String(d.conversation_id));
+                const old = prev.find((c) => String(c.id) === String(d.conversation_id));
+                if (!old) return prev; // hội thoại lạ: giữ nguyên (fetch lại sau)
+                return [
+                    {
+                        ...old,
+                        last_message: d.last_message,
+                    },
+                    ...rest,
+                ];
+            });
+        };
+        window.addEventListener("trosv:conv-preview", onPreview);
 
         chan.listen(".message.deleted", (e) => {
             setConversations((prev) => {
@@ -52,6 +88,7 @@ export default function Messages() {
         });
 
         return () => {
+            window.removeEventListener("trosv:conv-preview", onPreview);
             echo.leave(`App.Models.User.${user?.id}`);
         };
     }, [user?.id]);
@@ -85,7 +122,15 @@ export default function Messages() {
                         </div>
                     )}
 
-                    {conversations.map((c) => (
+                    {conversations.map((c) => {
+                        // So sánh lỏng: sender_id từ WS là number, từ REST
+                        // là number, nhưng cứ Number() cho chắc.
+                        const mine =
+                            Number(c.last_message?.sender_id) === Number(user?.id);
+                        const preview = c.last_message?.attachment_name
+                            ? "Đã gửi một tệp đính kèm"
+                            : c.last_message?.body || "Chưa có tin nhắn";
+                        return (
                         <Link
                             key={c.id}
                             to={`/messages/${c.id}`}
@@ -114,12 +159,14 @@ export default function Messages() {
                                         {timeAgo(c.last_message?.created_at)}
                                     </span>
                                 </div>
-                                <div className="messages-item-preview text-truncate">
-                                    <span className="text-secondary">
-                                        {c.listing?.title || "Trò chuyện trực tiếp"}
-                                    </span>
-                                    {" · "}
-                                    {c.last_message?.body || "Chưa có tin nhắn"}
+                                <div
+                                    className={`messages-item-preview text-truncate${
+                                        c.unread_count > 0 ? " fw-bold" : ""
+                                    }`}
+                                >
+                                    {/* Messenger: tin của mình có prefix "Bạn:" */}
+                                    {mine && <span className="text-secondary">Bạn: </span>}
+                                    {preview}
                                 </div>
                             </div>
 
@@ -129,7 +176,8 @@ export default function Messages() {
                                 </span>
                             )}
                         </Link>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {user?.role === "landlord" && (

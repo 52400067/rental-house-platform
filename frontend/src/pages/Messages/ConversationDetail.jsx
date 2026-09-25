@@ -102,10 +102,7 @@ export default function ConversationDetail() {
         const echo = getEcho();
         if (!echo) return undefined;
 
-        const privateChan = echo.private(`conversation.${id}`);
-        const userChan = echo.private(`App.Models.User.${user?.id}`);
-
-        privateChan.listen(".message.sent", (e) => {
+        const privateChan = echo.private(`conversation.${id}`);        privateChan.listen(".message.sent", (e) => {
             const msg = e.message;
             setOtherTyping(false); // tin đến = người kia ngừng soạn
             setMessages((prev) => {
@@ -121,6 +118,21 @@ export default function ConversationDetail() {
                 ];
             });
             lastIdRef.current = Math.max(lastIdRef.current, msg.id);
+            // Sidebar preview (Messenger): thread là nguồn sự thật khi đang
+            // mở - phát event để Messages.jsx cập nhật item tương ứng.
+            window.dispatchEvent(
+                new CustomEvent("trosv:conv-preview", {
+                    detail: {
+                        conversation_id: Number(id),
+                        last_message: {
+                            sender_id: msg.sender_id,
+                            body: msg.body,
+                            attachment_name: msg.attachment_name,
+                            created_at: msg.created_at,
+                        },
+                    },
+                })
+            );
             if (msg.sender_id !== user?.id) markRead(id).catch(() => {});
         });
 
@@ -171,18 +183,13 @@ export default function ConversationDetail() {
             );
         });
 
-        userChan.listen(".message.sent", (e) => {
-            if (e.message.conversation_id === Number(id)) {
-                // Same conversation is open - the privateChan handler drew it;
-                // keep the thread marked read so unread_count stays 0.
-                markRead(id).catch(() => {});
-            }
-        });
-
         return () => {
             clearTimeout(typingTimer.current);
+            // CHỈ leave kênh conversation (riêng của thread này). Kênh
+            // App.Models.User.{id} là DÙNG CHUNG với Navbar + sidebar —
+            // Echo cache channel theo tên, leave() ở đây sẽ phá subscription
+            // của họ và sidebar/badge ngừng nhận realtime.
             echo.leave(`conversation.${id}`);
-            echo.leave(`App.Models.User.${user?.id}`);
         };
     }, [id, user?.id]);
 
@@ -220,6 +227,20 @@ export default function ConversationDetail() {
             );
             // Gửi xong thì ngừng báo "đang soạn" ở phía người kia.
             privateWhisper();
+            // Sidebar preview cho tin mình vừa gửi (HTTP response).
+            window.dispatchEvent(
+                new CustomEvent("trosv:conv-preview", {
+                    detail: {
+                        conversation_id: Number(id),
+                        last_message: {
+                            sender_id: msg.sender_id,
+                            body: msg.body,
+                            attachment_name: msg.attachment_name ?? null,
+                            created_at: msg.created_at,
+                        },
+                    },
+                })
+            );
             lastIdRef.current = Math.max(lastIdRef.current, msg.id);
             setBody("");
             setFile(null);
