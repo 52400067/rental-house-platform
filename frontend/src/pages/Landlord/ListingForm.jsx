@@ -1,225 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-    createListing,
-    updateListing,
-    uploadImages,
-    deleteImage,
-} from "../../api/landlordApi";
-import { getListing, getWards, getAmenities, getCities } from "../../api/listingApi";
-import { aiDescription } from "../../api/aiApi";
-import { TYPE_LABELS, formatVnd } from "../../api/format";
-import { errMessage } from "../../api/axiosClient";
 import CoordinatePicker from "../../components/CoordinatePicker";
+import ImagesEditor from "../../components/landlord/ImagesEditor";
+import { TYPE_LABELS, formatVnd } from "../../api/format";
 import { useToast } from "../../components/ui/Toast";
+import { useListingForm } from "../../hooks/useListingForm";
 
 const TYPE_OPTIONS = Object.entries(TYPE_LABELS);
 
 export default function ListingForm() {
     const { id } = useParams();
-    const isEdit = !!id;
     const navigate = useNavigate();
     const toast = useToast();
 
-    const [wards, setWards] = useState([]);
-    const [cities, setCities] = useState([]);
-    const [amenities, setAmenities] = useState([]);
-    const [form, setForm] = useState({
-        title: "",
-        type: "room",
-        price: "",
-        area_m2: "",
-        address: "",
-        latitude: "",
-        longitude: "",
-        city_id: "",
-        ward_id: "",
-        description: "",
-        amenity_ids: [],
-        status: "available",
-    });
-    const [images, setImages] = useState([]);
-    const [newFiles, setNewFiles] = useState([]);
-    const [errors, setErrors] = useState({});
-    const [busy, setBusy] = useState(false);
-    const [aiBusy, setAiBusy] = useState(false);
-    const [notice, setNotice] = useState("");
-
-    useEffect(() => {
-        getCities().then(setCities).catch(() => {});
-        getWards().then(setWards).catch(() => {});
-        getAmenities().then(setAmenities).catch(() => {});
-    }, []);
-
-    useEffect(() => {
-        if (!isEdit) return;
-        getListing(id)
-            .then((l) => {
-                setForm({
-                    title: l.title || "",
-                    type: l.type || "room",
-                    price: l.price ?? "",
-                    area_m2: l.area_m2 ?? "",
-                    address: l.address || "",
-                    latitude: l.latitude ?? "",
-                    longitude: l.longitude ?? "",
-                    city_id: l.ward?.city?.id || "",
-                    ward_id: l.ward?.id || "",
-                    description: l.description || "",
-                    amenity_ids: l.amenities?.map((a) => a.id) || [],
-                    status: l.status || "available",
-                });
-                setImages(l.images || []);
-            })
-            .catch((err) =>
-                setNotice(errMessage(err, "Không tải được tin đăng."))
-            );
-    }, [id, isEdit]);
-
-    const set = (key) => (e) => {
-        setErrors({});
-        setForm({ ...form, [key]: e.target.value });
-    };
-
-    /**
-     * Reverse-geocoded street guess from the map (Nominatim).
-     * Autofills the address when empty; asks before overwriting one.
-     * (No window.confirm inside the state updater: updaters must stay
-     * pure - StrictMode calls them twice, which would double the dialog.)
-     */
-    function applyAddressGuess(street) {
-        const current = form.address.trim();
-        if (current === "") {
-            setForm((f) => ({ ...f, address: street }));
-            return;
-        }
-        if (current === street) return;
-
-        const wardName =
-            wards.find((x) => String(x.id) === String(form.ward_id))?.name || "";
-        const withWard =
-            wardName && !street.includes(wardName)
-                ? `${street}, ${wardName}`
-                : street;
-
-        if (
-            window.confirm(
-                `Địa chỉ trên bản đồ: "${withWard}".\nDùng địa chỉ này thay cho "${current}"?`
-            )
-        ) {
-            setForm((f) => ({ ...f, address: withWard }));
-        }
-    }
-
-    // Recentre the coordinate picker on the selected ward's centroid.
-    const wardCenter = useMemo(() => {
-        const w = wards.find((x) => String(x.id) === String(form.ward_id));
-        return w?.latitude != null
-            ? [Number(w.latitude), Number(w.longitude)]
-            : undefined;
-    }, [wards, form.ward_id]);
-
-    function toggleAmenity(amenityId) {
-        setForm((f) => ({
-            ...f,
-            amenity_ids: f.amenity_ids.includes(amenityId)
-                ? f.amenity_ids.filter((x) => x !== amenityId)
-                : [...f.amenity_ids, amenityId],
-        }));
-    }
-
-    /** "Viết mô tả giúp tôi" - POST /ai/description (Landlord). */
-    async function generateDescription() {
-        setAiBusy(true);
-        setNotice("");
-        try {
-            const { description } = await aiDescription({
-                title: form.title || undefined,
-                type: form.type || undefined,
-                price: form.price === "" ? undefined : Number(form.price),
-                area_m2: form.area_m2 === "" ? undefined : Number(form.area_m2),
-                address: form.address || undefined,
-                ward_id: form.ward_id || undefined,
-                amenity_ids: form.amenity_ids.length ? form.amenity_ids : undefined,
-            });
-            setForm((f) => ({ ...f, description }));
-        } catch (err) {
-            setNotice(errMessage(err, "AI không tạo được mô tả lúc này."));
-        } finally {
-            setAiBusy(false);
-        }
-    }
-
-    async function handleSubmit(e) {
-        e.preventDefault();
-        setErrors({});
-        setBusy(true);
-        setNotice("");
-
-        const payload = {
-            title: form.title,
-            type: form.type,
-            price: Number(form.price),
-            area_m2: Number(form.area_m2),
-            address: form.address,
-            latitude: Number(form.latitude),
-            longitude: Number(form.longitude),
-            ward_id: Number(form.ward_id),
-            description: form.description || null,
-            amenity_ids: form.amenity_ids,
-        };
-        if (isEdit) payload.status = form.status;
-
-        try {
-            if (isEdit) {
-                const updated = await updateListing(id, payload);
-                // Upload newly picked images, if any.
-                if (newFiles.length > 0) {
-                    await uploadImages(id, newFiles);
-                }
-                navigate(`/rooms/${updated.id}`);
-            } else {
-                const created = await createListing(payload);
-                // Jump to edit page to upload images for the new listing.
-                if (newFiles.length > 0) {
-                    await uploadImages(created.id, newFiles);
-                }
-                navigate("/landlord");
-            }
-        } catch (err) {
-            setErrors(err.response?.data?.errors || {});
-            setNotice(errMessage(err));
-        } finally {
-            setBusy(false);
-        }
-    }
-
-    async function handleDeleteImage(imageId) {
-        if (!window.confirm("Xóa ảnh này?")) return;
-        try {
-            await deleteImage(id, imageId);
-            setImages((rows) => rows.filter((i) => i.id !== imageId));
-            toast.success("Đã xóa ảnh.");
-        } catch (err) {
-            toast.error(errMessage(err));
-        }
-    }
-
-    function handleFilePick(e) {
-        const files = Array.from(e.target.files || []);
-        if (isEdit && images.length + files.length > 5) {
-            setNotice("Tin đăng chỉ có tối đa 5 ảnh.");
-            e.target.value = "";
-            return;
-        }
-        if (!isEdit && files.length > 5) {
-            setNotice("Tối đa 5 ảnh mỗi tin.");
-            e.target.value = "";
-            return;
-        }
-        setNotice("");
-        setNewFiles(files);
-    }
+    const {
+        isEdit,
+        wards,
+        cities,
+        amenities,
+        form,
+        set,
+        setForm,
+        images,
+        newFiles,
+        errors,
+        busy,
+        aiBusy,
+        notice,
+        wardCenter,
+        applyAddressGuess,
+        toggleAmenity,
+        generateDescription,
+        handleSubmit,
+        handleDeleteImage,
+        handleFilePick,
+    } = useListingForm(id, toast);
 
     const fieldError = (key) =>
         errors[key] && (
@@ -240,7 +54,7 @@ export default function ListingForm() {
 
                 {notice && <div className="alert alert-warning py-2">{notice}</div>}
 
-                <form onSubmit={handleSubmit} className="card">
+                <form onSubmit={(e) => handleSubmit(e, navigate)} className="card">
                     <div className="card-body">
                         <div className="row g-3">
                             <div className="col-12">
@@ -506,56 +320,13 @@ export default function ListingForm() {
                         </div>
 
                         {/* Images */}
-                        <div className="mt-4">
-                            <label className="form-label">
-                                Ảnh (jpg/png/webp, tối đa 2 MB/ảnh, tối đa 5 ảnh)
-                            </label>
-
-                            {isEdit && images.length > 0 && (
-                                <div className="d-flex flex-wrap gap-2 mb-2">
-                                    {images.map((img, i) => (
-                                        <div key={img.id} className="position-relative">
-                                            <img
-                                                src={img.url}
-                                                alt=""
-                                                className="rounded border"
-                                                style={{
-                                                    width: 88,
-                                                    height: 66,
-                                                    objectFit: "cover",
-                                                }}
-                                            />
-                                            {i === 0 && (
-                                                <span className="badge text-bg-secondary position-absolute top-0 start-0 m-1" style={{ fontSize: "0.6rem" }}>
-                                                    Bìa
-                                                </span>
-                                            )}
-                                            <button
-                                                type="button"
-                                                className="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 py-0 px-1"
-                                                style={{ fontSize: "0.6rem" }}
-                                                onClick={() => handleDeleteImage(img.id)}
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            <input
-                                type="file"
-                                className="form-control"
-                                accept=".jpg,.jpeg,.png,.webp"
-                                multiple
-                                onChange={handleFilePick}
-                            />
-                            {newFiles.length > 0 && (
-                                <div className="small text-secondary mt-1">
-                                    Đã chọn {newFiles.length} ảnh.
-                                </div>
-                            )}
-                        </div>
+                        <ImagesEditor
+                            images={images}
+                            isEdit={isEdit}
+                            onDelete={handleDeleteImage}
+                            onPick={handleFilePick}
+                            newFileCount={newFiles.length}
+                        />
                     </div>
 
                     <div className="card-footer bg-white d-flex justify-content-end">
