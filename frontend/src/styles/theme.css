@@ -1160,15 +1160,18 @@ main { flex: 1 0 auto; }
 }
 
 /* ---------------------------------------------------------
-   Back-to-top floating button: lime circle, navy icon
+   Back-to-top floating button: lime circle, navy icon.
+   Same size as the AI chat head so the two stacked corner
+   buttons read as one column.
    --------------------------------------------------------- */
 .back-to-top {
     position: fixed;
     right: 1rem;
-    bottom: 4.5rem;
+    bottom: 4.75rem;
     z-index: 1040;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 3.25rem;
+    height: 3.25rem;
+    font-size: 1.35rem;
     border-radius: 50%;
     border: 1px solid var(--ink);
     background: var(--brand);
@@ -1194,9 +1197,10 @@ main { flex: 1 0 auto; }
 
 /* ---------------------------------------------------------
    Floating AI chat widget: Messenger-style head + popup.
-   Launcher = bigger sibling of .back-to-top (lime circle,
-   ink hairline, lime hard shadow); panel reuses the chat
-   bubble language (.chat-thread/.chat-row/.chat-bubble).
+   Launcher & .back-to-top share one size (3.25rem column in
+   the corner); the panel is a docked window LEFT of the head
+   (Facebook web), reusing the chat bubble language
+   (.chat-thread/.chat-row/.chat-bubble).
    --------------------------------------------------------- */
 .ai-widget {
     position: fixed;
@@ -1230,8 +1234,9 @@ main { flex: 1 0 auto; }
 
 .ai-widget-panel {
     position: absolute;
-    right: 0;
-    bottom: calc(100% + 0.75rem);
+    /* Docked LEFT of the head, bottom-aligned - Facebook web chat. */
+    right: calc(100% + 0.75rem);
+    bottom: 0;
     width: min(22rem, calc(100vw - 2rem));
     height: min(30rem, calc(100dvh - 9rem));
     display: flex;
@@ -1247,6 +1252,15 @@ main { flex: 1 0 auto; }
 @keyframes ai-widget-in {
     from { opacity: 0; transform: translateY(0.75rem) scale(0.97); }
     to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Small screens: no room to dock left of the head, so the popup
+   falls back to opening above the launcher (right-aligned). */
+@media (max-width: 575.98px) {
+    .ai-widget-panel {
+        right: 0;
+        bottom: calc(100% + 0.75rem);
+    }
 }
 
 .ai-widget-header {

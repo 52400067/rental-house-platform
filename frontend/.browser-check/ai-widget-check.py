@@ -157,7 +157,23 @@ with sync_playwright() as p:
             head = page.locator(".ai-widget-header").evaluate(
                 "el => getComputedStyle(el).backgroundColor")
             assert head == "rgb(25, 26, 35)", f"header bg {head}, want ink"
-        check("widget styles (lime launcher, ink header, r20 panel)", styles)
+            # Desktop: panel docks LEFT of the head (Facebook web chat).
+            pb = page.locator(".ai-widget-panel").bounding_box()
+            lb = page.locator(".ai-widget-launcher").bounding_box()
+            assert pb["x"] + pb["width"] <= lb["x"] + 2, (
+                f"panel right {pb['x'] + pb['width']} vs head left {lb['x']}")
+        check("widget styles (lime launcher, ink header, docked-left panel)", styles)
+
+        # ---- Back-to-top same size as the AI head -----------------------------
+        def same_size():
+            page.mouse.wheel(0, 2000)
+            page.wait_for_timeout(600)
+            bt = page.locator(".back-to-top.show").bounding_box()
+            lw = page.locator(".ai-widget-launcher").bounding_box()
+            assert bt, "back-to-top not shown after scroll"
+            assert abs(bt["width"] - lw["width"]) < 2, (
+                f"back-to-top {bt['width']}px vs launcher {lw['width']}px")
+        check("back-to-top matches launcher size", same_size)
 
     # ---- 375px fit --------------------------------------------------------
     def mobile():
