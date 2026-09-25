@@ -17,6 +17,19 @@ export function useRoomDetail(id) {
     const [reviews, setReviews] = useState([]);
     const [reviewMeta, setReviewMeta] = useState(null);
 
+    // Per-listing reset during render (React's "adjust state when props
+    // change" idiom): a new id starts with a clean slate immediately,
+    // instead of a synchronous setState inside the fetch effect.
+    const [prevId, setPrevId] = useState(id);
+    if (prevId !== id) {
+        setPrevId(id);
+        setListing(null);
+        setLoading(true);
+        setError("");
+        setReviews([]);
+        setReviewMeta(null);
+    }
+
     const loadReviews = useCallback(
         (page = 1) => {
             getListingReviews(id, page)
@@ -30,8 +43,6 @@ export function useRoomDetail(id) {
     );
 
     useEffect(() => {
-        setLoading(true);
-        setError("");
         getListing(id)
             .then((data) => {
                 setListing(data);

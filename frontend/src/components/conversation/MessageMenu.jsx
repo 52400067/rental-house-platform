@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
-export const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😠"];
+const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😠"];
 
 /** Facebook-style: sender may unsend within 1 hour of sending. */
-export function canUnsend(m) {
+function canUnsend(m) {
     return (
         m.is_mine &&
         !m.is_unsent &&

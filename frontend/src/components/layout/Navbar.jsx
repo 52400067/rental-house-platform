@@ -14,10 +14,10 @@ export default function Navbar() {
 
     // Total unread badge = sum of unread_count from GET /conversations.
     // Initial fetch once, then realtime increments via the user's private
-    // WebSocket channel (no more 15s polling).
+    // WebSocket channel (no more 15s polling). Logged out shows 0 -
+    // derived at render, no setState inside the effect.
     useEffect(() => {
         if (!user) {
-            setUnread(0);
             disconnectEcho();
             return undefined;
         }
@@ -83,6 +83,8 @@ export default function Navbar() {
         await logout();
         navigate("/");
     }
+
+    const unreadBadge = user ? unread : 0;
 
     return (
         <nav
@@ -153,9 +155,9 @@ export default function Navbar() {
                                     title="Tin nhắn"
                                 >
                                     <i className="bi bi-envelope" />
-                                    {unread > 0 && (
+                                    {unreadBadge > 0 && (
                                         <span className="badge rounded-pill text-bg-danger position-absolute top-0 start-100 translate-middle">
-                                            {unread > 99 ? "99+" : unread}
+                                            {unreadBadge > 99 ? "99+" : unreadBadge}
                                         </span>
                                     )}
                                 </Link>

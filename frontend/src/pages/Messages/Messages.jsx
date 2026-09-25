@@ -4,6 +4,7 @@ import { getConversations } from "../../api/socialApi";
 import { getEcho } from "../../api/echo";
 import { timeAgo } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
+import { CONV_PREVIEW_EVENT } from "../../constants/events";
 import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
 
 /**
@@ -77,7 +78,7 @@ export default function Messages() {
                 ];
             });
         };
-        window.addEventListener("trosv:conv-preview", onPreview);
+        window.addEventListener(CONV_PREVIEW_EVENT, onPreview);
 
         chan.listen(".message.deleted", (e) => {
             setConversations((prev) => {
@@ -88,7 +89,7 @@ export default function Messages() {
         });
 
         return () => {
-            window.removeEventListener("trosv:conv-preview", onPreview);
+            window.removeEventListener(CONV_PREVIEW_EVENT, onPreview);
             echo.leave(`App.Models.User.${user?.id}`);
         };
     }, [user?.id]);

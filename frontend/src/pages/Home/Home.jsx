@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getListings } from "../../api/listingApi";
 import ListingCard from "../../components/ListingCard";
 import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
-import { AI_CHAT_OPEN_EVENT } from "../../components/ui/AiChatWidget";
+import { AI_CHAT_OPEN_EVENT } from "../../constants/events";
 import "../../styles/home.css";
 
 export default function Home() {

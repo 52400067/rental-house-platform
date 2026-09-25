@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { getEcho } from "../../api/echo";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ui/Toast";
+import { CONV_PREVIEW_EVENT } from "../../constants/events";
 import { dayLabel } from "../../components/conversation/labels";
 import ChatBubble from "../../components/conversation/ChatBubble";
 import TypingIndicator from "../../components/conversation/TypingIndicator";
@@ -38,7 +39,7 @@ export default function ConversationDetail() {
     const dispatchPreview = useCallback(
         (msg) => {
             window.dispatchEvent(
-                new CustomEvent("trosv:conv-preview", {
+                new CustomEvent(CONV_PREVIEW_EVENT, {
                     detail: {
                         conversation_id: Number(id),
                         last_message: {

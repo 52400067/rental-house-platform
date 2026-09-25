@@ -39,24 +39,27 @@ export default function Profile() {
         getSchools().then(setSchools).catch(() => {});
     }, []);
 
-    useEffect(() => {
-        if (user) {
-            setForm({
-                name: user.name || "",
-                phone: user.phone || "",
-                bio: user.bio || "",
-                school_id: user.school_id || "",
-                budget_min: user.budget_min ?? "",
-                budget_max: user.budget_max ?? "",
-                sleep_schedule: user.sleep_schedule || "",
-                cleanliness: user.cleanliness ?? "",
-                smoking: user.smoking ? "1" : "0",
-                personality: user.personality || "",
-                interests: user.interests || "",
-                looking_for_roommate: user.looking_for_roommate ? "1" : "0",
-            });
-        }
-    }, [user]);
+    // Hydrate the form from the profile once it is available - during
+    // render via prev-comparison, no setState inside an effect. A later
+    // refreshUser() object still re-hydrates (fresh object identity).
+    const [hydrated, setHydrated] = useState(null);
+    if (user && hydrated !== user) {
+        setHydrated(user);
+        setForm({
+            name: user.name || "",
+            phone: user.phone || "",
+            bio: user.bio || "",
+            school_id: user.school_id || "",
+            budget_min: user.budget_min ?? "",
+            budget_max: user.budget_max ?? "",
+            sleep_schedule: user.sleep_schedule || "",
+            cleanliness: user.cleanliness ?? "",
+            smoking: user.smoking ? "1" : "0",
+            personality: user.personality || "",
+            interests: user.interests || "",
+            looking_for_roommate: user.looking_for_roommate ? "1" : "0",
+        });
+    }
 
     if (!form) {
         return (

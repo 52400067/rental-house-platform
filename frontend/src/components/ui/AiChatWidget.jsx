@@ -3,12 +3,10 @@ import { Link } from "react-router-dom";
 import { aiChat } from "../../api/aiApi";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
+import { AI_CHAT_OPEN_EVENT } from "../../constants/events";
 import AiDisclaimer from "../AiDisclaimer";
 import ChatBubble from "../conversation/ChatBubble";
 import TypingIndicator from "../conversation/TypingIndicator";
-
-// Home tile dispatches this to open the widget instead of navigating.
-export const AI_CHAT_OPEN_EVENT = "trosv:ai-chat-open";
 
 /**
  * Floating AI assistant, Facebook-messenger style: a round launcher pinned
@@ -22,6 +20,7 @@ export const AI_CHAT_OPEN_EVENT = "trosv:ai-chat-open";
  */
 export default function AiChatWidget() {
     const { user } = useAuth();
+    const userId = user?.id;
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
@@ -30,12 +29,15 @@ export default function AiChatWidget() {
     const bottomRef = useRef(null);
     const inputRef = useRef(null);
 
-    // Fresh thread per login identity (logout -> login starts over).
-    useEffect(() => {
+    // Fresh thread per login identity (logout -> login starts over) -
+    // reset during render via prev-comparison, no setState in an effect.
+    const [prevUserId, setPrevUserId] = useState(userId);
+    if (prevUserId !== userId) {
+        setPrevUserId(userId);
         setMessages([]);
         setError("");
         setBusy(false);
-    }, [user?.id]);
+    }
 
     // Home "Trợ lý AI" tile (and any other caller) opens the popup.
     useEffect(() => {

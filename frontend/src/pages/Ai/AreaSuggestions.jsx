@@ -29,13 +29,15 @@ export default function AreaSuggestions() {
         getSchools().then(setSchools).catch(() => {});
     }, []);
 
-    useEffect(() => {
-        if (user) {
-            setBudgetMin(user.budget_min ?? "");
-            setBudgetMax(user.budget_max ?? "");
-            setSchoolId(user.school_id ?? "");
-        }
-    }, [user]);
+    // Seed the budget/school inputs from the student profile once it is
+    // available - during render via prev-comparison, no setState in effect.
+    const [seededUser, setSeededUser] = useState(null);
+    if (user && seededUser !== user) {
+        setSeededUser(user);
+        setBudgetMin(user.budget_min ?? "");
+        setBudgetMax(user.budget_max ?? "");
+        setSchoolId(user.school_id ?? "");
+    }
 
     const isStudent = user?.role === "student";
 

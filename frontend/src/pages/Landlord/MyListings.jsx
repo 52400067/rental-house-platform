@@ -25,6 +25,14 @@ export default function MyListings() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // Skeleton again on page/status change - reset during render via
+    // prev-comparison instead of a synchronous setState in the effect.
+    const [prevQuery, setPrevQuery] = useState([page, status]);
+    if (prevQuery[0] !== page || prevQuery[1] !== status) {
+        setPrevQuery([page, status]);
+        setLoading(true);
+    }
+
     const load = useCallback(
         (p = 1) => {
             setLoading(true);
@@ -40,8 +48,23 @@ export default function MyListings() {
     );
 
     useEffect(() => {
-        load(page);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        let active = true;
+        getMyListings(page, status)
+            .then(({ data, meta }) => {
+                if (active) {
+                    setListings(data);
+                    setMeta(meta);
+                }
+            })
+            .catch((err) => {
+                if (active) setError(errMessage(err));
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
+        };
     }, [page, status]);
 
     async function handleDelete(listing) {

@@ -52,8 +52,20 @@ export default function Map() {
         getSchools().then(setSchools).catch(() => {});
     }, []);
 
-    useEffect(() => {
+    // Loading skeleton again when the query changes - reset during render
+    // via prev-comparison instead of a synchronous setState in the effect.
+    const [prevQuery, setPrevQuery] = useState([type, cityId, schoolId, maxKm]);
+    if (
+        prevQuery[0] !== type ||
+        prevQuery[1] !== cityId ||
+        prevQuery[2] !== schoolId ||
+        prevQuery[3] !== maxKm
+    ) {
+        setPrevQuery([type, cityId, schoolId, maxKm]);
         setLoading(true);
+    }
+
+    useEffect(() => {
         const params = { per_page: 50 };
         if (type) params.type = type;
         if (cityId) params.city_id = cityId;

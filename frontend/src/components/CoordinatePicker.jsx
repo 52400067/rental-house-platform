@@ -14,7 +14,7 @@ import "leaflet/dist/leaflet.css";
  * usage policy: max 1 req/s, low volume - fine for a form, not for polling).
  * Returns a short street address or null on failure.
  */
-export async function reverseGeocode(lat, lng) {
+async function reverseGeocode(lat, lng) {
     try {
         const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&accept-language=vi`,

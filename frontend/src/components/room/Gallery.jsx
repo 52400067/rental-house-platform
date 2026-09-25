@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 /**
  * Image gallery: main photo + thumbnail strip. Owns the selected-image
- * state and resets it when the image set changes (new listing load).
+ * state and resets it when the image set changes (new listing load) -
+ * reset during render via prev-comparison, no setState inside an effect.
  */
 export default function Gallery({ images, title }) {
     const [selectedImage, setSelectedImage] = useState(0);
 
-    useEffect(() => {
+    const [prevImages, setPrevImages] = useState(images);
+    if (prevImages !== images) {
+        setPrevImages(images);
         setSelectedImage(0);
-    }, [images]);
+    }
 
     if (images.length === 0) return null;
 

@@ -15,20 +15,32 @@ export default function Favorites() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    function load(p = 1) {
+    // Skeleton again per page change - reset during render via
+    // prev-comparison instead of a synchronous setState in the effect.
+    const [prevPage, setPrevPage] = useState(page);
+    if (prevPage !== page) {
+        setPrevPage(page);
         setLoading(true);
-        getFavorites(p)
-            .then(({ data, meta }) => {
-                setListings(data);
-                setMeta(meta);
-            })
-            .catch((err) => setError(errMessage(err)))
-            .finally(() => setLoading(false));
     }
 
     useEffect(() => {
-        load(page);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        let active = true;
+        getFavorites(page)
+            .then(({ data, meta }) => {
+                if (active) {
+                    setListings(data);
+                    setMeta(meta);
+                }
+            })
+            .catch((err) => {
+                if (active) setError(errMessage(err));
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => {
+            active = false;
+        };
     }, [page]);
 
     async function unfavorite(listing) {

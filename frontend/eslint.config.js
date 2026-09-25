@@ -32,14 +32,21 @@ export default [
             ...js.configs.recommended.rules,
             ...prettier.rules,
             ...reactHooks.configs.recommended.rules,
-            // Compiler-style rules (set-state-in-effect, purity, refs) are
-            // legit signals but their fixes belong to the planned component
-            // splits (PLAN.md Phase 2) - demoted to warnings until then so
-            // real errors stay visible.
-            "react-hooks/set-state-in-effect": "warn",
+            // Compiler-style signals. set-state-in-effect is blocking:
+            // all call sites now reset via the render-phase prev-comparison
+            // idiom or move the reset into the fetch handler. purity/refs
+            // stay as warnings until audited.
+            "react-hooks/set-state-in-effect": "error",
             "react-hooks/purity": "warn",
             "react-hooks/refs": "warn",
-            "react-refresh/only-export-components": "warn",
+            "react-refresh/only-export-components": [
+                "warn",
+                {
+                    // Standard context/singleton pattern: Provider is a
+                    // component, the paired hook is a function export.
+                    allowExportNames: ["useToast", "useAuth"],
+                },
+            ],
             "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
             "no-console": "warn",
             "prefer-const": "error",
