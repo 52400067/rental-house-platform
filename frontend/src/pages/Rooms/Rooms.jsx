@@ -29,7 +29,6 @@ export default function Rooms() {
         meta,
         loading,
         error,
-        page,
         setPage,
     } = useListingSearch();
 

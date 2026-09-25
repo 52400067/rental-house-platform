@@ -33,7 +33,7 @@ export default function RoomDetail() {
         reviews,
         reviewMeta,
         loadReviews,
-    } = useRoomDetail(id, toast);
+    } = useRoomDetail(id);
 
     const [reviewBusy, setReviewBusy] = useState(false);
     const [chatBusy, setChatBusy] = useState(false);

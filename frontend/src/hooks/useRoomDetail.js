@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getListing, getListingReviews, createReview } from "../api/listingApi";
+import { getListing, getListingReviews } from "../api/listingApi";
 import { errMessage } from "../api/axiosClient";
 
 /**
@@ -8,7 +8,7 @@ import { errMessage } from "../api/axiosClient";
  * the page (favorite toggle, review submit) can update the cached listing.
  * Favorite/chat toasts stay in the page (they need the toast context).
  */
-export function useRoomDetail(id, toast) {
+export function useRoomDetail(id) {
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
