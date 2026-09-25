@@ -17,6 +17,12 @@
 #   cp backend/.env.example backend/.env && php artisan key:generate
 #
 # Database chi chay rieng: docker compose up -d db
+#
+# Reverb key: backend/.env tren may co key that (khac my-app-key).
+# De dong bo key giua frontend build + reverb + backend broadcast, chay:
+#   sudo docker compose --env-file backend/.env up -d --build
+# Khong co --env-file: moi thu dung key demo my-app-key (van chay duoc
+# trong nay docker, nhung khop voi frontend local chi khi key trung).
 # ============================================================
 
 services:
@@ -58,6 +64,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-rental}
       AI_URL: http://ai-service:8001
       FRONTEND_URL: http://localhost:5174
+      # Cho phep Vite dev o local (5173) goi API dockerized - mixed posture.
+      FRONTEND_EXTRA_URLS: http://localhost:5173
       FRONTEND_PREVIEW_URL: http://localhost:4173
       BROADCAST_CONNECTION: reverb
       # Server-side broadcast goi Reverb HTTP API tu trong container -
