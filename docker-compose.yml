@@ -26,8 +26,13 @@ services:
       POSTGRES_DB: rental
       POSTGRES_USER: rental
       POSTGRES_PASSWORD: ${DB_PASSWORD:-rental}
-    ports:
-      - "5432:5432"        # de ket noi bang DBeaver / pgAdmin tu may
+    # Khong publish 5432 ra host: tranh cham Postgres local dang chay tren
+    # may, va DB khong lo ra ngoai. Backend noi voi db qua mang rieng cua
+    # compose (host name: db). Neu can DBeaver/pgAdmin tu may:
+    #   docker compose exec db psql -U rental -d rental
+    # hoac bo comment de publish o khac (5433) roi: compose up -d db
+    # ports:
+    #   - "127.0.0.1:5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
