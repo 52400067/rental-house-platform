@@ -169,8 +169,10 @@ Tin nhắn và sự kiện xóa được đẩy realtime qua WebSocket, thay cho
 
 | Kênh | Ai được subscribe | Sự kiện |
 |---|---|---|
-| `conversation.{id}` | Hai người trong hội thoại (người khác bị từ chối) | `.message.sent`, `.message.deleted` |
+| `conversation.{id}` | Hai người trong hội thoại (người khác bị từ chối) | `.message.sent`, `.message.deleted`, `.message.seen` |
 | `App.Models.User.{id}` | Chính chủ | `.message.sent`, `.message.deleted` (badge chưa đọc, sidebar) |
+
+Ngoài ra kênh `conversation.{id}` truyền **client-event** `typing` (không qua backend): bên đang gõ gọi `whisper('typing', { user_id })` trên mỗi thay đổi input; bên kia hiện bubble "đang soạn" (3 chấm) và tự ẩn sau 2.5 giây không có whisper mới.
 
 Tên sự kiện phía client có dấu chấm đầu (do backend dùng `broadcastAs`): `.listen('.message.sent', ...)`. `chat.{id}` của user-to-user không dùng riêng — hội thoại trực tiếp cũng nằm trong `conversation.{id}`.
 
@@ -191,6 +193,12 @@ UI thread đang mở lắng nghe `conversation.{id}` (append bubble nếu chưa 
 - `removed: true` — thu hồi cho mọi người: bubble thành tombstone, sidebar dùng `conversation.last_message` làm preview mới.
 - `removed: false` — xóa "chỉ ở phía mình": **chỉ** client có id trong `deleted_for` mới ẩn tin; người còn lại bỏ qua event. Khi đó `conversation` là `null`.
 - `sender_id` để client trừ badge nếu tin chưa đọc bị thu hồi.
+
+**`.message.seen`** — receiver gọi `POST /conversations/{id}/read` (mở thread) thì backend broadcast event này, sender hiển thị "Đã xem" realtime:
+```json
+{ "conversation_id": 33, "reader_id": 5, "seen_at": "2026-09-25T09:05:00Z" }
+```
+Client chỉ xử lý khi `reader_id` khác mình: cập nhật `seen_at` cho các tin `is_mine` chưa seen. `Message` mới thêm trường `seen_at` (thời điểm người nhận đọc, `null` = chưa); tin của chính mình gửi đi luôn có `seen_at` ban đầu là `null`.
 
 **Quy tắc fallback:** không còn poll `after_id` lặp lại. `GET /conversations/{id}/messages` chỉ chạy lần đầu khi mở hội thoại và khi Echo mất kết nối (tự reconnect); logout gọi `disconnect()` để đóng socket.
 

@@ -19,6 +19,7 @@ class Message extends Model
         'read_at',
         'deleted_at',
         'deleted_for_user_ids',
+        'seen_at',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Message extends Model
         return [
             'read_at' => 'datetime',
             'deleted_at' => 'datetime',
+            'seen_at' => 'datetime',
             'deleted_for_user_ids' => 'array',
         ];
     }

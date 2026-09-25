@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageDeleted;
+use App\Events\MessageSeen;
 use App\Events\MessageSent;
 use App\Http\Resources\ConversationResource;
 use App\Http\Resources\MessageResource;
@@ -224,10 +225,19 @@ class ConversationController extends Controller
     {
         $this->authorizeParticipant($request, $conversation);
 
+        $now = now();
+
         Message::where('conversation_id', $conversation->id)
             ->where('sender_id', '!=', $request->user()->id)
             ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+            ->update([
+                'read_at' => $now,
+                // Dấu đã xem: thời điểm NGƯỜI NHẬN mở thread.
+                'seen_at' => $now,
+            ]);
+
+        // Sender hiển thị "Đã xem" ngay khi receiver mở thread.
+        broadcast(new MessageSeen($conversation, $request->user(), $now->toISOString()));
 
         return response()->json(['data' => null]);
     }

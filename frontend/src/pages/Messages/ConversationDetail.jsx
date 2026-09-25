@@ -46,11 +46,13 @@ export default function ConversationDetail() {
     const [error, setError] = useState("");
     const [menuFor, setMenuFor] = useState(null); // tin nhắn đang mở menu tùy chọn
     const [confirmUnsend, setConfirmUnsend] = useState(null); // tin chờ xác nhận thu hồi
+    const [otherTyping, setOtherTyping] = useState(false); // "người kia đang soạn"
 
     const threadRef = useRef(null);
     const lastIdRef = useRef(0);
     const fileInputRef = useRef(null);
     const stickToBottom = useRef(true);
+    const typingTimer = useRef(null);
 
     // Load conversation header (other user, listing).
     useEffect(() => {
@@ -98,6 +100,7 @@ export default function ConversationDetail() {
 
         privateChan.listen(".message.sent", (e) => {
             const msg = e.message;
+            setOtherTyping(false); // tin đến = người kia ngừng soạn
             setMessages((prev) => {
                 if (prev.some((m) => m.id === msg.id)) return prev;
                 return [
@@ -111,6 +114,24 @@ export default function ConversationDetail() {
             });
             lastIdRef.current = Math.max(lastIdRef.current, msg.id);
             if (msg.sender_id !== user?.id) markRead(id).catch(() => {});
+        });
+
+        // Typing qua client-event (whisper) - không qua backend, gửi trực
+        // tiếp giữa các subscriber của kênh hội thoại. Debounce 2.5s.
+        privateChan.whisper("typing", { user_id: user?.id });
+        privateChan.listenForWhisper("typing", (e) => {
+            if (e.user_id === user?.id) return;
+            setOtherTyping(true);
+            clearTimeout(typingTimer.current);
+            typingTimer.current = setTimeout(() => setOtherTyping(false), 2500);
+        });
+
+        // Dấu đã xem: người kia markRead -> tất cả tin mine có seen_at.
+        privateChan.listen(".message.seen", (e) => {
+            if (e.reader_id === user?.id) return;
+            setMessages((prev) =>
+                prev.map((m) => (m.is_mine && !m.seen_at ? { ...m, seen_at: e.seen_at } : m))
+            );
         });
 
         // Facebook-style deletion: "removed" = unsend cho cả hai phía
@@ -142,6 +163,7 @@ export default function ConversationDetail() {
         });
 
         return () => {
+            clearTimeout(typingTimer.current);
             echo.leave(`conversation.${id}`);
             echo.leave(`App.Models.User.${user?.id}`);
         };
@@ -179,6 +201,8 @@ export default function ConversationDetail() {
             setMessages((prev) =>
                 prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]
             );
+            // Gửi xong thì ngừng báo "đang soạn" ở phía người kia.
+            privateWhisper();
             lastIdRef.current = Math.max(lastIdRef.current, msg.id);
             setBody("");
             setFile(null);
@@ -229,6 +253,13 @@ export default function ConversationDetail() {
         m.is_mine &&
         !m.is_unsent &&
         Date.now() - new Date(m.created_at).getTime() < 60 * 60 * 1000;
+
+    // Whisper "typing" qua kênh hội thoại (client-event, không qua backend).
+    function privateWhisper() {
+        const echo = getEcho();
+        if (!echo) return;
+        echo.private(`conversation.${id}`).whisper("typing", { user_id: user?.id });
+    }
 
     // Facebook-style: "Thu hồi" (cả hai phía, sender, trong 1h) hoặc
     // "Xóa chỉ ở phía mình". Cập nhật optimistic - WS event tới sau cũng
@@ -432,6 +463,23 @@ export default function ConversationDetail() {
                         </div>
                     ))
                 )}
+
+                {/* Typing indicator: ba chấm nảy thay bubble của người kia. */}
+                {otherTyping && (
+                    <div className="chat-row">
+                        <div className="chat-bubble chat-typing" aria-label="Đang soạn tin nhắn">
+                            <span className="chat-typing-dot" />
+                            <span className="chat-typing-dot" />
+                            <span className="chat-typing-dot" />
+                        </div>
+                    </div>
+                )}
+
+                {/* Dấu đã xem: hiện một lần dưới cùng bên phải khi người kia
+                    đã đọc tin mới nhất của mình (Messenger-style). */}
+                {!otherTyping && messages.some((m) => m.is_mine && m.seen_at) && (
+                    <div className="chat-seen">Đã xem</div>
+                )}
             </div>
 
             {error && <div className="chat-error">{error}</div>}
@@ -460,7 +508,12 @@ export default function ConversationDetail() {
                     rows={1}
                     value={body}
                     aria-label="Nhập tin nhắn"
-                    onChange={(e) => setBody(e.target.value)}
+                    onChange={(e) => {
+                        setBody(e.target.value);
+                        // Báo "đang soạn" cho mọi thay đổi (gõ, dán) - whisper
+                        // client-event, receiver tự hết sau 2.5s không gõ tiếp.
+                        privateWhisper();
+                    }}
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();

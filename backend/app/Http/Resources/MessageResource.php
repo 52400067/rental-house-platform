@@ -30,6 +30,8 @@ class MessageResource extends JsonResource
             'is_mine' => $message->sender_id === $viewer->id,
             'is_unsent' => $isUnsent,
             'body' => $isUnsent ? null : $message->body,
+            // Dấu đã xem: thời điểm NGƯỜI NHẬN đọc; null = chưa seen.
+            'seen_at' => $message->seen_at?->toISOString(),
             'attachment_name' => $isUnsent ? null : $message->attachment_name,
             'attachment_url' => (! $isUnsent && $message->attachment_path) ? URL::temporarySignedRoute(
                 'attachments.show',
