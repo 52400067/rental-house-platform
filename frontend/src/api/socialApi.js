@@ -21,6 +21,12 @@ export const getConversations = () =>
 export const deleteMessage = (messageId, scope) =>
     api.delete(`/messages/${messageId}`, { params: { scope } }).then((r) => r.data.data);
 
+// Messenger reactions: PUT dat/doi emoji (cung emoji lan nua = bo/toggle).
+export const reactToMessage = (messageId, emoji) =>
+    api
+        .put(`/messages/${messageId}/reactions`, { emoji })
+        .then((r) => r.data.data.reactions);
+
 export const startConversation = (listingId) =>
     api.post("/conversations", { listing_id: listingId }).then((r) => r.data.data);
 

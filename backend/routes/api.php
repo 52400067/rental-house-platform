@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\MessageDeletionController;
+use App\Http\Controllers\MessageReactionController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\LandlordListingController;
 use App\Http\Controllers\ListingController;
@@ -75,6 +76,12 @@ Route::post('/conversations/{conversation}/read', [ConversationController::class
 // Facebook-style deletion: sender "Thu hồi" (for everyone) or participant
 // "Xóa chỉ ở phía mình". Outsiders get 404 like the rest of messaging.
 Route::delete('/messages/{message}', [MessageDeletionController::class, 'destroy'])
+    ->middleware('auth:sanctum')->whereNumber('message');
+
+// Messenger-style reactions: PUT dat/doi (toggle cung emoji = bo), DELETE xoa.
+Route::put('/messages/{message}/reactions', [MessageReactionController::class, 'update'])
+    ->middleware('auth:sanctum')->whereNumber('message');
+Route::delete('/messages/{message}/reactions', [MessageReactionController::class, 'destroy'])
     ->middleware('auth:sanctum')->whereNumber('message');
 
 // AI proxy (API_CONTRACT §4 - "AI", docs/AI_CONTRACT.md).

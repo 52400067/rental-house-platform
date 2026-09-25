@@ -6,6 +6,7 @@ import {
     sendMessage,
     markRead,
     deleteMessage,
+    reactToMessage,
 } from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";
 import { getEcho } from "../../api/echo";
@@ -131,6 +132,15 @@ export default function ConversationDetail() {
             setOtherTyping(true);
             clearTimeout(typingTimer.current);
             typingTimer.current = setTimeout(() => setOtherTyping(false), 2500);
+        });
+
+        // Reaction: merge lại map reactions mới (đặt/đổi/bỏ của bất kỳ ai).
+        privateChan.listen(".message.reacted", (e) => {
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === e.message_id ? { ...m, reactions: e.reactions } : m
+                )
+            );
         });
 
         // Dấu đã xem: người kia markRead -> tất cả tin mine có seen_at.
@@ -316,6 +326,32 @@ export default function ConversationDetail() {
         toast.info("Đã sao chép văn bản.");
     }
 
+    // Reaction: PUT toggle (cùng emoji lần nữa = bỏ). Optimistic - WS event
+    // .message.reacted cũng merge map mới nên client nào cũng đồng bộ.
+    const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😠"];
+    async function handleReact(m, emoji) {
+        setMenuFor(null);
+        const prevMap = m.reactions || {};
+        const mine = String(user?.id);
+        const optimistic = { ...prevMap };
+        if (prevMap[mine] === emoji) delete optimistic[mine];
+        else optimistic[mine] = emoji;
+        setMessages((prev) =>
+            prev.map((x) => (x.id === m.id ? { ...x, reactions: optimistic } : x))
+        );
+        try {
+            const serverMap = await reactToMessage(m.id, emoji);
+            setMessages((prev) =>
+                prev.map((x) => (x.id === m.id ? { ...x, reactions: serverMap } : x))
+            );
+        } catch (err) {
+            toast.error(errMessage(err));
+            setMessages((prev) =>
+                prev.map((x) => (x.id === m.id ? { ...x, reactions: prevMap } : x))
+            );
+        }
+    }
+
     // Grouping + day separators. A bubble is "first"/"last" of its run when
     // the neighbor is across a day, a >15min gap, or a different sender.
     const rows = useMemo(() => {
@@ -460,6 +496,27 @@ export default function ConversationDetail() {
                                         </div>
                                     )}
 
+                                    {/* Chip reaction bám mép bubble, nhóm theo
+                                        emoji - Messenger-style. */}
+                                    {Object.keys(m.reactions || {}).length > 0 && (
+                                        <div className="chat-reactions">
+                                            {Object.entries(
+                                                Object.entries(m.reactions).reduce(
+                                                    (acc, [, emoji]) => {
+                                                        acc[emoji] = (acc[emoji] || 0) + 1;
+                                                        return acc;
+                                                    },
+                                                    {}
+                                                )
+                                            ).map(([emoji, count]) => (
+                                                <span key={emoji} className="chat-reaction-chip">
+                                                    {emoji}
+                                                    {count > 1 && <b>{count}</b>}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <button
                                         type="button"
                                         className="chat-menu-btn"
@@ -478,6 +535,24 @@ export default function ConversationDetail() {
                                             className={`chat-menu${menuUp ? " up" : ""}`}
                                             onClick={(e) => e.stopPropagation()}
                                         >
+                                            <div className="chat-reaction-row">
+                                                {REACTIONS.map((emoji) => (
+                                                    <button
+                                                        key={emoji}
+                                                        type="button"
+                                                        className={`chat-reaction-emoji${
+                                                            (m.reactions || {})[String(user?.id)] === emoji
+                                                                ? " mine"
+                                                                : ""
+                                                        }`}
+                                                        onClick={() => handleReact(m, emoji)}
+                                                        aria-label={`Thả cảm xúc ${emoji}`}
+                                                    >
+                                                        {emoji}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="chat-menu-divider" />
                                             {m.body && (
                                                 <button type="button" onClick={() => copyText(m)}>
                                                     <i className="bi bi-clipboard me-2" />

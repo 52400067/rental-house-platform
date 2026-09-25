@@ -1270,6 +1270,64 @@ main { flex: 1 0 auto; }
 }
 .chat-menu button:hover { background: var(--gray); }
 .chat-menu button.danger { color: var(--danger); }
+.chat-menu-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 0.3rem 0.4rem;
+}
+
+/* Messenger reaction picker: 6 emoji to, hover phong via; emoji cua
+   minh co vien lime. */
+.chat-reaction-row {
+    display: flex;
+    gap: 0.15rem;
+    padding: 0.35rem 0.45rem 0.25rem;
+}
+.chat-reaction-emoji {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    font-size: 1.15rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s var(--ease), background-color 0.15s;
+}
+.chat-reaction-emoji:hover {
+    background: var(--gray);
+    transform: scale(1.25);
+}
+.chat-reaction-emoji.mine {
+    border-color: var(--brand-darker);
+    background: var(--brand-soft);
+}
+
+/* Reaction chips under the bubble edge, grouped per emoji. */
+.chat-reactions {
+    display: flex;
+    gap: 0.2rem;
+    margin: -0.45rem 0.5rem 0.15rem;
+    position: relative;
+    z-index: 1;
+}
+.chat-row.mine .chat-reactions { justify-content: flex-end; }
+.chat-reaction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.05rem 0.35rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    box-shadow: 0 1px 0 var(--line);
+}
+.chat-reaction-chip b { font-size: 0.68rem; color: var(--muted); }
 
 /* Typing indicator: three bouncing dots in a bubble-sized pill. */
 .chat-typing {

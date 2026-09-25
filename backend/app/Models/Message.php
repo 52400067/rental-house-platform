@@ -20,6 +20,7 @@ class Message extends Model
         'deleted_at',
         'deleted_for_user_ids',
         'seen_at',
+        'reactions',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class Message extends Model
             'deleted_at' => 'datetime',
             'seen_at' => 'datetime',
             'deleted_for_user_ids' => 'array',
+            'reactions' => 'array',
         ];
     }
 

@@ -32,6 +32,8 @@ class MessageResource extends JsonResource
             'body' => $isUnsent ? null : $message->body,
             // Dấu đã xem: thời điểm NGƯỜI NHẬN đọc; null = chưa seen.
             'seen_at' => $message->seen_at?->toISOString(),
+            // Messenger reactions: map { "userId": "emoji" }, rỗng = không có.
+            'reactions' => $message->reactions ?? (object) [],
             'attachment_name' => $isUnsent ? null : $message->attachment_name,
             'attachment_url' => (! $isUnsent && $message->attachment_path) ? URL::temporarySignedRoute(
                 'attachments.show',
