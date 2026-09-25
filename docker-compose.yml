@@ -1,6 +1,23 @@
-# Docker cho môi trường dev: PostgreSQL + Backend + AI service.
-# Frontend chạy ngoài Docker (npm run dev).
-# Chỉ chạy database: docker compose up -d db
+# ============================================================
+# TROSV - Docker Compose dev stack.
+#
+#   docker compose up -d --build        # toan bo stack (khong co AI)
+#   docker compose --profile ai up -d   # them ai-service (can code AI)
+#
+# Frontend chay trong nginx (build tu frontend/Dockerfile) tai
+# http://localhost:5174 - VITE_* duoc bake vao bundle luc build.
+#
+# Ca 4 service backend chay CODE TRONG IMAGE (khong mount ./backend):
+# mount volume se lam vendor trong image bi che boi thu muc tren may,
+# va "composer install" trong container chay voi root -> sinh file
+# root-owned tren host. Sua code backend thi rebuild:
+#   docker compose up -d --build backend reverb queue scheduler
+#
+# APP_KEY lay tu backend/.env tren may (env_file, neu co). Fresh clone:
+#   cp backend/.env.example backend/.env && php artisan key:generate
+#
+# Database chi chay rieng: docker compose up -d db
+# ============================================================
 
 services:
   db:
@@ -10,7 +27,7 @@ services:
       POSTGRES_USER: rental
       POSTGRES_PASSWORD: ${DB_PASSWORD:-rental}
     ports:
-      - "5432:5432"        # để kết nối bằng DBeaver / pgAdmin từ máy
+      - "5432:5432"        # de ket noi bang DBeaver / pgAdmin tu may
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -21,12 +38,13 @@ services:
 
   backend:
     build: ./backend
-    command: sh -c "composer install --no-interaction && php artisan serve --host=0.0.0.0 --port=8000"
-    volumes:
-      - ./backend:/var/www/html
+    command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+    env_file:
+      - path: ./backend/.env
+        required: false    # APP_KEY + cac gia tri khong ghi de ben duoi
     ports:
       - "8000:8000"
-    environment:          # ghi đè các giá trị trong backend/.env khi chạy trong Docker
+    environment: &backend-env
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
@@ -34,12 +52,75 @@ services:
       DB_USERNAME: rental
       DB_PASSWORD: ${DB_PASSWORD:-rental}
       AI_URL: http://ai-service:8001
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      FRONTEND_URL: http://localhost:5174
+      FRONTEND_PREVIEW_URL: http://localhost:4173
+      BROADCAST_CONNECTION: reverb
+      # Server-side broadcast goi Reverb HTTP API tu trong container -
+      # phai la ten service, KHONG phai localhost.
+      REVERB_APP_ID: ${REVERB_APP_ID:-my-app-id}
+      REVERB_APP_KEY: ${REVERB_APP_KEY:-my-app-key}
+      REVERB_APP_SECRET: ${REVERB_APP_SECRET:-my-app-secret}
+      REVERB_HOST: reverb
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
+    volumes:
+      - trosv-storage:/var/www/html/storage/app   # uploads song sot khi recreate
     depends_on:
       db:
         condition: service_healthy
 
+  reverb:
+    build: ./backend
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    env_file:
+      - path: ./backend/.env
+        required: false
+    ports:
+      - "8080:8080"
+    environment: *backend-env
+    depends_on:
+      - backend
+
+  queue:
+    build: ./backend
+    command: php artisan queue:work --tries=3 --timeout=30
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment: *backend-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scheduler:
+    build: ./backend
+    command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment: *backend-env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000/api
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-my-app-key}
+        VITE_REVERB_HOST: localhost
+        VITE_REVERB_PORT: 8080
+        VITE_REVERB_SCHEME: http
+    ports:
+      - "5174:80"
+    depends_on:
+      - backend
+
   ai-service:
+    # Dich vu AI do ban AI phat trien (ai-service/HANDOFF.md). Chua co code
+    # nen dat sau profile "ai" - lenh compose thuong khong touch den service
+    # nay; backend tu tra 503 fallback khi AI khong co.
     build: ./ai-service
     command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     volumes:
@@ -49,6 +130,8 @@ services:
     environment:
       FAKE_MODE: ${FAKE_MODE:-true}
       LLM_API_KEY: ${LLM_API_KEY:-}
+    profiles: [ai]
 
 volumes:
   pgdata:
+  trosv-storage:
