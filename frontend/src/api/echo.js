@@ -16,12 +16,15 @@ import { API_BASE, REVERB } from "../config/env";
 let echo = null;
 
 function reverbConfig() {
+    // forceTLS only when the baked scheme says https (behind a TLS proxy
+    // like Caddy); for plain-HTTP demos ws://host:8080 stays as-is.
+    const forceTLS = REVERB.scheme === "https";
     return {
         key: REVERB.key,
         wsHost: REVERB.host,
         wsPort: REVERB.port,
         wssPort: REVERB.port,
-        forceTLS: false,
+        forceTLS,
         disableStats: true,
         enabledTransports: ["ws", "wss"],
         // Bearer-token auth for private channels. NOTE: authorize's first

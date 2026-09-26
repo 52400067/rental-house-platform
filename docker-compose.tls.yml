@@ -1,0 +1,72 @@
+# ============================================================
+# TROSV - TLS PROFILE cho demo VPS (Caddy, HTTPS tu dong).
+#
+# Merge thu tu (compose doc sau ghi de doc truoc):
+#   docker compose
+#     -f docker-compose.yml
+#     [-f docker-compose.demo.yml]        # khong bat buoc
+#     -f docker-compose.tls.yml           # profile TLS
+#     --profile tls up -d --build
+#
+# Doi voi HTTPS nen dung CAU HINH GIONG NHAU mot domain:
+#   FRONTEND_URL=https://$DOMAIN   (frontend + API cung origin)
+#   WS_HOST=$DOMAIN   VITE_REVERB_PORT=443   VITE_REVERB_SCHEME=https
+#
+# WebSocket path: pusher-js tu gui /app/$KEY (mac dinh), Caddy handle
+# /app/* thi pass-through - khong can cau hinh prefix ben nao.
+#
+# Caddy lay chung chi tu Let's Encrypt: can DNS A record tro ve VPS
+# va mo cong 80 + 443 (80 de HTTP-01 challenge + redirect).
+#
+# Server-to-server (backend -> reverb, ai-service -> ai) van di mang
+# rieng cua compose - khong doi. Browser la ben duy nhat noi 443.
+#
+# DEMO = KHONG hardening: mat khau demo public, khong du lieu that.
+# ============================================================
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    profiles: [tls]
+    restart: unless-stopped
+    ports:
+      - "80:80"     # HTTP-01 challenge + redirect sang HTTPS
+      - "443:443"   # TLS cho SPA, API, WebSocket (wss)
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN=demo.tenban.com trong .env}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data    # chung chi + ACME accounts
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+      - reverb
+
+  frontend:
+    ports: !override []   # chi noi voi caddy trong mang compose
+    build:
+      args:
+        VITE_API_URL: ${FRONTEND_URL:?Set FRONTEND_URL trong .env}/api
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-my-app-key}
+        VITE_REVERB_HOST: ${WS_HOST:?Set WS_HOST trong .env}
+        VITE_REVERB_PORT: "443"
+        VITE_REVERB_SCHEME: https
+
+  backend:
+    ports: !override []   # API vao qua caddy: https://$DOMAIN/api/*
+    environment:
+      FRONTEND_EXTRA_URLS: ""
+
+  reverb:
+    ports: !override []   # WebSocket vao qua caddy: wss://$DOMAIN/app/*
+
+  queue:
+    ports: !override []
+
+  scheduler:
+    ports: !override []
+
+volumes:
+  caddy_data:
+  caddy_config:

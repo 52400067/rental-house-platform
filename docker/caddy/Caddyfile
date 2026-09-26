@@ -1,0 +1,45 @@
+# ============================================================
+# TROSV - Caddy reverse proxy for the demo (automatic HTTPS).
+#
+# Mot domain duy nhat, browser chi noi 443:
+#   https://$DOMAIN/            -> frontend (nginx, bundle da build)
+#   https://$DOMAIN/api/*       -> backend :8000  (kem /storage va
+#                                  /broadcasting/auth)
+#   https://$DOMAIN/app/*       -> reverb :8080   (WebSocket -> wss)
+#
+# Chung chi can DNS A record tro ve VPS; Caddy tu lay va gia han
+# chung chi Let's Encrypt. Khong certbot, khong cron.
+#
+# FILE NAY DUOC MOUNT, KHONG BAKE: sua $DOMAIN chi can
+#   docker compose --profile tls restart caddy
+# ============================================================
+
+{$DOMAIN} {
+	# ---- WebSocket (Reverb) ------------------------------------
+	# Browser noi wss://$DOMAIN/app/$KEY - Reverb path la /app/*.
+	# Phai dat TRUOC /api/* de khong bi prefix khac nuot.
+	handle /app/* {
+		reverse_proxy reverb:8080
+	}
+
+	# ---- API + signed uploads + broadcasting/auth ---------------
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+
+	handle /storage/* {
+		reverse_proxy backend:8000
+	}
+
+	# ---- SPA (nginx bundle) -------------------------------------
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	# Go link giua cac hop (chi can khi demo noi bo).
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
