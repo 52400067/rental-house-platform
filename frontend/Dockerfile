@@ -10,6 +10,15 @@
 # ---- Build stage ----------------------------------------------------------
 FROM node:20-alpine AS build
 
+# Declared so compose build args actually reach `npm run build`. Docker
+# silently drops undeclared args, which would bake the localhost fallbacks
+# from src/config/env.js into the bundle - fine for the dev stack only.
+ARG VITE_API_URL=http://localhost:8000/api
+ARG VITE_REVERB_APP_KEY=my-app-key
+ARG VITE_REVERB_HOST=localhost
+ARG VITE_REVERB_PORT=8080
+ARG VITE_REVERB_SCHEME=http
+
 WORKDIR /app
 
 # Dependency layer first for cache between builds.
