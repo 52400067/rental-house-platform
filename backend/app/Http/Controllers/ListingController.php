@@ -10,6 +10,7 @@ use App\Http\Resources\ReviewResource;
 use App\Models\Listing;
 use App\Models\Review;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -213,22 +214,19 @@ class ListingController extends Controller
         abort_unless($user->can('review', $listing), 403, 'Bạn cần nhắn tin với chủ nhà trước khi đánh giá.');
 
         // One review per student per listing (unique constraint, ERD §3).
-        $alreadyReviewed = Review::query()
-            ->where('listing_id', $listing->id)
-            ->where('student_id', $user->id)
-            ->exists();
-
-        if ($alreadyReviewed) {
+        // create-or-catch: a true double-submit race would otherwise crash
+        // on the unique constraint (500); the loser still gets the same 422.
+        try {
+            $review = Review::create([
+                'listing_id' => $listing->id,
+                'student_id' => $user->id,
+                ...$data,
+            ]);
+        } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages([
                 'listing_id' => ['Bạn đã đánh giá tin này rồi.'],
             ]);
         }
-
-        $review = Review::create([
-            'listing_id' => $listing->id,
-            'student_id' => $user->id,
-            ...$data,
-        ]);
 
         return response()->json(['data' => (new ReviewResource($review->load('student')))->resolve($request)], 201);
     }

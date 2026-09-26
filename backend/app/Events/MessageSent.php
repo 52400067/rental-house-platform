@@ -44,41 +44,51 @@ class MessageSent implements ShouldBroadcastNow
     }
 
     /**
-     * Shape follows MessageResource (API_CONTRACT §3) EXCEPT `is_mine`:
-     * the payload is shared by both recipients, so mine/not-mine is
-     * derived on the client from sender_id. `seen_at` is always null on
-     * delivery - the `.message.seen` event flips it later.
+     * `message` mirrors MessageResource (API_CONTRACT §3): same fields, same
+     * tombstone nulling, reactions included. Two deliberate extensions, both
+     * already consumed by the SPA:
+     *  - conversation.last_message: sidebar preview (Messenger-style),
+     *  - sender_id + is_mine omitted: payload is shared by both recipients,
+     *    mine/not-mine is derived on the client from sender_id.
+     * `seen_at` is always null on delivery - `.message.seen` flips it later.
      */
     public function broadcastWith(): array
     {
+        $m = $this->message;
+        $isUnsent = $m->isUnsent();
+
         return [
-            'conversation_id' => $this->message->conversation_id,
+            'conversation_id' => $m->conversation_id,
             // Sidebar preview (Messenger): both parties receive this payload,
             // so last_message carries sender_id - each client derives
             // "Bạn: ..." prefix by comparing with its own user id.
             'conversation' => [
-                'id' => $this->message->conversation_id,
+                'id' => $m->conversation_id,
                 'last_message' => [
-                    'sender_id' => $this->message->sender_id,
-                    'body' => $this->message->body,
-                    'attachment_name' => $this->message->attachment_name,
-                    'created_at' => $this->message->created_at->toISOString(),
+                    'sender_id' => $m->sender_id,
+                    'body' => $m->body,
+                    'attachment_name' => $m->attachment_name,
+                    'created_at' => $m->created_at->toISOString(),
                 ],
             ],
             'message' => [
-                'id' => $this->message->id,
-                'sender_id' => $this->message->sender_id,
-                'body' => $this->message->body,
+                'id' => $m->id,
+                'sender_id' => $m->sender_id,
+                'is_unsent' => $isUnsent,
+                'body' => $isUnsent ? null : $m->body,
                 'seen_at' => null,
-                'attachment_name' => $this->message->attachment_name,
-                'attachment_url' => $this->message->attachment_path
+                // Map { "userId": "emoji" } - empty object when none,
+                // identical to MessageResource.
+                'reactions' => $m->reactions ?? (object) [],
+                'attachment_name' => $isUnsent ? null : $m->attachment_name,
+                'attachment_url' => (! $isUnsent && $m->attachment_path)
                     ? URL::temporarySignedRoute(
                         'attachments.show',
                         now()->addMinutes(60),
-                        ['message' => $this->message->id],
+                        ['message' => $m->id],
                     )
                     : null,
-                'created_at' => $this->message->created_at->toISOString(),
+                'created_at' => $m->created_at->toISOString(),
             ],
         ];
     }

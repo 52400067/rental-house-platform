@@ -14,8 +14,11 @@ use App\Models\Listing;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * Messaging (API_CONTRACT §4 - "Nhắn tin"). One conversation per (student,
@@ -69,13 +72,25 @@ class ConversationController extends Controller
             ], 404);
         }
 
-        $conversation = Conversation::firstOrCreate(
-            [
+        // firstOrCreate + a unique expression index (conversations_direct_unique)
+        // close the double-POST race: the losing insert hits a unique
+        // violation, is caught, and re-reads the winning row so the second
+        // caller still gets 200 with the SAME conversation (never 500).
+        try {
+            $conversation = Conversation::firstOrCreate(
+                [
+                    'listing_id' => null,
+                    'student_id' => $request->user()->id,
+                    'landlord_id' => $user->id,
+                ],
+            );
+        } catch (UniqueConstraintViolationException) {
+            $conversation = Conversation::where([
                 'listing_id' => null,
                 'student_id' => $request->user()->id,
                 'landlord_id' => $user->id,
-            ],
-        );
+            ])->firstOrFail();
+        }
 
         return response()->json([
             'data' => (new ConversationResource(
@@ -164,17 +179,30 @@ class ConversationController extends Controller
             $attachmentPath = $uploaded->store("attachments/{$conversation->id}");
         }
 
-        $message = $conversation->messages()->create([
-            'sender_id' => $request->user()->id,
-            'body' => $validated['body'] ?? '',
-            'attachment_path' => $attachmentPath,
-            'attachment_name' => $attachmentName,
-        ]);
+        try {
+            $message = $conversation->messages()->create([
+                'sender_id' => $request->user()->id,
+                'body' => $validated['body'] ?? '',
+                'attachment_path' => $attachmentPath,
+                'attachment_name' => $attachmentName,
+            ]);
+        } catch (Throwable $e) {
+            // No orphaned upload on disk if the INSERT fails after the file
+            // was already stored (MessageSent broadcasts outside the try,
+            // exactly once, only after a committed row).
+            if ($attachmentPath !== null) {
+                Storage::disk('local')->delete($attachmentPath);
+            }
+
+            throw $e;
+        }
 
         // Touch so GET /conversations sorts by latest activity.
         $conversation->touch();
 
         // Realtime bubble delivery over Reverb (replaces 5s client polling).
+        // Message shape mirrors MessageResource/contract §3 (body/reactions
+        // match MessageResource exactly; seen_at starts null).
         broadcast(new MessageSent($message->load('sender:id')));
 
         return response()->json([

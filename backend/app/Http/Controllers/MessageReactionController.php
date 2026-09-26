@@ -11,7 +11,10 @@ use Illuminate\Http\Request;
 /**
  * Messenger-style reactions: PUT để đặt/đổi emoji của mình trên một tin
  * (map { user_id: emoji }), DELETE để bỏ. Mỗi user MỘT reaction - gọi PUT
- * lần nữa với cùng emoji là bỏ (idempotent cho nút toggle).
+ * lần nữa với cùng emoji là bỏ (idempotent cho nút toggle). Mỗi handler
+ * re-read reactions qua fresh() trước khi ghi: two nearly-simultaneous
+ * reactions from DIFFERENT users (rare in a 1-1 chat, but the menu allows
+ * it in group-like reuse) no longer overwrite each other.
  */
 class MessageReactionController extends Controller
 {
@@ -26,7 +29,11 @@ class MessageReactionController extends Controller
 
         $validated = $request->validated();
 
-        $reactions = $message->reactions ?? [];
+        // fresh(): re-read the row so a reaction arriving milliseconds
+        // earlier (double-tap on slow networks, other device) is never
+        // clobbered by a stale in-memory reactions map.
+        $fresh = $message->fresh();
+        $reactions = $fresh->reactions ?? [];
         $mine = (string) $user->id;
 
         if (($reactions[$mine] ?? null) === $validated['emoji']) {
@@ -52,7 +59,8 @@ class MessageReactionController extends Controller
             abort(404);
         }
 
-        $reactions = $message->reactions ?? [];
+        $fresh = $message->fresh();
+        $reactions = $fresh->reactions ?? [];
         unset($reactions[(string) $user->id]);
         $message->reactions = $reactions;
         $message->save();

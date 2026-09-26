@@ -6,6 +6,7 @@ use App\Events\MessageDeleted;
 use App\Models\Message;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Facebook-style message deletion (API_CONTRACT §4 extension):
@@ -46,9 +47,29 @@ class MessageDeletionController extends Controller
                 ], 422);
             }
 
-            $message->deleted_at = now();
-            $message->deleted_for_user_ids = null;
-            $message->save();
+            // Transaction + SELECT ... FOR UPDATE: two racing "unsend" calls
+            // (retry, other tab) must not double-broadcast. The row is
+            // re-read under lock inside the transaction and the window is
+            // re-checked on the FRESH row, so the loser sees isUnsent() and
+            // short-circuits idempotently.
+            $unsent = DB::transaction(function () use ($message): bool {
+                $fresh = Message::query()
+                    ->whereKey($message->getKey())
+                    ->lockForUpdate()
+                    ->first();
+                if ($fresh->isUnsent()) {
+                    return false;
+                }
+                $fresh->deleted_at = now();
+                $fresh->deleted_for_user_ids = null;
+                $fresh->save();
+
+                return true;
+            });
+
+            if (! $unsent) {
+                return response()->json(['data' => null]); // racing loser
+            }
 
             broadcast(new MessageDeleted($message, true, []));
 
@@ -56,7 +77,9 @@ class MessageDeletionController extends Controller
         }
 
         // scope=self: hidden only for this viewer; idempotent per user.
-        $hidden = $message->deleted_for_user_ids ?? [];
+        // Re-read via fresh() so a concurrent delete-for-self from the same
+        // user (double-tap) is not clobbered by a stale array.
+        $hidden = $message->fresh()->deleted_for_user_ids ?? [];
         if (! in_array($user->id, $hidden, true)) {
             $hidden[] = $user->id;
             $message->deleted_for_user_ids = $hidden;

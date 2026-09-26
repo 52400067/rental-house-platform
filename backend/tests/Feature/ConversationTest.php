@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Listing;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -296,6 +299,106 @@ class ConversationTest extends TestCase
             ->getJson("/api/conversations/{$conv->id}/messages?after_id=abc")
             ->assertStatus(422)
             ->assertJsonValidationErrors(['after_id']);
+    }
+
+    // ------------------------------------------------------------------
+    // Phase 3 - race safety + contract-shape regressions
+    // ------------------------------------------------------------------
+
+    public function test_direct_conversation_double_post_returns_same_conversation(): void
+    {
+        $other = User::factory()->student()->create();
+
+        $first = $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$other->id}/message")
+            ->assertStatus(201);
+
+        // Double-POST (double-submit on the profile page): the SAME
+        // conversation comes back with 200 and exactly ONE row exists.
+        $this->actingAs($this->student, 'sanctum')
+            ->postJson("/api/users/{$other->id}/message")
+            ->assertStatus(200)
+            ->assertJsonPath('data.id', $first->json('data.id'));
+
+        $count = DB::table('conversations')
+            ->where('student_id', $this->student->id)
+            ->where('landlord_id', $other->id)
+            ->whereNull('listing_id')
+            ->count();
+        $this->assertSame(1, $count);
+    }
+
+    public function test_direct_conversations_have_database_uniqueness(): void
+    {
+        // Postgres NULLs skip ordinary unique indexes - the partial
+        // expression index (conversations_direct_unique) is what makes
+        // direct conversations race-safe. Raw inserts bypass Eloquent to
+        // prove the DATABASE enforces it, not just the controller.
+        $other = User::factory()->student()->create();
+
+        DB::table('conversations')->insert([
+            'student_id' => $this->student->id,
+            'landlord_id' => $other->id,
+            'listing_id' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->expectException(UniqueConstraintViolationException::class);
+
+        DB::table('conversations')->insert([
+            'student_id' => $this->student->id,
+            'landlord_id' => $other->id,
+            'listing_id' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function test_message_sent_event_matches_message_resource_shape(): void
+    {
+        // The realtime payload must mirror MessageResource (contract §3):
+        // assert the event's broadcastWith() directly (the send path and
+        // broadcast plumbing are covered by the POST tests).
+        $conv = $this->createConversation();
+        $message = Message::factory()->create([
+            'conversation_id' => $conv->id,
+            'sender_id' => $this->student->id,
+            'body' => 'xin chao',
+        ]);
+
+        $payload = (new MessageSent($message->load('sender:id')))->broadcastWith()['message'];
+
+        // All §3 keys present (reactions was missing before Phase 3).
+        foreach (['id', 'sender_id', 'is_unsent', 'body', 'seen_at', 'reactions', 'attachment_name', 'attachment_url', 'created_at'] as $key) {
+            $this->assertArrayHasKey($key, $payload, "missing key: {$key}");
+        }
+
+        $this->assertSame('xin chao', $payload['body']);
+        $this->assertFalse($payload['is_unsent']);
+        // Empty reactions encode as {} (object), matching MessageResource.
+        $this->assertSame('{}', json_encode($payload['reactions']));
+        $this->assertNull($payload['seen_at']);
+    }
+
+    public function test_message_sent_event_nulls_tombstone_fields(): void
+    {
+        // Unsent (thu hồi) message: body/attachment must be null in the
+        // realtime payload exactly like MessageResource renders it.
+        $conv = $this->createConversation();
+        $message = Message::factory()->create([
+            'conversation_id' => $conv->id,
+            'sender_id' => $this->student->id,
+            'body' => 'se bi thu hoi',
+            'deleted_at' => now(),
+        ]);
+
+        $payload = (new MessageSent($message->load('sender:id')))->broadcastWith()['message'];
+
+        $this->assertTrue($payload['is_unsent']);
+        $this->assertNull($payload['body']);
+        $this->assertNull($payload['attachment_name']);
+        $this->assertNull($payload['attachment_url']);
     }
 
     // ------------------------------------------------------------------
