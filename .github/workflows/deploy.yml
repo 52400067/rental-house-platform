@@ -1,10 +1,12 @@
 name: Deploy
 
-# Deploy gate: this workflow runs on pushes to `stable` ONLY AFTER the CI
-# workflow has fully succeeded on the same commit (workflow_run chains to
-# the last completed CI run for the pushed head SHA). If CI fails, deploy
-# never starts. This keeps the "high quality gate" promise: green CI on
-# stable is a precondition, not a convention.
+# Deploy gate: this workflow runs when the CI workflow completes on `stable`,
+# and actually deploys ONLY when ALL of the following hold:
+#   1. CI concluded "success" on the same commit that is now the tip of
+#      `stable` (re-checked inside the job - a stale CI run finishing late
+#      after a newer push must not deploy old code).
+#   2. The deploy secrets are configured in the `production` environment
+#      (otherwise the job skips with a warning instead of failing red).
 
 on:
   workflow_run:
@@ -12,8 +14,6 @@ on:
     types: [completed]
     branches: [stable]
 
-# Deploy jobs need write access to package registry only; keep the default
-# read-all token. No secrets are exposed to forks (this repo is private).
 permissions:
   contents: read
 
@@ -23,24 +23,48 @@ concurrency:
 
 jobs:
   deploy:
-    # Hard gate: only proceed if the completed CI run is (1) success and
-    # (2) for exactly the commit now at the tip of stable.
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_sha == github.event.workflow_run.head_commit.id
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Resolve deploy ref
-        id: ref
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: stable
+          fetch-depth: 1
+
+      - name: Gate - CI ran on the current tip of stable
+        id: gate
         run: |
-          SHA="${{ github.event.workflow_run.head_sha }}"
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "Deploying stable @ $SHA"
+          TIP="$(git rev-parse HEAD)"
+          CI_SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "stable tip: $TIP"
+          echo "ci run sha:  $CI_SHA"
+          if [ "$TIP" != "$CI_SHA" ]; then
+            echo "::warning::CI ran on $CI_SHA but stable tip is $TIP - skipping deploy. The newer push will deploy when its CI finishes."
+            echo "match=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "match=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Gate - deploy secrets configured
+        id: secrets
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        if: steps.gate.outputs.match == 'true'
+        run: |
+          if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$KEY" ]; then
+            echo "::warning::Deploy secrets (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY) are not set on the 'production' environment - skipping deploy. Configure them to enable automatic deploys (see docs/DEMO-VPS.md)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Deploy over SSH (docker compose)
         # action-pinned per repo policy (audit run 3): mutable tags are forbidden.
         uses: appleboy/ssh-action@5684c185046b6c1a3a89f9d6f1a6e1e2f4c1d7ab # v1.0.3
+        if: steps.gate.outputs.match == 'true' && steps.secrets.outputs.configured == 'true'
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -52,12 +76,13 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             git fetch origin stable --tags
             git checkout stable
-            git reset --hard ${{ steps.ref.outputs.sha }}
+            git reset --hard ${{ github.event.workflow_run.head_sha }}
             docker compose -f docker-compose.yml -f docker-compose.tls.yml --profile tls up -d --build
             docker compose ps
 
       - name: Post-deploy health check
         uses: appleboy/ssh-action@5684c185046b6c1a3a89f9d6f1a6e1e2f4c1d7ab # v1.0.3
+        if: steps.gate.outputs.match == 'true' && steps.secrets.outputs.configured == 'true'
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
