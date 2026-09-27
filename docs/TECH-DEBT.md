@@ -31,7 +31,7 @@ python3 .agents/skills/tech-debt-tracker/scripts/debt_dashboard.py \
 | 2 | `Login.jsx` ≈ `Register.jsx` | 45 block trùng | Sửa UX auth phải sửa 2 nơi | Hook dùng chung `useAuthForm` (state, lỗi, submit) | ~0.5 ngày |
 | 3 | `Favorites.jsx` ≈ `MyListings.jsx` (và các page grid) | 34 block trùng | Pattern grid listing lặp ở nhiều page | Component `ListingGrid` + `useListingPage` dùng chung | ~1 ngày |
 | 4 | CSS trùng lặp | `page.css` 57 + `components.css` 39 block | Bundle phình, style lệch nhau | Gộp rule trùng; cân nhắc tách `page.css` (982 dòng > 500) | ~0.5 ngày |
-| 5 | Đường dẫn hardcode ở frontend | `App.jsx` (6), `api/aiApi.js` (5), Footer/Navbar/MyListings | Đổi route phải quét tay | Gom vào `constants/routes.js` | ~0.25 ngày |
+| 5 | Đường dẫn hardcode ở frontend | `App.jsx` (6), Footer/Navbar/MyListings | Đổi route phải quét tay | ✅ **Xong** (`5f34b80`): `constants/routes.js` là single source of truth, helper `route()` cho tham số động; `aiApi.js` giữ nguyên vì đó là API endpoint (axios baseURL), không phải SPA route | done |
 | 6 | Long lines ở backend | `ListingController` (4), `LandlordListingController` (2) | Khó review | Pint đã chuẩn hóa phần lớn; xử lý khi chạm file | ~trivial |
 
 **Không phải debt (giữ nguyên):** test file dài (`ConversationTest` 564 dòng — test feature dài là bình thường),
