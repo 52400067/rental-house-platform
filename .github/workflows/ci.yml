@@ -95,7 +95,10 @@ jobs:
       # (baseline run). --redact hides matched secret values from the log. If
       # a future scan ever fails on a known-acceptable finding, add an inline
       # allowlist with a justification comment in .gitleaksignore.
+      # Supply chain (audit run 3): image pinned to an immutable digest, and
+      # the repo is mounted read-only - the scanner needs no write access.
       - name: gitleaks (blocking)
         run: |
-          docker run --rm -v "$PWD:/repo" --workdir /repo \
-            zricethezav/gitleaks:latest detect --source /repo --redact -v
+          docker run --rm -v "$PWD:/repo:ro" --workdir /repo \
+            zricethezav/gitleaks:v8.30.1@sha256:b109bc5f8f76a38196a3e413704fc5b9e3c32360bce4e4b603bd6f45b3721dbb \
+            detect --source /repo --redact -v
