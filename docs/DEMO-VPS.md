@@ -154,6 +154,46 @@ docker compose -f docker-compose.yml -f docker-compose.tls.yml \
 docker compose --profile tls restart caddy
 ```
 
+## Phase 4 security hardening — what to expect
+
+The backend now ships with production guards (see `SECURITY.md`). None of
+them require extra setup — the demo compose file already sets the right
+values — but they change what you see when something is wrong:
+
+- **Fail-fast on unsafe config.** With `APP_ENV=production`, the backend
+  refuses to serve if `APP_DEBUG=true` or `APP_KEY` is empty: every request
+  gets a generic 500 (`{"message":"Lỗi máy chủ."}`) and the precise reason
+  goes to the log as `Refusing to serve: ...`. Check
+  `docker compose logs backend`. Both values are already correct in
+  `docker-compose.demo.yml` (`APP_DEBUG: "false"`, required `APP_KEY`), so
+  if the container boots, the config is safe.
+- **CSP is enforcing.** JSON and file responses carry
+  `default-src 'none'; frame-ancestors 'none'`; the backend's one HTML page
+  (the welcome view) has a tuned policy allowing its bunny.net fonts and
+  laravel.com images. If you ever add external scripts/styles/images to
+  `resources/views/welcome.blade.php`, extend that policy in
+  `app/Http/Middleware/SecurityHeaders.php` or the browser will block them
+  (visible in the browser console as CSP violations). The SPA itself is
+  served by nginx and is not affected.
+- **Login tokens expire after 30 days.** Demo users get logged out after
+  that and simply log in again. Tune with `SANCTUM_TOKEN_TTL_MINUTES`
+  (minutes) if needed.
+- **Reverse-proxy trust is opt-in.** Option B (TLS profile) already sets
+  `TRUSTED_PROXIES: "*"` on the backend automatically — rate limiting and
+  logs then show the real client IP. On Option A (or any setup where the
+  browser reaches the backend directly) leave it unset: honoring
+  `X-Forwarded-For` from direct clients would let anyone rotate IPs past
+  the rate limiter.
+
+Quick sanity check after boot:
+
+```bash
+curl -sI http://localhost:8000/api/health | grep -iE 'content-security|x-content-type|x-frame'
+# expect: CSP "default-src 'none'; frame-ancestors 'none'", nosniff, DENY
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8000/api/cities
+# expect: 200 (if this is 500 for EVERY endpoint, see the log line above)
+```
+
 ## Common gotchas
 
 - **Chat doesn't go realtime / badge never increments** — the browser
@@ -175,3 +215,7 @@ docker compose --profile tls restart caddy
 - **Frontend shows localhost URLs** — the frontend bundle bakes
   `VITE_*` at build time; after changing `.env`, you must rebuild the
   frontend image, not just restart it.
+- **Every API request returns 500 `Lỗi máy chủ.`** — the Phase 4 fail-fast
+  is refusing to serve an unsafe production config (`APP_DEBUG=true` or
+  empty `APP_KEY`). `docker compose logs backend` shows the exact line
+  `Refusing to serve: ...`; fix `.env` and recreate the backend container.
