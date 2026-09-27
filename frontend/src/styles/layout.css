@@ -117,7 +117,7 @@ main { flex: 1 0 auto; }
     transform: scale(1.05);
 }
 
-/* Price: navy, bold, tabular — sits in a lime pill */
+/* Price: navy, bold, tabular - sits in a lime pill */
 .listing-price {
     font-family: var(--font-body);
     font-weight: 700;
@@ -180,7 +180,7 @@ main { flex: 1 0 auto; }
 }
 
 /* ---------------------------------------------------------
-   Hero: the noticeboard headline — DARK panel. Navy merges
+   Hero: the noticeboard headline - DARK panel. Navy merges
    with the navbar into one dark top; lime elements pop.
    --------------------------------------------------------- */
 .hero-section {
@@ -238,7 +238,7 @@ main { flex: 1 0 auto; }
         font-size: 2.2rem;
     }
 }
-/* Emphasis word: outline stroke text on lime highlight — the
+/* Emphasis word: outline stroke text on lime highlight - the
    Positivus display move. Stroke paints the navy outline inside
    the glyph edge; the manilla… rather, LIME highlight sits behind. */
 .hero-title .hero-em {
@@ -319,7 +319,7 @@ main { flex: 1 0 auto; }
     line-height: 1;
 }
 
-/* Eyebrow labels: navy pill with lime text — inverted chip */
+/* Eyebrow labels: navy pill with lime text - inverted chip */
 .eyebrow {
     display: inline-flex;
     align-items: center;

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
  * open, and whether it should flip above the anchor (when the anchor sits
  * near the thread bottom, the menu would otherwise be clipped).
  *
- * Menu is closed by clicking outside (window click) or Escape — Escape also
+ * Menu is closed by clicking outside (window click) or Escape - Escape also
  * cancels the pending unsend confirmation.
  */
 export function useMessageMenu(threadRef) {

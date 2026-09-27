@@ -161,7 +161,7 @@ Participant = một trong hai người tham gia hội thoại. Người ngoài n
 
 ### WebSocket realtime (Laravel Reverb)
 
-Tin nhắn và sự kiện xóa được đẩy realtime qua WebSocket, thay cho polling 5 giây trước đây. Giao thức là Pusher protocol; frontend dùng `laravel-echo` + `pusher-js` (xem `src/api/echo.js`). Server: `ws://localhost:8080/app/{REVERB_APP_KEY}` — key khai báo ở `REVERB_APP_KEY` (backend `.env`) và **phải trùng** `VITE_REVERB_APP_KEY` (frontend `.env`); key lệch thì Reverb trả lỗi `4001 Application does not exist`. `bash deploy.sh` tự khởi động Reverb cùng stack.
+Tin nhắn và sự kiện xóa được đẩy realtime qua WebSocket, thay cho polling 5 giây trước đây. Giao thức là Pusher protocol; frontend dùng `laravel-echo` + `pusher-js` (xem `src/api/echo.js`). Server: `ws://localhost:8080/app/{REVERB_APP_KEY}` - key khai báo ở `REVERB_APP_KEY` (backend `.env`) và **phải trùng** `VITE_REVERB_APP_KEY` (frontend `.env`); key lệch thì Reverb trả lỗi `4001 Application does not exist`. `bash deploy.sh` tự khởi động Reverb cùng stack.
 
 **Xác thực private channel:** Echo gọi `POST /broadcasting/auth` (cùng origin với API nhưng **không có** tiền tố `/api`) với header `Authorization: Bearer {token}` và body JSON `{ socket_id, channel_name }`, nhận `{ auth }` để hoàn tất subscribe. Route này chạy trong nhóm `api` + `auth:sanctum` (đăng ký qua `withBroadcasting` trong `bootstrap/app.php`); CORS đã mở cho `broadcasting/auth`.
 
@@ -174,38 +174,38 @@ Tin nhắn và sự kiện xóa được đẩy realtime qua WebSocket, thay cho
 
 Ngoài ra kênh `conversation.{id}` truyền **client-event** `typing` (không qua backend): bên đang gõ gọi `whisper('typing', { user_id })` trên mỗi thay đổi input; bên kia hiện bubble "đang soạn" (3 chấm) và tự ẩn sau 2.5 giây không có whisper mới.
 
-Tên sự kiện phía client có dấu chấm đầu (do backend dùng `broadcastAs`): `.listen('.message.sent', ...)`. `chat.{id}` của user-to-user không dùng riêng — hội thoại trực tiếp cũng nằm trong `conversation.{id}`.
+Tên sự kiện phía client có dấu chấm đầu (do backend dùng `broadcastAs`): `.listen('.message.sent', ...)`. `chat.{id}` của user-to-user không dùng riêng - hội thoại trực tiếp cũng nằm trong `conversation.{id}`.
 
-**`.message.sent`** — payload dùng chung cho cả hai phía nên **không có** `is_mine`; client tự so `sender_id` với user hiện tại:
+**`.message.sent`** - payload dùng chung cho cả hai phía nên **không có** `is_mine`; client tự so `sender_id` với user hiện tại:
 ```json
 { "conversation_id": 33,
   "message": { "id": 902, "sender_id": 1, "body": "Còn phòng không ạ?",
     "attachment_name": null, "attachment_url": null, "created_at": "2026-09-25T09:00:00Z" } }
 ```
-UI thread đang mở lắng nghe `conversation.{id}` (append bubble nếu chưa có — event thường đến trước HTTP response của chính tin đó); badge + sidebar lắng nghe `App.Models.User.{id}` (badge +1 nếu `sender_id` khác mình; người đang mở hội thoại gọi `POST /conversations/{id}/read` như cũ).
+UI thread đang mở lắng nghe `conversation.{id}` (append bubble nếu chưa có - event thường đến trước HTTP response của chính tin đó); badge + sidebar lắng nghe `App.Models.User.{id}` (badge +1 nếu `sender_id` khác mình; người đang mở hội thoại gọi `POST /conversations/{id}/read` như cũ).
 
-**`.message.deleted`** — payload:
+**`.message.deleted`** - payload:
 ```json
 { "conversation_id": 33, "message_id": 902, "sender_id": 1,
   "removed": true, "deleted_for": [],
   "conversation": { "id": 33, "last_message": { "body": "Tin nhắn đã được thu hồi", "created_at": "..." } } }
 ```
-- `removed: true` — thu hồi cho mọi người: bubble thành tombstone, sidebar dùng `conversation.last_message` làm preview mới.
-- `removed: false` — xóa "chỉ ở phía mình": **chỉ** client có id trong `deleted_for` mới ẩn tin; người còn lại bỏ qua event. Khi đó `conversation` là `null`.
+- `removed: true` - thu hồi cho mọi người: bubble thành tombstone, sidebar dùng `conversation.last_message` làm preview mới.
+- `removed: false` - xóa "chỉ ở phía mình": **chỉ** client có id trong `deleted_for` mới ẩn tin; người còn lại bỏ qua event. Khi đó `conversation` là `null`.
 - `sender_id` để client trừ badge nếu tin chưa đọc bị thu hồi.
 
-**`.message.seen`** — receiver gọi `POST /conversations/{id}/read` (mở thread) thì backend broadcast event này, sender hiển thị "Đã xem" realtime:
+**`.message.seen`** - receiver gọi `POST /conversations/{id}/read` (mở thread) thì backend broadcast event này, sender hiển thị "Đã xem" realtime:
 ```json
 { "conversation_id": 33, "reader_id": 5, "seen_at": "2026-09-25T09:05:00Z" }
 ```
 Client chỉ xử lý khi `reader_id` khác mình: cập nhật `seen_at` cho các tin `is_mine` chưa seen. `Message` mới thêm trường `seen_at` (thời điểm người nhận đọc, `null` = chưa); tin của chính mình gửi đi luôn có `seen_at` ban đầu là `null`.
 
-**`.message.reacted`** — reaction kiểu Messenger (bộ 6: 👍 ❤️ 😂 😮 😢 😠, mỗi user một reaction trên mỗi tin):
+**`.message.reacted`** - reaction kiểu Messenger (bộ 6: 👍 ❤️ 😂 😮 😢 😠, mỗi user một reaction trên mỗi tin):
 ```json
 { "conversation_id": 33, "message_id": 902, "user_id": 5,
   "reactions": { "5": "❤️", "1": "😂" } }
 ```
-Client chỉ cần thay map `reactions` của tin tương ứng bằng giá trị payload. Endpoint: `PUT /messages/{id}/reactions` body `{ emoji }` — đặt/đổi, gọi lần nữa với cùng emoji là bỏ; `DELETE /messages/{id}/reactions` — bỏ. `Message` có thêm trường `reactions` (map `{ "userId": "emoji" }`, `{}` khi không có).
+Client chỉ cần thay map `reactions` của tin tương ứng bằng giá trị payload. Endpoint: `PUT /messages/{id}/reactions` body `{ emoji }` - đặt/đổi, gọi lần nữa với cùng emoji là bỏ; `DELETE /messages/{id}/reactions` - bỏ. `Message` có thêm trường `reactions` (map `{ "userId": "emoji" }`, `{}` khi không có).
 
 **Quy tắc fallback:** không còn poll `after_id` lặp lại. `GET /conversations/{id}/messages` chỉ chạy lần đầu khi mở hội thoại và khi Echo mất kết nối (tự reconnect); logout gọi `disconnect()` để đóng socket.
 

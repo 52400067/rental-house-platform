@@ -43,7 +43,7 @@ with sync_playwright() as p:
         first_b = b.locator(".messages-item").first
         expect(first_b).to_contain_text("Bạn:", timeout=6000)
         expect(first_b).to_contain_text(stamp)
-        # A (o trang khac): quay lai /messages — tim item chua stamp, co badge
+        # A (o trang khac): quay lai /messages - tim item chua stamp, co badge
         a.goto(BASE + "/messages", wait_until="networkidle")
         a.wait_for_timeout(1000)
         first_a = a.locator(".messages-item", has_text=stamp).first

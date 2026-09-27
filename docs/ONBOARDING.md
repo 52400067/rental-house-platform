@@ -1,4 +1,4 @@
-# Onboarding — người mới đọc 1 trang này
+# Onboarding - người mới đọc 1 trang này
 
 Mục tiêu: trong ~15 phút bạn biết dự án là gì, chạy được local, và biết
 đọc đúng tài liệu cho vai trò của mình. Phần còn lại của docs là tài liệu
@@ -6,7 +6,7 @@ tra cứu, không cần đọc hết ngay.
 
 ## 1. Dự án là gì
 
-TROSV — nền tảng tìm nhà trọ cho sinh viên Việt Nam: duyệt phòng trên bản
+TROSV - nền tảng tìm nhà trọ cho sinh viên Việt Nam: duyệt phòng trên bản
 đồ, yêu thích, nhắn tin trực tiếp với chủ nhà (kèm file đính kèm), đánh
 giá, và các gợi ý AI (khu vực, bạn cùng phòng, trợ lý chat).
 
@@ -35,11 +35,11 @@ Hoặc bằng Docker: `docker compose up -d --build` (frontend ở :5174).
 - Web: http://localhost:5173 · API: http://localhost:8000/api
 - Tài khoản demo (mật khẩu `password`): `student1@example.com` (sinh
   viên), `landlord1@example.com` (chủ nhà)
-- AI service (:8001) không bắt buộc — backend tự trả 503 lịch sự khi AI
+- AI service (:8001) không bắt buộc - backend tự trả 503 lịch sự khi AI
   chết, mọi tính năng còn lại chạy bình thường.
 
 Smoke test: `bash frontend/e2e-smoke.sh` (~70 check trên mọi API call,
-chạy được cả khi AI service tắt) — API xanh là đủ để bắt đầu code.
+chạy được cả khi AI service tắt) - API xanh là đủ để bắt đầu code.
 
 ## 3. Đọc gì tiếp theo, theo vai trò
 
@@ -75,7 +75,7 @@ Chi tiết đầy đủ: [SECURITY.md](../SECURITY.md) + section hardening trong
 - CSP **enforcing** theo loại response; sửa `welcome.blade.php` (trang HTML
   duy nhất backend render) thì xem `app/Http/Middleware/SecurityHeaders.php`.
 - Token đăng nhập hết hạn sau 30 ngày (`SANCTUM_TOKEN_TTL_MINUTES`).
-- File đính kèm chat là file **riêng tư** — chỉ mở qua URL ký 60 phút;
+- File đính kèm chat là file **riêng tư** - chỉ mở qua URL ký 60 phút;
   tin đã "thu hồi" thì URL chết ngay.
 
 ## 6. Bản đồ thư mục

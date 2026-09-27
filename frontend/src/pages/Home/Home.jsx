@@ -29,7 +29,7 @@ export default function Home() {
 
     return (
         <>
-            {/* HERO — the noticeboard */}
+            {/* HERO - the noticeboard */}
             <section className="hero-section">
                 <div className="container position-relative">
                     <div className="hero-stack text-center mx-auto" style={{ maxWidth: 720 }}>

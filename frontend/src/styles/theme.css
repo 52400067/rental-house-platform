@@ -1,8 +1,8 @@
 /* =========================================================
-   TROSV design system — "Positivus × rental board".
+   TROSV design system - "Positivus × rental board".
    Bold flat neobrutalism: white canvas, acid-lime accent,
    navy-black chrome, hard offset shadows, thick black hairlines.
-   Space Grotesk is the single family — personality comes from
+   Space Grotesk is the single family - personality comes from
    weight contrast, not from mixing faces. Lime is a SURFACE
    (caps, highlights, fills), never a text color.
    ========================================================= */
@@ -36,7 +36,7 @@
     --radius-xl: 28px;
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-    /* Shadows: flat gray OR hard navy offset — never soft black.
+    /* Shadows: flat gray OR hard navy offset - never soft black.
        Hard offsets ALWAYS carry negative spread so the corner arcs
        stay inside the element silhouette (offset-only shadows read
        wider than the box on rounded corners). */
@@ -265,7 +265,7 @@ h4.fw-bold, h5.fw-bold, h6.fw-bold,
     box-shadow: var(--shadow-lg);
 }
 
-/* Cards: the signature — white fill, black hairline, hard offset */
+/* Cards: the signature - white fill, black hairline, hard offset */
 .card {
     border-radius: var(--radius-lg);
     border: 1px solid var(--line-strong);

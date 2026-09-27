@@ -143,7 +143,7 @@ export default function ConversationDetail() {
     const other = conversation?.other_user;
     const subject = conversation?.listing;
 
-    // Route con của /messages — spinner lúc đang tải, empty-state nếu
+    // Route con của /messages - spinner lúc đang tải, empty-state nếu
     // hội thoại không tồn tại (vào thẳng URL lạ).
     if (!conversation) {
         return (

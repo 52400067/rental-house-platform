@@ -1,6 +1,6 @@
 # Website tìm nhà trọ cho sinh viên: Hướng dẫn nhóm
 
-> **Mới vào nhóm?** Bắt đầu từ [docs/ONBOARDING.md](docs/ONBOARDING.md) —
+> **Mới vào nhóm?** Bắt đầu từ [docs/ONBOARDING.md](docs/ONBOARDING.md) -
 > một trang gộp mọi thứ cần biết: chạy local trong 5 phút, đọc gì theo vai
 > trò, quy ước bắt buộc. Trang này là tài liệu tham chiếu chi tiết.
 

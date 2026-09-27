@@ -94,7 +94,7 @@ export function useConversationRealtime(id, setMessages, lastIdRef, onPreviewEve
         return () => {
             clearTimeout(typingTimer.current);
             // CHỈ leave kênh conversation (riêng của thread này). Kênh
-            // App.Models.User.{id} là DÙNG CHUNG với Navbar + sidebar —
+            // App.Models.User.{id} là DÙNG CHUNG với Navbar + sidebar -
             // Echo cache channel theo tên, leave() ở đây sẽ phá subscription
             // của họ và sidebar/badge ngừng nhận realtime.
             echo.leave(`conversation.${id}`);

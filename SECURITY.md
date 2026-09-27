@@ -1,4 +1,4 @@
-# Chính sách bảo mật — TROSV
+# Chính sách bảo mật - TROSV
 
 ## Báo cáo lỗ hổng
 
@@ -26,12 +26,12 @@ Ngoài phạm vi: dịch vụ AI chạy riêng (`AI_URL`), hạ tầng VPS bên 
 ## Biện pháp đã có (tóm tắt audit Phase 4)
 
 - Header bảo mật toàn cục: `X-Content-Type-Options`, `Referrer-Policy`,
-  `X-Frame-Options`, CSP **enforcing** chọn theo loại response — nghiêm
+  `X-Frame-Options`, CSP **enforcing** chọn theo loại response - nghiêm
   `default-src 'none'; frame-ancestors 'none'` cho JSON/binary (toàn bộ API),
   policy tinh chỉnh cho trang HTML duy nhất, không ghi đè policy có sẵn
   (`backend/app/Http/Middleware/SecurityHeaders.php`)
 - Prod fail-fast: từ chối phục vụ HTTP khi `APP_DEBUG=true` hoặc thiếu `APP_KEY`
-  (`backend/app/Http/Middleware/EnsureProductionConfig.php` — console/composer
+  (`backend/app/Http/Middleware/EnsureProductionConfig.php` - console/composer
   vẫn boot bình thường để không vỡ CI và deploy script)
 - Token Sanctum hết hạn sau 30 ngày (`SANCTUM_TOKEN_TTL_MINUTES`)
 - Extension ảnh tin đăng suy từ nội dung đã xác thực, không tin tên file client
@@ -40,7 +40,7 @@ Ngoài phạm vi: dịch vụ AI chạy riêng (`AI_URL`), hạ tầng VPS bên 
 
 ## Lưu ý triển khai
 
-- Luôn chạy production với `APP_ENV=production`, `APP_DEBUG=false` — backend
+- Luôn chạy production với `APP_ENV=production`, `APP_DEBUG=false` - backend
   sẽ từ chối phục vụ mọi request nếu ngược lại (500 chung, lý do chi tiết chỉ vào log).
 - Đặt mật khẩu DB/AI mạnh; không dùng `rental/rental` ngoài môi trường demo.
 - CORS: `FRONTEND_URL` phải khớp chính xác origin frontend (kể cả scheme/port).

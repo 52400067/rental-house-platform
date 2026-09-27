@@ -4,7 +4,7 @@
    docs/TECH-DEBT.md); bytes preserved per section. */
 
 /* ---------------------------------------------------------
-   Auth: split layout — navy visual pane + white form
+   Auth: split layout - navy visual pane + white form
    --------------------------------------------------------- */
 .auth-page {
     min-height: calc(100vh - 57px);

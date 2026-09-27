@@ -5,7 +5,7 @@ import { formatVnd } from "../../api/format";
 import AiDisclaimer from "../AiDisclaimer";
 
 /**
- * "Giá này hợp lý không?" — AI price advice card. Owns the advice state
+ * "Giá này hợp lý không?" - AI price advice card. Owns the advice state
  * and request; visibility of the ask button (students only) is the
  * caller's concern.
  */
@@ -68,7 +68,7 @@ export default function PriceAdvicePanel({ listingId, isStudent }) {
                     <p className="small mb-1">
                         Giá tham khảo:{" "}
                         <strong>
-                            {formatVnd(advice.fair_min)} – {formatVnd(advice.fair_max)}
+                            {formatVnd(advice.fair_min)} - {formatVnd(advice.fair_max)}
                         </strong>{" "}
                         (dựa trên {advice.stats.count} tin tương tự, trung vị{" "}
                         {formatVnd(advice.stats.median)})

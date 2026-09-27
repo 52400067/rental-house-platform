@@ -19,11 +19,11 @@
 }
 
 /* ---------------------------------------------------------
-   Landlord scope: the owner's desk — INK stays ink, but lime
+   Landlord scope: the owner's desk - INK stays ink, but lime
    follows the daisy-chain, so generic brand rules turn lime
    automatically. Amber-soft maps to lime-soft for row hovers.
    --------------------------------------------------------- */
-/* NOTE: no custom-property overrides here on purpose — self-referencing
+/* NOTE: no custom-property overrides here on purpose - self-referencing
    a custom prop makes it invalid (guaranteed-invalid value), which would
    silently kill var(--brand) inside the scope. The accent is lime
    everywhere now; the scope only retunes buttons/focus/rows below. */

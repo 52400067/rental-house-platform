@@ -42,7 +42,7 @@ export default function Login() {
                     blurb={
                         <>
                             Ghi lại phòng ưng ý, hỏi chủ trọ trực tiếp, nhận gợi ý
-                            phù hợp — tất cả trong một nơi.
+                            phù hợp - tất cả trong một nơi.
                         </>
                     }
                     points={[
