@@ -61,3 +61,4 @@ storage/*.key
 .agents/
 .claude/
 skills-lock.json
+.browser-check/
