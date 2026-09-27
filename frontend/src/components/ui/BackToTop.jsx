@@ -14,7 +14,7 @@ export default function BackToTop() {
     return (
         <button
             type="button"
-            className={`back-to-top ${show ? "show" : ""}`}
+            className={`back-to-top corner-fab ${show ? "show" : ""}`}
             aria-label="Về đầu trang"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >

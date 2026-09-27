@@ -198,7 +198,7 @@ export default function AiChatWidget() {
 
             <button
                 type="button"
-                className="ai-widget-launcher"
+                className="ai-widget-launcher corner-fab"
                 onClick={() => setOpen((o) => !o)}
                 aria-label={open ? "Thu nhỏ trợ lý AI" : "Mở trợ lý AI"}
                 aria-expanded={open}

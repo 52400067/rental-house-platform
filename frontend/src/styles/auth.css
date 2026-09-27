@@ -1,0 +1,87 @@
+/* auth.css - part of the TROSV design system. Import order in main.jsx is
+   load-bearing: theme (tokens/base) -> layout -> chrome -> auth -> messages
+   -> widgets -> components. Split from the former page.css (debt #4 in
+   docs/TECH-DEBT.md); bytes preserved per section. */
+
+/* ---------------------------------------------------------
+   Auth: split layout — navy visual pane + white form
+   --------------------------------------------------------- */
+.auth-page {
+    min-height: calc(100vh - 57px);
+    display: flex;
+    align-items: stretch;
+}
+.auth-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: calc(100vh - 57px);
+    width: 100%;
+}
+@media (min-width: 992px) {
+    .auth-split {
+        grid-template-columns: 5fr 7fr;
+    }
+    .auth-visual {
+        position: sticky;
+        top: 57px;
+        height: calc(100vh - 57px);
+        overflow: hidden;
+    }
+}
+.auth-visual {
+    background: var(--ink);
+    color: #c9cbd3;
+    padding: 3.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.auth-visual h2 {
+    color: #fff;
+}
+.auth-visual .auth-point {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
+    font-size: 0.92rem;
+}
+.auth-visual .auth-point i {
+    color: var(--brand);
+}
+.auth-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+}
+.auth-logo-link {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+}
+.auth-logo-link i {
+    color: var(--ink);
+    background: var(--brand);
+    border-radius: 0.4rem;
+    padding: 0.1rem 0.25rem;
+}
+.auth-title {
+    font-size: 1.65rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.auth-page-mobile {
+    padding: 2.5rem 1rem;
+}
+@media (min-width: 992px) {
+    .auth-page-mobile { padding: 0; }
+}
+

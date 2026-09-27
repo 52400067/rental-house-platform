@@ -18,7 +18,11 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 // overrides, then layout, then page sections, then shared components.
 import "./styles/theme.css";
 import "./styles/layout.css";
-import "./styles/page.css";
+import "./styles/chrome.css";
+import "./styles/auth.css";
+import "./styles/messages.css";
+import "./styles/chat.css";
+import "./styles/widgets.css";
 import "./styles/components.css";
 // Bootstrap JS: needed for dropdowns (user menu / logout) and the
 // navbar collapse toggler, which use data-bs-toggle attributes.

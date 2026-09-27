@@ -28,6 +28,7 @@
 
     /* Semantic */
     --danger: #dc2626;
+    --focus-ring: 0 0 0 0.22rem rgba(185, 255, 102, 0.55); /* lime focus halo */
 
     /* Shape & motion: big radii, springy ease */
     --radius: 12px;
