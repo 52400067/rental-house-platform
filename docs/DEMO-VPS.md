@@ -35,13 +35,22 @@ commit): it resets the checkout to the pushed SHA and runs
 `production` environment secrets are configured, manual deploys are only
 needed for the very first boot (`.env` creation).
 
+### 1a. Domain (HTTPS-only)
+
+The TLS stack below serves **HTTPS only** - plain HTTP is 301-redirected, so you
+need a DNS name (a bare IP cannot get a trusted certificate). No domain yet?
+Use a free DuckDNS subdomain: create `yourname.duckdns.org`, point it at the
+server IP, keep the DuckDNS updater running.
+
 Create `.env` in the repo root (compose reads it automatically):
 
 ```dotenv
-# Public URL of the site (HTTPS if you later add TLS)
-FRONTEND_URL=http://demo.example.com
-# WebSocket host the BROWSER connects to (same domain, port 8080)
-WS_HOST=demo.example.com
+# TLS: Caddy issues/renews the Let's Encrypt cert for this name
+DOMAIN=yourname.duckdns.org
+# Public URL of the site (HTTPS - same host as DOMAIN)
+FRONTEND_URL=https://yourname.duckdns.org
+# WebSocket host the BROWSER connects to (wss, same domain)
+WS_HOST=yourname.duckdns.org
 # Generated below; or generate anywhere with: php artisan key:generate --show
 APP_KEY=
 REVERB_APP_ID=my-app-id
@@ -119,13 +128,19 @@ docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
 docker compose -f docker-compose.yml -f docker-compose.demo.yml down -v
 ```
 
-## Option B - automatic HTTPS with Caddy (recommended for a real demo)
+## Option B - automatic HTTPS with Caddy (now the DEFAULT for your server)
 
 Same stack, one domain, one port. The browser only talks to
 `https://$DOMAIN` - Caddy terminates TLS, serves the SPA, proxies `/api`
 to the backend and `/app/*` to Reverb (`wss://`, no mixed content, no
 custom ports). Certificates are issued and renewed automatically; you
 only need a DNS A record and ports **80 + 443** open.
+
+HTTPS-only is enforced: everything hitting port 80 is 301-redirected to
+HTTPS (explicit `http://{$DOMAIN}` site block in the Caddyfile), and the
+backend bakes `APP_ENV=production` + `APP_DEBUG=false` + `APP_KEY` from
+`.env` directly in the TLS overlay - no demo overlay needed, so there is
+no HTTP path to accidentally fall back to.
 
 Create `.env` with **HTTPS** values:
 

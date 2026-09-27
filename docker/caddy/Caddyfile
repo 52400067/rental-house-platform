@@ -14,6 +14,13 @@
 #   docker compose --profile tls restart caddy
 # ============================================================
 
+# HTTPS-ONLY: moi request den port 80 bi day sang 301 sang HTTPS truoc khi
+# cham vao bat ky handler nao. Caddy tu redirect mac dinh, nhung ghi tuong
+# minh de audit ro rang va de tranh cau hinh he thao tac vo tinh mo HTTP.
+http://{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
+
 {$DOMAIN} {
 	# ---- WebSocket (Reverb) ------------------------------------
 	# Browser noi wss://$DOMAIN/app/$KEY - Reverb path la /app/*.

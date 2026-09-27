@@ -62,6 +62,14 @@ services:
   backend:
     ports: !override []   # API vao qua caddy: https://$DOMAIN/api/*
     environment:
+      # TLS profile tu de dung ma KHONG can demo overlay: cac gia tri an toan
+      # bat buoc nay duoc nap truc tiep tu root .env (fail-fast se tu choi
+      # serve neu thieu - thay loi 500 "Refusing to serve" trong log backend).
+      APP_KEY: ${APP_KEY:?Set APP_KEY=base64:... trong .env}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${FRONTEND_URL:?Set FRONTEND_URL trong .env}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL trong .env}
       FRONTEND_EXTRA_URLS: ""
       # Backend chi nhan traffic tu Caddy tren mang compose noi bo, nen
       # tin X-Forwarded-For de rate-limit/ghi log dung IP client that.
@@ -69,12 +77,18 @@ services:
 
   reverb:
     ports: !override []   # WebSocket vao qua caddy: wss://$DOMAIN/app/*
+    environment:
+      APP_KEY: ${APP_KEY:?Set APP_KEY trong .env}
 
   queue:
     ports: !override []
+    environment:
+      APP_KEY: ${APP_KEY:?Set APP_KEY trong .env}
 
   scheduler:
     ports: !override []
+    environment:
+      APP_KEY: ${APP_KEY:?Set APP_KEY trong .env}
 
 volumes:
   caddy_data:
