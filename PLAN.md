@@ -1,6 +1,6 @@
 # TROSV Productionization Plan
 
-Branch: `productionize/hardening` · Created: 2026-09-26 · Status: living document
+Branches: `unstable` (integration) - `stable` (release, deploy-on-push after green CI) · Created: 2026-09-26 on `productionize/hardening`, merged to `unstable`/`stable` as `40d2f6e` · Status: living document
 
 Goal: turn TROSV into a clean, debloated, secure, tested, production-grade full-stack
 project **without changing the API contracts in `docs/`** and without changing intended

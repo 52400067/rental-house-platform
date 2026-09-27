@@ -1,0 +1,78 @@
+name: Deploy
+
+# Deploy gate: this workflow runs on pushes to `stable` ONLY AFTER the CI
+# workflow has fully succeeded on the same commit (workflow_run chains to
+# the last completed CI run for the pushed head SHA). If CI fails, deploy
+# never starts. This keeps the "high quality gate" promise: green CI on
+# stable is a precondition, not a convention.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [stable]
+
+# Deploy jobs need write access to package registry only; keep the default
+# read-all token. No secrets are exposed to forks (this repo is private).
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-stable
+  cancel-in-progress: false # never cancel an in-flight deploy
+
+jobs:
+  deploy:
+    # Hard gate: only proceed if the completed CI run is (1) success and
+    # (2) for exactly the commit now at the tip of stable.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_sha == github.event.workflow_run.head_commit.id
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Resolve deploy ref
+        id: ref
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Deploying stable @ $SHA"
+
+      - name: Deploy over SSH (docker compose)
+        # action-pinned per repo policy (audit run 3): mutable tags are forbidden.
+        uses: appleboy/ssh-action@5684c185046b6c1a3a89f9d6f1a6e1e2f4c1d7ab # v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch origin stable --tags
+            git checkout stable
+            git reset --hard ${{ steps.ref.outputs.sha }}
+            docker compose -f docker-compose.yml -f docker-compose.tls.yml --profile tls up -d --build
+            docker compose ps
+
+      - name: Post-deploy health check
+        uses: appleboy/ssh-action@5684c185046b6c1a3a89f9d6f1a6e1e2f4c1d7ab # v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd ${{ secrets.DEPLOY_PATH }}
+            for i in $(seq 1 30); do
+              if curl -sf http://localhost:8000/api/health > /dev/null; then
+                echo "API healthy after $i check(s)."
+                exit 0
+              fi
+              sleep 2
+            done
+            echo "API did not become healthy - dumping backend logs:"
+            docker compose logs --tail 50 backend
+            exit 1

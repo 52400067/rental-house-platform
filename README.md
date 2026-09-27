@@ -148,9 +148,10 @@ Không commit file `.env` thật hay API key. Chỉ commit `.env.example`.
 
 ## 6. Cách phối hợp
 
-**Git**
-- `main` luôn chạy được. Làm việc trên nhánh riêng: `be/...`, `fe/...`, `ai/...`.
-- Khi tính năng chạy được thì merge vào `main` và báo cho nhóm. Không push code lỗi lên `main`.
+**Git** - mô hình 2 nhánh (stable/unstable)
+- `unstable` là nhánh tích hợp: làm việc trên nhánh riêng (`be/...`, `fe/...`, `ai/...`) rồi merge vào `unstable`. Không push code lỗi.
+- `stable` là nhánh release: chỉ cập nhật qua PR từ `unstable` sau khi CI xanh. Push vào `stable` sẽ tự động deploy lên VPS (xem `.github/workflows/deploy.yml`).
+- Hotfix: sửa trên nhánh phụ, merge vào `unstable`, rồi PR sang `stable`. Không sửa trực tiếp trên `stable`.
 - Commit theo dạng: `feat(be): thêm đăng nhập`, `fix(fe): sửa reset bộ lọc`.
 
 **Làm song song**

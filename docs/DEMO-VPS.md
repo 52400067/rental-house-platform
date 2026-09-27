@@ -25,8 +25,15 @@ curl -fsSL https://get.docker.com | sh
 
 ```bash
 git clone <your-repo-url> trosv && cd trosv
-git checkout productionize/hardening
+git checkout stable
 ```
+
+The GitHub Actions deploy workflow (`.github/workflows/deploy.yml`) runs this
+same sequence on every push to `stable` (only after CI is green on the same
+commit): it resets the checkout to the pushed SHA and runs
+`docker compose up -d --build`, then health-checks the API. Once the
+`production` environment secrets are configured, manual deploys are only
+needed for the very first boot (`.env` creation).
 
 Create `.env` in the repo root (compose reads it automatically):
 

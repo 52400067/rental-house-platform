@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, productionize/hardening]
+    branches: [unstable, stable]
   pull_request:
+    branches: [unstable]
 
 jobs:
   backend:
