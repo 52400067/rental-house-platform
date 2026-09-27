@@ -123,8 +123,21 @@ class LandlordListingController extends Controller
         }
 
         foreach ($newFiles as $file) {
-            // Trust the validated mime type when the client sends no extension.
-            $extension = $file->getClientOriginalExtension() ?: $file->extension();
+            // The stored extension is derived from the file's VALIDATED content
+            // type (sniffed from the bytes), never from the client-supplied
+            // name:getClientOriginalExtension() is attacker-controlled. A file
+            // named "shell.php" whose content sniffs as image/jpeg must not
+            // keep a server-side .php name - under `php artisan serve` the
+            // Laravel router serves existing files under public/ raw, so a
+            // stored .php would EXECUTE (unauthenticated RCE).
+            $extension = match ($file->getMimeType()) {
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/webp' => 'webp',
+                // Unreachable behind the mimes: rule; kept identical to the
+                // old fallback (content-sniffed, never client-supplied).
+                default => $file->extension(),
+            };
             $path = 'listings/'.Str::uuid()->toString().'.'.$extension;
             Storage::disk('public')->put($path, $file->getContent());
             $listing->images()->create(['path' => $path]);

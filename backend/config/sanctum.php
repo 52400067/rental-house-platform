@@ -50,7 +50,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    // 30 days (43200 minutes): a bearer token on a lost laptop must stop
+    // working eventually - logout only revokes the CURRENT token.
+    'expiration' => (int) env('SANCTUM_TOKEN_TTL_MINUTES', 43200),
 
     /*
     |--------------------------------------------------------------------------

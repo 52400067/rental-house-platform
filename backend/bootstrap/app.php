@@ -4,6 +4,7 @@ use App\Exceptions\AiUnavailableException;
 use App\Http\Middleware\AddRequestId;
 use App\Http\Middleware\ApiThrottle;
 use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -49,6 +50,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureRole::class,
             'throttle.api' => ApiThrottle::class,
         ]);
+
+        // Security headers on every response (API, served storage files,
+        // health probe). Appended so it runs last and decorates the final
+        // response (Phase 4 hardening).
+        $middleware->append([SecurityHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // All /api/* requests must always receive JSON errors (API_CONTRACT.md §1).

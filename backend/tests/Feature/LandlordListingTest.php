@@ -291,6 +291,27 @@ class LandlordListingTest extends TestCase
         $this->assertStringEndsWith('.jpg', $response->json('data.0.url'));
     }
 
+    public function test_upload_ignores_client_supplied_extension(): void
+    {
+        // A client can name the upload "shell.pht" while sending image bytes:
+        // the mimes: rule sniffs CONTENT (not the name), so the request passes
+        // validation. The stored name must be derived from the validated
+        // content type, never from getClientOriginalExtension(). (Laravel's
+        // shouldBlockPhpUpload already rejects *.php names outright; this
+        // pins that the extension NEVER propagates from the client name.)
+        $listing = $this->makeOwnedListing();
+
+        $response = $this->actingAs($this->landlord, 'sanctum')
+            ->postJson("/api/listings/{$listing->id}/images", [
+                'images' => [UploadedFile::fake()->createWithContent('shell.pht', 'fake-jpeg-bytes')->mimeType('image/jpeg')],
+            ]);
+
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $url = $response->json('data.0.url');
+        $this->assertStringEndsWith('.jpg', $url);
+        $this->assertStringEndsNotWith('.pht', $url);
+    }
+
     public function test_upload_rejects_oversized_file(): void
     {
         $listing = $this->makeOwnedListing();

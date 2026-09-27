@@ -83,3 +83,18 @@ jobs:
       # Non-blocking until dependencies are reviewed: report only.
       - name: npm audit (report)
         run: npm audit --omit=dev || true
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history so gitleaks scans past commits too
+
+      # Report only for the first run: findings need triage before they may
+      # fail CI. --redact hides matched secret values from the log.
+      - name: gitleaks (report)
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/repo" --workdir /repo \
+            zricethezav/gitleaks:latest detect --source /repo --redact -v
