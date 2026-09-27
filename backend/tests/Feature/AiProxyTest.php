@@ -382,6 +382,42 @@ class AiProxyTest extends TestCase
         Http::assertSent(fn ($request) => $request->data()['listing'] === null);
     }
 
+    public function test_chat_rejects_oversized_history_content(): void
+    {
+        // Audit run 2: history.*.content had no size cap, so each of the 10
+        // allowed turns could be arbitrarily large (bounded only by
+        // post_max_size) and was forwarded verbatim to the shared AI service
+        // - an input-amplification vector for resource exhaustion.
+        Http::fake(['*/chat' => Http::response(['reply' => 'ok'])]);
+
+        $this->actingAs($this->landlord, 'sanctum')
+            ->postJson('/api/ai/chat', [
+                'message' => 'hi',
+                'history' => [
+                    ['role' => 'user', 'content' => str_repeat('A', 10001)],
+                ],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['history.0.content']);
+
+        Http::assertNothingSent();
+    }
+
+    public function test_chat_accepts_reasonable_history_content(): void
+    {
+        // Boundary: 10,000 chars per turn is allowed.
+        Http::fake(['*/chat' => Http::response(['reply' => 'ok'])]);
+
+        $this->actingAs($this->landlord, 'sanctum')
+            ->postJson('/api/ai/chat', [
+                'message' => 'hi',
+                'history' => [
+                    ['role' => 'user', 'content' => str_repeat('A', 10000)],
+                ],
+            ])
+            ->assertOk();
+    }
+
     // ------------------------------------------------------------------
     // POST /ai/description
     // ------------------------------------------------------------------
