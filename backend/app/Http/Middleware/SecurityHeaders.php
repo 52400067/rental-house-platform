@@ -9,11 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Security response headers on EVERY response (Phase 4 hardening).
  *
- * Appended to the global middleware stack (after the route ran) so API
- * responses, served storage files and health probes all carry the same
- * minimum set. Error responses rendered by the exception handler bypass
- * middleware post-processing, but those carry no attacker-controlled
- * content, so the exposure is negligible.
+ * `apply()` is the single source of truth; it runs from TWO places:
+ *  - this middleware (appended to the global stack) for normal responses;
+ *  - the exception handler's respond() hook in bootstrap/app.php for
+ *    error responses (404/500 pages and JSON errors rendered by the
+ *    handler), which bypass route middleware entirely.
  *
  * CSP is ENFORCING and chosen by response type:
  *  - a response that already carries a policy is left alone (the storage
@@ -25,30 +25,28 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SecurityHeaders
 {
-    private const STRICT_POLICY = "default-src 'none'; frame-ancestors 'none'";
+    public const STRICT_POLICY = "default-src 'none'; frame-ancestors 'none'";
 
-    private const HTML_POLICY = "default-src 'none'; "
+    public const HTML_POLICY = "default-src 'none'; "
         ."style-src 'unsafe-inline' https://fonts.bunny.net; "
         .'font-src https://fonts.bunny.net; '
         .'img-src https://laravel.com; '
         ."base-uri 'none'; frame-ancestors 'none'";
 
-    public function handle(Request $request, Closure $next): Response
+    public static function apply(Response $response): Response
     {
-        $response = $next($request);
-
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('X-Frame-Options', 'DENY');
 
         if (! $response->headers->has('Content-Security-Policy')) {
-            $response->headers->set('Content-Security-Policy', $this->policyFor($response));
+            $response->headers->set('Content-Security-Policy', self::policyFor($response));
         }
 
         return $response;
     }
 
-    private function policyFor(Response $response): string
+    private static function policyFor(Response $response): string
     {
         $type = (string) $response->headers->get('Content-Type');
 
@@ -57,5 +55,10 @@ class SecurityHeaders
         }
 
         return self::STRICT_POLICY;
+    }
+
+    public function handle(Request $request, Closure $next): Response
+    {
+        return self::apply($next($request));
     }
 }

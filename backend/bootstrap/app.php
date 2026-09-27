@@ -15,6 +15,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -121,5 +122,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 500 - never leak internals when APP_DEBUG=false.
             return new JsonResponse(['message' => 'Lỗi máy chủ.'], 500);
+        });
+
+        // Error responses (framework 404/500 pages, JSON errors rendered above)
+        // bypass route middleware, so the shared security header set is applied
+        // here as well - one source of truth in SecurityHeaders::apply().
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            return SecurityHeaders::apply($response);
         });
     })->create();

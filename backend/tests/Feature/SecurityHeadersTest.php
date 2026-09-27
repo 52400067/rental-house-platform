@@ -91,4 +91,27 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringContainsString("default-src 'none'", $csp);
         $this->assertStringContainsString('frame-ancestors', $csp);
     }
+
+    public function test_framework_404_page_carries_security_headers(): void
+    {
+        // HTML error pages are rendered by the exception handler and bypass
+        // route middleware entirely; the respond() hook in bootstrap/app.php
+        // is what puts the header set on them (these two tests pin that hook).
+        $response = $this->get('/khong-ton-tai', ['Accept' => 'text/html']);
+        $response->assertNotFound();
+
+        $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+        $this->assertSame('DENY', $response->headers->get('X-Frame-Options'));
+        $this->assertStringContainsString("default-src 'none'", (string) $response->headers->get('Content-Security-Policy'));
+    }
+
+    public function test_json_error_response_carries_security_headers(): void
+    {
+        $response = $this->getJson('/api/khong-ton-tai');
+        $response->assertNotFound()
+            ->assertExactJson(['message' => 'Không tìm thấy dữ liệu.']);
+
+        $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+        $this->assertStringContainsString("default-src 'none'", (string) $response->headers->get('Content-Security-Policy'));
+    }
 }
