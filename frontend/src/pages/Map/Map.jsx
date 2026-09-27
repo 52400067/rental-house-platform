@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getListings, getSchools, getCities } from "../../api/listingApi";
 import { TYPE_LABELS, formatPriceTrieu } from "../../api/format";
+import { ROUTES, route } from "../../constants/routes";
 
 // Markers as inline divIcons - no external image assets needed.
 // Red pin (var(--danger)) - high visibility on any tile palette.
@@ -213,7 +214,7 @@ export default function Map() {
                                                 icon={roomIcon}
                                             >
                                                 <Popup>
-                                                    <Link to={`/rooms/${l.id}`}>
+                                                    <Link to={route(ROUTES.ROOM_DETAIL, { id: l.id })}>
                                                         <strong>{l.title}</strong>
                                                     </Link>
                                                     <br />
@@ -251,7 +252,7 @@ export default function Map() {
                             {listings.map((l) => (
                                 <Link
                                     key={l.id}
-                                    to={`/rooms/${l.id}`}
+                                    to={route(ROUTES.ROOM_DETAIL, { id: l.id })}
                                     className="d-flex gap-2 p-2 border-bottom text-decoration-none text-body"
                                 >
                                     {l.cover_image ? (

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { errMessage } from "../../api/axiosClient";
+import { ROUTES } from "../../constants/routes";
 
 export default function Register() {
     const { register } = useAuth();
@@ -25,7 +26,7 @@ export default function Register() {
         setBusy(true);
         try {
             await register(form);
-            navigate("/", { replace: true });
+            navigate(ROUTES.HOME, { replace: true });
         } catch (err) {
             setErrors(err.response?.data?.errors || {});
             if (!err.response?.data?.errors) {
@@ -74,7 +75,7 @@ export default function Register() {
                     <div className="w-100" style={{ maxWidth: 520 }}>
                         <div className="auth-card">
                             <div className="text-center mb-3">
-                                <Link to="/" className="auth-logo-link">
+                                <Link to={ROUTES.HOME} className="auth-logo-link">
                                     TROSV
                                 </Link>
                                 <p className="text-secondary small mb-0">
@@ -176,7 +177,7 @@ export default function Register() {
 
                             <div className="text-center mt-3 small">
                                 <span className="text-secondary">Đã có tài khoản? </span>
-                                <Link to="/login">Đăng nhập</Link>
+                                <Link to={ROUTES.LOGIN}>Đăng nhập</Link>
                             </div>
                         </div>
                     </div>

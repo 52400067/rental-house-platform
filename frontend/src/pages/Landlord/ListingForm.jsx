@@ -4,6 +4,7 @@ import ImagesEditor from "../../components/landlord/ImagesEditor";
 import { TYPE_LABELS, formatVnd } from "../../api/format";
 import { useToast } from "../../components/ui/Toast";
 import { useListingForm } from "../../hooks/useListingForm";
+import { ROUTES } from "../../constants/routes";
 
 const TYPE_OPTIONS = Object.entries(TYPE_LABELS);
 
@@ -47,7 +48,7 @@ export default function ListingForm() {
                     <h1 className="h3 fw-bold mb-0 landlord-heading">
                         {isEdit ? "Sửa tin đăng" : "Đăng tin mới"}
                     </h1>
-                    <Link to="/landlord" className="btn btn-outline-secondary btn-sm">
+                    <Link to={ROUTES.LANDLORD} className="btn btn-outline-secondary btn-sm">
                         <i className="bi bi-arrow-left me-1" /> Danh sách
                     </Link>
                 </div>

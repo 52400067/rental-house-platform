@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ROUTES } from "../constants/routes";
 import PageSkeleton from "./ui/PageSkeleton";
 
 /**
@@ -15,11 +16,11 @@ export default function ProtectedRoute({ roles, children }) {
     }
 
     if (!user) {
-        return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+        return <Navigate to={ROUTES.LOGIN} state={{ from: location.pathname }} replace />;
     }
 
     if (roles && !roles.includes(user.role)) {
-        return <Navigate to="/" replace />;
+        return <Navigate to={ROUTES.HOME} replace />;
     }
 
     return children;

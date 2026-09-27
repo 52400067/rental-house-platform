@@ -5,6 +5,7 @@ import { getEcho } from "../../api/echo";
 import { timeAgo } from "../../api/format";
 import { useAuth } from "../../context/AuthContext";
 import { CONV_PREVIEW_EVENT } from "../../constants/events";
+import { ROUTES, route } from "../../constants/routes";
 import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
 
 /**
@@ -117,7 +118,7 @@ export default function Messages() {
                                 Nhắn tin cho chủ nhà từ trang chi tiết phòng để bắt
                                 đầu.
                             </p>
-                            <Link to="/rooms" className="btn btn-primary btn-sm mt-3">
+                            <Link to={ROUTES.ROOMS} className="btn btn-primary btn-sm mt-3">
                                 Tìm phòng
                             </Link>
                         </div>
@@ -134,7 +135,7 @@ export default function Messages() {
                         return (
                         <Link
                             key={c.id}
-                            to={`/messages/${c.id}`}
+                            to={route(ROUTES.CONVERSATION, { id: c.id })}
                             className={`messages-item d-flex gap-2 align-items-center${
                                 String(c.id) === String(activeId) ? " active" : ""
                             }`}

@@ -4,6 +4,7 @@ import * as bootstrap from "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { useAuth } from "../../context/AuthContext";
 import { getConversations } from "../../api/socialApi";
 import { getEcho, disconnectEcho } from "../../api/echo";
+import { ROUTES } from "../../constants/routes";
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -81,7 +82,7 @@ export default function Navbar() {
 
     async function handleLogout() {
         await logout();
-        navigate("/");
+        navigate(ROUTES.HOME);
     }
 
     const unreadBadge = user ? unread : 0;
@@ -91,7 +92,7 @@ export default function Navbar() {
             className={`navbar navbar-expand-lg sticky-top${scrolled ? " is-scrolled" : ""}`}
         >
             <div className="container">
-                <Link className="navbar-brand fw-bold" to="/">
+                <Link className="navbar-brand fw-bold" to={ROUTES.HOME}>
                     <i className="bi bi-house-heart-fill me-1" style={{ color: "var(--brand)" }} />
                     TROSV
                 </Link>
@@ -109,29 +110,29 @@ export default function Navbar() {
                 <div className="collapse navbar-collapse" id="navbarContent">
                     <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <NavLink end to="/" className="nav-link">
+                            <NavLink end to={ROUTES.HOME} className="nav-link">
                                 Trang chủ
                             </NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/rooms" className="nav-link">
+                            <NavLink to={ROUTES.ROOMS} className="nav-link">
                                 Tìm trọ
                             </NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/map" className="nav-link">
+                            <NavLink to={ROUTES.MAP} className="nav-link">
                                 Bản đồ
                             </NavLink>
                         </li>
                         {user?.role === "student" && (
                             <>
                                 <li className="nav-item">
-                                    <NavLink to="/favorites" className="nav-link">
+                                    <NavLink to={ROUTES.FAVORITES} className="nav-link">
                                         Yêu thích
                                     </NavLink>
                                 </li>
                                 <li className="nav-item">
-                                    <NavLink to="/ai/roommates" className="nav-link">
+                                    <NavLink to={ROUTES.AI_ROOMMATES} className="nav-link">
                                         Bạn cùng phòng
                                     </NavLink>
                                 </li>
@@ -139,7 +140,7 @@ export default function Navbar() {
                         )}
                         {user?.role === "landlord" && (
                             <li className="nav-item">
-                                <NavLink to="/landlord" className="nav-link">
+                                <NavLink to={ROUTES.LANDLORD} className="nav-link">
                                     Tin đăng của tôi
                                 </NavLink>
                             </li>
@@ -150,7 +151,7 @@ export default function Navbar() {
                         {user ? (
                             <>
                                 <Link
-                                    to="/messages"
+                                    to={ROUTES.MESSAGES}
                                     className="btn btn-outline-secondary btn-sm position-relative"
                                     title="Tin nhắn"
                                 >
@@ -174,7 +175,7 @@ export default function Navbar() {
                                         <li>
                                             <Link
                                                 className="dropdown-item"
-                                                to="/profile"
+                                                to={ROUTES.PROFILE}
                                             >
                                                 <i className="bi bi-gear me-2" />
                                                 Hồ sơ
@@ -185,7 +186,7 @@ export default function Navbar() {
                                                 <li>
                                                     <Link
                                                         className="dropdown-item"
-                                                        to="/favorites"
+                                                        to={ROUTES.FAVORITES}
                                                     >
                                                         <i className="bi bi-heart me-2" />
                                                         Phòng yêu thích
@@ -194,7 +195,7 @@ export default function Navbar() {
                                                 <li>
                                                     <Link
                                                         className="dropdown-item"
-                                                        to="/ai/area-suggestions"
+                                                        to={ROUTES.AI_AREA_SUGGESTIONS}
                                                     >
                                                         <i className="bi bi-geo-alt me-2" />
                                                         Gợi ý khu vực
@@ -219,10 +220,10 @@ export default function Navbar() {
                             </>
                         ) : (
                             <>
-                                <Link to="/login" className="btn btn-outline-primary btn-sm">
+                                <Link to={ROUTES.LOGIN} className="btn btn-outline-primary btn-sm">
                                     Đăng nhập
                                 </Link>
-                                <Link to="/register" className="btn btn-primary btn-sm">
+                                <Link to={ROUTES.REGISTER} className="btn btn-primary btn-sm">
                                     Đăng ký
                                 </Link>
                             </>

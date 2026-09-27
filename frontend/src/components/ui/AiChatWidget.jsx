@@ -4,6 +4,7 @@ import { aiChat } from "../../api/aiApi";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import { AI_CHAT_OPEN_EVENT } from "../../constants/events";
+import { ROUTES } from "../../constants/routes";
 import AiDisclaimer from "../AiDisclaimer";
 import ChatBubble from "../conversation/ChatBubble";
 import TypingIndicator from "../conversation/TypingIndicator";
@@ -125,7 +126,7 @@ export default function AiChatWidget() {
                                 vực, giá thuê, tiền cọc và hợp đồng.
                             </p>
                             <Link
-                                to="/login"
+                                to={ROUTES.LOGIN}
                                 className="btn btn-primary btn-sm ai-widget-guest-btn"
                                 onClick={() => setOpen(false)}
                             >

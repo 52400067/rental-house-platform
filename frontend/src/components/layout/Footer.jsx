@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ROUTES } from "../../constants/routes";
 
 export default function Footer() {
     return (
@@ -23,17 +24,17 @@ export default function Footer() {
                         <h6 className="fw-bold">Khám phá</h6>
                         <ul className="list-unstyled small">
                             <li>
-                                <Link to="/" className="text-decoration-none">
+                                <Link to={ROUTES.HOME} className="text-decoration-none">
                                     Trang chủ
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/rooms" className="text-decoration-none">
+                                <Link to={ROUTES.ROOMS} className="text-decoration-none">
                                     Tìm trọ
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/map" className="text-decoration-none">
+                                <Link to={ROUTES.MAP} className="text-decoration-none">
                                     Bản đồ
                                 </Link>
                             </li>
@@ -44,17 +45,17 @@ export default function Footer() {
                         <h6 className="fw-bold">Sinh viên</h6>
                         <ul className="list-unstyled small">
                             <li>
-                                <Link to="/favorites" className="text-decoration-none">
+                                <Link to={ROUTES.FAVORITES} className="text-decoration-none">
                                     Phòng yêu thích
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/ai/roommates" className="text-decoration-none">
+                                <Link to={ROUTES.AI_ROOMMATES} className="text-decoration-none">
                                     Tìm bạn cùng phòng
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/ai/area-suggestions" className="text-decoration-none">
+                                <Link to={ROUTES.AI_AREA_SUGGESTIONS} className="text-decoration-none">
                                     Gợi ý khu vực
                                 </Link>
                             </li>
@@ -65,12 +66,12 @@ export default function Footer() {
                         <h6 className="fw-bold">Chủ trọ</h6>
                         <ul className="list-unstyled small">
                             <li>
-                                <Link to="/landlord" className="text-decoration-none">
+                                <Link to={ROUTES.LANDLORD} className="text-decoration-none">
                                     Quản lý tin đăng
                                 </Link>
                             </li>
                             <li>
-                                <Link to="/landlord/new" className="text-decoration-none">
+                                <Link to={ROUTES.LANDLORD_NEW} className="text-decoration-none">
                                     Đăng tin mới
                                 </Link>
                             </li>

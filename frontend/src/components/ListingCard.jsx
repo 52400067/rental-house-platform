@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { TYPE_LABELS, formatPriceTrieu } from "../api/format";
+import { ROUTES, route } from "../constants/routes";
 
 /**
  * Listing card per API_CONTRACT §3 Listing (tóm tắt).
@@ -10,7 +11,7 @@ export default function ListingCard({ listing, onToggleFavorite, isNew }) {
     return (
         <div className={`card h-100 listing-card${isNew ? " is-new" : ""}`}>
             <div className="position-relative listing-cover-wrap">
-                <Link to={`/rooms/${listing.id}`}>
+                <Link to={route(ROUTES.ROOM_DETAIL, { id: listing.id })}>
                     {listing.cover_image ? (
                         <img
                             src={listing.cover_image}
@@ -57,7 +58,7 @@ export default function ListingCard({ listing, onToggleFavorite, isNew }) {
             <div className="card-body d-flex flex-column">
                 <h6 className="card-title mb-1">
                     <Link
-                        to={`/rooms/${listing.id}`}
+                        to={route(ROUTES.ROOM_DETAIL, { id: listing.id })}
                         className="text-decoration-none stretched-link-host"
                     >
                         {listing.title}

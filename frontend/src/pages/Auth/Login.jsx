@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { errMessage } from "../../api/axiosClient";
+import { ROUTES } from "../../constants/routes";
 
 export default function Login() {
     const { login } = useAuth();
@@ -62,7 +63,7 @@ export default function Login() {
                     <div className="w-100" style={{ maxWidth: 460 }}>
                         <div className="auth-card">
                             <div className="text-center mb-3">
-                                <Link to="/" className="auth-logo-link">
+                                <Link to={ROUTES.HOME} className="auth-logo-link">
                                     TROSV
                                 </Link>
                                 <p className="text-secondary small mb-0">
@@ -154,7 +155,7 @@ export default function Login() {
                                 <span className="text-secondary">
                                     Chưa có tài khoản?{" "}
                                 </span>
-                                <Link to="/register">Đăng ký ngay</Link>
+                                <Link to={ROUTES.REGISTER}>Đăng ký ngay</Link>
                             </div>
 
                             <div className="alert alert-light small mt-4 mb-0">

@@ -6,6 +6,7 @@ import { formatVnd } from "../../api/format";
 import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import AiDisclaimer from "../../components/AiDisclaimer";
+import { ROUTES } from "../../constants/routes";
 
 const PRIORITY_LABELS = {
     cheap: "Giá rẻ",
@@ -180,7 +181,7 @@ export default function AreaSuggestions() {
                                     <div className="d-flex justify-content-between align-items-center">
                                         <h5 className="fw-bold mb-0">{r.name}</h5>
                                         <Link
-                                            to={`/rooms?ward_id=${r.ward_id}`}
+                                            to={`${ROUTES.ROOMS}?ward_id=${r.ward_id}`}
                                             className="btn btn-outline-primary btn-sm"
                                         >
                                             Xem phòng

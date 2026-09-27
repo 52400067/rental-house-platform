@@ -4,6 +4,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import { ROUTES } from "./constants/routes";
 import { ToastProvider } from "./components/ui/Toast";
 import BackToTop from "./components/ui/BackToTop";
 import AiChatWidget from "./components/ui/AiChatWidget";
@@ -36,29 +37,31 @@ export default function App() {
                     <main className="flex-grow-1">
                         <Routes>
                             {/* Public */}
-                            <Route path="/" element={<Home />} />
-                            <Route path="/rooms" element={<Rooms />} />
-                            <Route path="/rooms/:id" element={<RoomDetail />} />
-                            <Route path="/map" element={<Map />} />
-                            <Route path="/students/:id" element={<StudentPublic />} />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/register" element={<Register />} />
+                            <Route path={ROUTES.HOME} element={<Home />} />
+                            <Route path={ROUTES.ROOMS} element={<Rooms />} />
+                            <Route path={ROUTES.ROOM_DETAIL} element={<RoomDetail />} />
+                            <Route path={ROUTES.MAP} element={<Map />} />
+                            <Route path={ROUTES.STUDENT_PUBLIC} element={<StudentPublic />} />
+                            <Route path={ROUTES.LOGIN} element={<Login />} />
+                            <Route path={ROUTES.REGISTER} element={<Register />} />
 
                             {/* Any authenticated user */}
                             {/* Hai cốp kiểu Messenger/Gmail: layout hội thoại
                                 bên trái, thread bên phải qua Outlet. */}
                             <Route
-                                path="/messages"
+                                path={ROUTES.MESSAGES}
                                 element={
                                     <ProtectedRoute>
                                         <Messages />
                                     </ProtectedRoute>
                                 }
                             >
-                                <Route path=":id" element={<ConversationDetail />} />
+                                {/* Child dùng pattern tuyệt đối của ROUTES.CONVERSATION
+                                    để không còn mảnh ":id" hardcode riêng. */}
+                                <Route path={ROUTES.CONVERSATION} element={<ConversationDetail />} />
                             </Route>
                             <Route
-                                path="/profile"
+                                path={ROUTES.PROFILE}
                                 element={
                                     <ProtectedRoute>
                                         <Profile />
@@ -68,7 +71,7 @@ export default function App() {
 
                             {/* Student only */}
                             <Route
-                                path="/favorites"
+                                path={ROUTES.FAVORITES}
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <Favorites />
@@ -76,7 +79,7 @@ export default function App() {
                                 }
                             />
                             <Route
-                                path="/ai/roommates"
+                                path={ROUTES.AI_ROOMMATES}
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <Roommates />
@@ -84,7 +87,7 @@ export default function App() {
                                 }
                             />
                             <Route
-                                path="/ai/area-suggestions"
+                                path={ROUTES.AI_AREA_SUGGESTIONS}
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <AreaSuggestions />
@@ -94,7 +97,7 @@ export default function App() {
 
                             {/* Landlord only */}
                             <Route
-                                path="/landlord"
+                                path={ROUTES.LANDLORD}
                                 element={
                                     <ProtectedRoute roles={["landlord"]}>
                                         <MyListings />
@@ -102,7 +105,7 @@ export default function App() {
                                 }
                             />
                             <Route
-                                path="/landlord/new"
+                                path={ROUTES.LANDLORD_NEW}
                                 element={
                                     <ProtectedRoute roles={["landlord"]}>
                                         <ListingForm />
@@ -110,7 +113,7 @@ export default function App() {
                                 }
                             />
                             <Route
-                                path="/landlord/edit/:id"
+                                path={ROUTES.LANDLORD_EDIT}
                                 element={
                                     <ProtectedRoute roles={["landlord"]}>
                                         <ListingForm />
@@ -118,7 +121,7 @@ export default function App() {
                                 }
                             />
 
-                            <Route path="*" element={<Navigate to="/" replace />} />
+                            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
                         </Routes>
                     </main>
                     <Footer />

@@ -4,6 +4,7 @@ import { getListings } from "../../api/listingApi";
 import ListingCard from "../../components/ListingCard";
 import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
 import { AI_CHAT_OPEN_EVENT } from "../../constants/events";
+import { ROUTES } from "../../constants/routes";
 import "../../styles/home.css";
 
 export default function Home() {
@@ -93,7 +94,7 @@ export default function Home() {
                 <div className="container">
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h2 className="fw-bold mb-0 section-heading">Phòng trọ mới nhất</h2>
-                        <Link to="/rooms" className="btn btn-outline-primary btn-sm">
+                        <Link to={ROUTES.ROOMS} className="btn btn-outline-primary btn-sm">
                             Xem tất cả <i className="bi bi-arrow-right ms-1" />
                         </Link>
                     </div>
@@ -126,7 +127,7 @@ export default function Home() {
                         ].map(([type, icon, label, desc]) => (
                             <div className="col-lg-4 col-md-6" key={type}>
                                 <Link
-                                    to={`/rooms?type=${type}`}
+                                    to={`${ROUTES.ROOMS}?type=${type}`}
                                     className="feature-tile d-block h-100 p-4 text-decoration-none text-body"
                                 >
                                     <span className="feature-tile-icon mb-3">
@@ -150,9 +151,9 @@ export default function Home() {
                     </p>
                     <div className="row g-4">
                         {[
-                            ["ai/area-suggestions", "geo-alt", "Gợi ý khu vực", "AI phân tích trường học, ngân sách và ưu tiên để gợi ý khu vực phù hợp."],
-                            ["ai/roommates", "people", "Tìm bạn cùng phòng", "Gợi ý người có thói quen sinh hoạt và sở thích phù hợp với bạn."],
-                            ["ai/chat", "robot", "Trợ lý AI", "Hỏi về phòng trọ, khu vực, giá thuê và hợp đồng thuê."],
+                            [ROUTES.AI_AREA_SUGGESTIONS, "geo-alt", "Gợi ý khu vực", "AI phân tích trường học, ngân sách và ưu tiên để gợi ý khu vực phù hợp."],
+                            [ROUTES.AI_ROOMMATES, "people", "Tìm bạn cùng phòng", "Gợi ý người có thói quen sinh hoạt và sở thích phù hợp với bạn."],
+                            [ROUTES.AI_CHAT, "robot", "Trợ lý AI", "Hỏi về phòng trọ, khu vực, giá thuê và hợp đồng thuê."],
                         ].map(([to, icon, label, desc]) => {
                             const inner = (
                                 <>
@@ -168,7 +169,7 @@ export default function Home() {
                                 "feature-tile d-block h-100 p-4 text-decoration-none text-body";
                             return (
                                 <div className="col-lg-4 col-md-6" key={to}>
-                                    {to === "ai/chat" ? (
+                                    {to === ROUTES.AI_CHAT ? (
                                         <button
                                             type="button"
                                             className={`${tileClass} text-start w-100`}
@@ -181,7 +182,7 @@ export default function Home() {
                                             {inner}
                                         </button>
                                     ) : (
-                                        <Link to={`/${to}`} className={tileClass}>
+                                        <Link to={to} className={tileClass}>
                                             {inner}
                                         </Link>
                                     )}

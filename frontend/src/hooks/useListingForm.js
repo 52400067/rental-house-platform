@@ -8,6 +8,7 @@ import {
 import { getListing, getWards, getAmenities, getCities } from "../api/listingApi";
 import { aiDescription } from "../api/aiApi";
 import { errMessage } from "../api/axiosClient";
+import { ROUTES, route } from "../constants/routes";
 
 const EMPTY_FORM = {
     title: "",
@@ -177,14 +178,14 @@ export function useListingForm(id, toast) {
                 if (newFiles.length > 0) {
                     await uploadImages(id, newFiles);
                 }
-                navigate(`/rooms/${updated.id}`);
+                navigate(route(ROUTES.ROOM_DETAIL, { id: updated.id }));
             } else {
                 const created = await createListing(payload);
                 // Jump to edit page to upload images for the new listing.
                 if (newFiles.length > 0) {
                     await uploadImages(created.id, newFiles);
                 }
-                navigate("/landlord");
+                navigate(ROUTES.LANDLORD);
             }
         } catch (err) {
             setErrors(err.response?.data?.errors || {});

@@ -4,6 +4,7 @@ import { getEcho } from "../../api/echo";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../components/ui/Toast";
 import { CONV_PREVIEW_EVENT } from "../../constants/events";
+import { ROUTES, route } from "../../constants/routes";
 import { dayLabel } from "../../components/conversation/labels";
 import ChatBubble from "../../components/conversation/ChatBubble";
 import TypingIndicator from "../../components/conversation/TypingIndicator";
@@ -164,7 +165,7 @@ export default function ConversationDetail() {
             {/* Header */}
             <div className="chat-header mb-3">
                 <Link
-                    to="/messages"
+                    to={ROUTES.MESSAGES}
                     className="btn btn-outline-secondary btn-sm chat-back"
                     aria-label="Quay lại danh sách tin nhắn"
                 >
@@ -177,7 +178,7 @@ export default function ConversationDetail() {
                     <strong className="d-block text-truncate">
                         {other?.role === "student" ? (
                             <Link
-                                to={`/students/${other.id}`}
+                                to={route(ROUTES.STUDENT_PUBLIC, { id: other.id })}
                                 className="text-decoration-none text-reset"
                                 title="Xem hồ sơ công khai"
                             >
@@ -190,7 +191,7 @@ export default function ConversationDetail() {
                     </strong>
                     {subject ? (
                         <Link
-                            to={`/rooms/${subject.id}`}
+                            to={route(ROUTES.ROOM_DETAIL, { id: subject.id })}
                             className="chat-subject d-block text-decoration-none"
                             title={subject.title}
                         >

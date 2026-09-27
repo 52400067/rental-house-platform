@@ -6,6 +6,7 @@ import ListingCard from "../../components/ListingCard";
 import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
 import Pagination from "../../components/Pagination";
 import { useToast } from "../../components/ui/Toast";
+import { ROUTES } from "../../constants/routes";
 
 export default function Favorites() {
     const toast = useToast();
@@ -76,7 +77,7 @@ export default function Favorites() {
                         <p className="text-secondary">
                             Nhấn biểu tượng trái tim khi xem phòng để lưu lại.
                         </p>
-                        <Link to="/rooms" className="btn btn-primary">
+                        <Link to={ROUTES.ROOMS} className="btn btn-primary">
                             Tìm phòng ngay
                         </Link>
                     </div>

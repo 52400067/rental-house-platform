@@ -15,6 +15,7 @@ import * as socialApi from "../../api/socialApi";
 import { createReview } from "../../api/listingApi";
 import { useAuth } from "../../context/AuthContext";
 import { errMessage } from "../../api/axiosClient";
+import { ROUTES, route } from "../../constants/routes";
 import { useToast } from "../../components/ui/Toast";
 import RoomDetailSkeleton from "../../components/ui/RoomDetailSkeleton";
 import { useRoomDetail } from "../../hooks/useRoomDetail";
@@ -61,7 +62,7 @@ export default function RoomDetail() {
         setChatBusy(true);
         try {
             const conv = await socialApi.startConversation(listing.id);
-            navigate(`/messages/${conv.id}`);
+            navigate(route(ROUTES.CONVERSATION, { id: conv.id }));
         } catch (err) {
             toast.error(errMessage(err));
         } finally {
@@ -92,7 +93,7 @@ export default function RoomDetail() {
             <div className="container py-5 text-center">
                 <i className="bi bi-house-x fs-1 text-secondary" />
                 <h2 className="mt-3">{error || "Không tìm thấy phòng"}</h2>
-                <Link to="/rooms" className="btn btn-primary mt-2">
+                <Link to={ROUTES.ROOMS} className="btn btn-primary mt-2">
                     <i className="bi bi-arrow-left me-2" />
                     Quay lại tìm trọ
                 </Link>
@@ -113,10 +114,10 @@ export default function RoomDetail() {
                 <nav aria-label="breadcrumb" className="mb-3">
                     <ol className="breadcrumb small">
                         <li className="breadcrumb-item">
-                            <Link to="/">Trang chủ</Link>
+                            <Link to={ROUTES.HOME}>Trang chủ</Link>
                         </li>
                         <li className="breadcrumb-item">
-                            <Link to="/rooms">Tìm trọ</Link>
+                            <Link to={ROUTES.ROOMS}>Tìm trọ</Link>
                         </li>
                         <li className="breadcrumb-item active">{listing.title}</li>
                     </ol>
@@ -311,7 +312,7 @@ export default function RoomDetail() {
                                     </button>
                                 )}
                                 {!user && (
-                                    <Link to="/login" className="btn btn-primary w-100 mb-2">
+                                    <Link to={ROUTES.LOGIN} className="btn btn-primary w-100 mb-2">
                                         Đăng nhập để nhắn tin
                                     </Link>
                                 )}

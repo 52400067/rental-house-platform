@@ -5,6 +5,7 @@ import { errMessage } from "../../api/axiosClient";
 import { useAuth } from "../../context/AuthContext";
 import AiDisclaimer from "../../components/AiDisclaimer";
 import { hobbyLabels, HOBBY_LABELS } from "../../constants/hobbies.js";
+import { ROUTES, route } from "../../constants/routes";
 
 export default function Roommates() {
     const { user } = useAuth();
@@ -69,7 +70,7 @@ export default function Roommates() {
                         {error}
                         {error.includes("hồ sơ") && (
                             <div className="mt-1">
-                                <Link to="/profile">Cập nhật hồ sơ →</Link>
+                                <Link to={ROUTES.PROFILE}>Cập nhật hồ sơ →</Link>
                             </div>
                         )}
                     </div>
@@ -102,7 +103,7 @@ export default function Roommates() {
                                             <div className="d-flex justify-content-between">
                                                 <strong>
                                                     <Link
-                                                        to={`/students/${r.user_id}`}
+                                                        to={route(ROUTES.STUDENT_PUBLIC, { id: r.user_id })}
                                                         className="text-decoration-none"
                                                     >
                                                         {r.name}

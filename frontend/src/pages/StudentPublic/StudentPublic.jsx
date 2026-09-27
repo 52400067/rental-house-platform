@@ -5,6 +5,7 @@ import { formatVnd } from "../../api/format.js";
 import { startDirectConversation } from "../../api/socialApi";
 import { useAuth } from "../../context/AuthContext";
 import { hobbyLabels } from "../../constants/hobbies.js";
+import { ROUTES, route } from "../../constants/routes";
 import StudentPublicSkeleton from "../../components/ui/StudentPublicSkeleton";
 
 const SLEEP_LABELS = {
@@ -60,7 +61,7 @@ export default function StudentPublic() {
         setError("");
         try {
             const conversation = await startDirectConversation(student.id);
-            navigate(`/messages/${conversation.id}`);
+            navigate(route(ROUTES.CONVERSATION, { id: conversation.id }));
         } catch (err) {
             setError(errMessage(err));
         } finally {

@@ -14,6 +14,7 @@ import {
 import { errMessage } from "../../api/axiosClient";
 import Pagination from "../../components/Pagination";
 import { useToast } from "../../components/ui/Toast";
+import { ROUTES, route } from "../../constants/routes";
 import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
 
 export default function MyListings() {
@@ -101,7 +102,7 @@ export default function MyListings() {
                             {meta ? `${meta.total} tin` : ""}
                         </span>
                     </div>
-                    <Link to="/landlord/new" className="btn btn-primary">
+                    <Link to={ROUTES.LANDLORD_NEW} className="btn btn-primary">
                         <i className="bi bi-plus-lg me-1" /> Đăng tin mới
                     </Link>
                 </div>
@@ -132,7 +133,7 @@ export default function MyListings() {
                     <div className="text-center py-5">
                         <i className="bi bi-house-add fs-1 text-secondary" />
                         <h4 className="mt-3">Chưa có tin đăng nào</h4>
-                        <Link to="/landlord/new" className="btn btn-primary">
+                        <Link to={ROUTES.LANDLORD_NEW} className="btn btn-primary">
                             Đăng tin đầu tiên
                         </Link>
                     </div>
@@ -162,7 +163,7 @@ export default function MyListings() {
 
                             <div className="flex-grow-1 overflow-hidden">
                                 <Link
-                                    to={`/rooms/${l.id}`}
+                                    to={route(ROUTES.ROOM_DETAIL, { id: l.id })}
                                     className="fw-semibold text-decoration-none text-truncate d-block"
                                 >
                                     {l.title}
@@ -197,7 +198,7 @@ export default function MyListings() {
 
                             <div className="d-flex gap-1">
                                 <Link
-                                    to={`/landlord/edit/${l.id}`}
+                                    to={route(ROUTES.LANDLORD_EDIT, { id: l.id })}
                                     className="btn btn-outline-secondary btn-sm"
                                     title="Sửa"
                                 >
