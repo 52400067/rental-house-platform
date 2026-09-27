@@ -48,4 +48,7 @@ lập kế hoạch**. Con số đáng tin là bảng tinh chỉnh ở trên (~2.
 | Ngày | Items (sau lọc) | Ghi chú |
 |------|-----------------|---------|
 | 2026-09-27 | 1,760 | Baseline đầu tiên sau Phase 4 |
-| 2026-09-27 (run 2) | 1,762 | Sau refactor #5: hardcode trong 5 file mục tiêu **13 → 0**; tổng +2 là noise đo được (19 import `ROUTES` mới tạo block-trùng, 1 comment dài). Dashboard: velocity impact **↑ improving**, health 60/100, density ổn định 7.0%. Debt còn lại đo được: ListingStore↔Update 38 blocks, Login↔Register 26, Favorites↔MyListings 24 |
+| 2026-09-27 (run 2) | 1,762 | Sau refactor #5: hardcode trong 5 file mục tiêu **13 → 0**; tổng +2 là noise đo được (19 import `ROUTES` mới tạo block-trùng, 1 comment dài) |
+| 2026-09-27 (final) | **1,635 (−125)** | Sau refactor #1–#4: **large_file = 0** (page.css 982 → 5 file ≤ 500 dòng), density 7.0 → **6.5%**, dashboard báo **"Good progress on debt reduction"**, density trend ↑ improving (−0.335/period, forecast 5.2) |
+
+**Kết quả 5 mục targeted (baseline → final):** #1 FormRequests 44→0 block rules thật (10 còn lại là boilerplate `}`/docblock khớp chéo) · #2 auth 45→30 (30 = coincidental line-match sau khi tách hết hook/layout) · #3 Fv↔ML 34→6 (6 = khung import/div) · #4 large_file CSS 2→0 · #5 hardcode 13→0. Mọi refactor giữ hành vi: 202 test backend + e2e + CI xanh xuyên suốt |
