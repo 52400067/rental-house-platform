@@ -15,12 +15,24 @@ use Symfony\Component\HttpFoundation\Response;
  * middleware post-processing, but those carry no attacker-controlled
  * content, so the exposure is negligible.
  *
- * CSP is REPORT-ONLY: this is a JSON API - no HTML is rendered here - and
- * signed attachment links are opened directly in a browser tab. Flip to
- * enforcing Content-Security-Policy once reports confirm nothing breaks.
+ * CSP is ENFORCING and chosen by response type:
+ *  - a response that already carries a policy is left alone (the storage
+ *    "serve" route sandboxes streamed files);
+ *  - HTML (only the decorative welcome view) gets a tuned policy that keeps
+ *    its inline styles, bunny.net fonts and laravel.com artwork working;
+ *  - everything else (JSON API payloads, redirects, ...) gets
+ *    `default-src 'none'` - a body no document should ever load from.
  */
 class SecurityHeaders
 {
+    private const STRICT_POLICY = "default-src 'none'; frame-ancestors 'none'";
+
+    private const HTML_POLICY = "default-src 'none'; "
+        ."style-src 'unsafe-inline' https://fonts.bunny.net; "
+        .'font-src https://fonts.bunny.net; '
+        .'img-src https://laravel.com; '
+        ."base-uri 'none'; frame-ancestors 'none'";
+
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
@@ -28,8 +40,22 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('X-Frame-Options', 'DENY');
-        $response->headers->set('Content-Security-Policy-Report-Only', "default-src 'none'");
+
+        if (! $response->headers->has('Content-Security-Policy')) {
+            $response->headers->set('Content-Security-Policy', $this->policyFor($response));
+        }
 
         return $response;
+    }
+
+    private function policyFor(Response $response): string
+    {
+        $type = (string) $response->headers->get('Content-Type');
+
+        if (str_contains($type, 'text/html')) {
+            return self::HTML_POLICY;
+        }
+
+        return self::STRICT_POLICY;
     }
 }

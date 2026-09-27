@@ -2,13 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\Conversation;
+use App\Models\Message;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 /**
  * Phase 4 hardening: every response carries the minimum security header set
- * (global middleware append, bootstrap/app.php). CSP is report-only until
- * the demo stack proves nothing breaks.
+ * (global middleware append, bootstrap/app.php). CSP is ENFORCING, chosen by
+ * response type: strict `default-src 'none'` for non-HTML (the app is a JSON
+ * API), a tuned policy for the one HTML view, and an existing policy (the
+ * storage serve route's sandbox) is never overridden.
  */
 class SecurityHeadersTest extends TestCase
 {
@@ -21,7 +28,7 @@ class SecurityHeadersTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
             ->assertHeader('X-Frame-Options', 'DENY')
-            ->assertHeader('Content-Security-Policy-Report-Only', "default-src 'none'");
+            ->assertHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
     }
 
     public function test_public_reference_endpoints_carry_security_headers(): void
@@ -30,5 +37,58 @@ class SecurityHeadersTest extends TestCase
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff')
             ->assertHeader('X-Frame-Options', 'DENY');
+    }
+
+    public function test_welcome_html_gets_tuned_policy(): void
+    {
+        // The only HTML the backend renders: inline styles + bunny.net fonts
+        // + laravel.com artwork must keep working under enforcing CSP.
+        $response = $this->get('/');
+        $response->assertOk();
+
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString("style-src 'unsafe-inline' https://fonts.bunny.net", $csp);
+        $this->assertStringContainsString('font-src https://fonts.bunny.net', $csp);
+        $this->assertStringContainsString('img-src https://laravel.com', $csp);
+    }
+
+    public function test_existing_csp_is_not_overridden(): void
+    {
+        // Any response that already carries a policy keeps it untouched. The
+        // storage serve route streams files with its own sandbox CSP - this
+        // probe pins the middleware half of that contract without coupling
+        // the test to the vendor route's signature details.
+        $this->app->make(Router::class)->get('/api/_probe/csp', fn () => response()
+            ->json(['ok' => true])
+            ->withHeaders(['Content-Security-Policy' => "default-src 'none'; sandbox"]));
+
+        $response = $this->getJson('/api/_probe/csp');
+        $response->assertOk();
+
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString('sandbox', $csp);
+        $this->assertStringNotContainsString('frame-ancestors', $csp);
+    }
+
+    public function test_attachment_download_gets_strict_policy(): void
+    {
+        // Private attachment downloads are binary (application/pdf): they fall
+        // under the strict policy - no document may load from that body.
+        Storage::fake('local');
+        $conversation = Conversation::factory()->create();
+        $message = Message::factory()->create([
+            'conversation_id' => $conversation->id,
+            'attachment_path' => 'attachments/test.pdf',
+        ]);
+        Storage::disk('local')->put('attachments/test.pdf', 'fake-pdf');
+
+        $url = URL::temporarySignedRoute('attachments.show', now()->addMinutes(5), ['message' => $message->id]);
+
+        $response = $this->get($url);
+        $response->assertOk();
+
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString("default-src 'none'", $csp);
+        $this->assertStringContainsString('frame-ancestors', $csp);
     }
 }

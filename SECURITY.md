@@ -26,7 +26,10 @@ Ngoài phạm vi: dịch vụ AI chạy riêng (`AI_URL`), hạ tầng VPS bên 
 ## Biện pháp đã có (tóm tắt audit Phase 4)
 
 - Header bảo mật toàn cục: `X-Content-Type-Options`, `Referrer-Policy`,
-  `X-Frame-Options`, CSP **report-only** (`backend/app/Http/Middleware/SecurityHeaders.php`)
+  `X-Frame-Options`, CSP **enforcing** chọn theo loại response — nghiêm
+  `default-src 'none'; frame-ancestors 'none'` cho JSON/binary (toàn bộ API),
+  policy tinh chỉnh cho trang HTML duy nhất, không ghi đè policy có sẵn
+  (`backend/app/Http/Middleware/SecurityHeaders.php`)
 - Prod fail-fast: từ chối phục vụ HTTP khi `APP_DEBUG=true` hoặc thiếu `APP_KEY`
   (`backend/app/Http/Middleware/EnsureProductionConfig.php` — console/composer
   vẫn boot bình thường để không vỡ CI và deploy script)
