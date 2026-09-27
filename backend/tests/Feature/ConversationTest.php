@@ -432,6 +432,36 @@ class ConversationTest extends TestCase
             ->assertHeader('Content-Type', 'application/pdf');
     }
 
+    public function test_attachment_signed_url_stops_working_after_unsend(): void
+    {
+        // F1 (security-audit run 1): the signed URL stays valid for up to 60
+        // minutes by design, so the sink itself must refuse unsent messages -
+        // a receiver's already-rendered tab must not keep a working direct
+        // download after the sender "thu hồi" for everyone.
+        $conv = $this->createConversation();
+
+        $response = $this->actingAs($this->landlord, 'sanctum')
+            ->post("/api/conversations/{$conv->id}/messages", [
+                'body' => 'Gửi bạn hợp đồng',
+                'file' => UploadedFile::fake()->create('hop-dong.pdf', 100, 'application/pdf'),
+            ])
+            ->assertStatus(201);
+
+        $url = $response->json('data.attachment_url');
+        $messageId = $response->json('data.id');
+
+        // Positive control: the very same URL downloads before the unsend.
+        $this->get($url)->assertOk();
+
+        // Sender unsends for everyone (within the 1-hour window).
+        $this->actingAs($this->landlord, 'sanctum')
+            ->deleteJson("/api/messages/{$messageId}?scope=unsent")
+            ->assertOk();
+
+        // The still-cryptographically-valid URL is dead immediately.
+        $this->get($url)->assertNotFound();
+    }
+
     public function test_attachment_wrong_type_rejected(): void
     {
         $conv = $this->createConversation();
