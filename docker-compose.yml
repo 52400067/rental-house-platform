@@ -23,11 +23,25 @@
 # khong can --env-file van trung key voi frontend build + reverb +
 # backend broadcast. Neu backend/.env doi key, chay lai:
 #   grep -E '^REVERB_APP_(ID|KEY|SECRET)=' backend/.env > .env
+#
+# PRODUCTION hardening (2026-09-27): moi service co restart policy +
+# gioi han log (json-file 10MB x 3 file - tranh day disk VPS), backend
+# chay PHP_CLI_SERVER_WORKERS=4 (php artisan serve la dev server - 1
+# worker la khong du), va backend/reverb/frontend co healthcheck.
+# ai-service van la stub profile "ai" - khong chay trong production.
 # ============================================================
+
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: rental
       POSTGRES_USER: rental
@@ -50,12 +64,15 @@ services:
   backend:
     build: ./backend
     command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+    restart: unless-stopped
+    logging: *default-logging
     env_file:
       - path: ./backend/.env
         required: false    # APP_KEY + cac gia tri khong ghi de ben duoi
     ports:
       - "8000:8000"
     environment: &backend-env
+      PHP_CLI_SERVER_WORKERS: 4
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
@@ -78,6 +95,14 @@ services:
       REVERB_SCHEME: http
     volumes:
       - trosv-storage:/var/www/html/storage/app   # uploads song sot khi recreate
+    healthcheck:
+      # /api/health chay ca PHP-FPM-style request lifecycle; DB die => 500
+      # => container unhealthy (dung, vi app that su khong dung duoc).
+      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://127.0.0.1:8000/api/health\") === false ? 1 : 0);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     depends_on:
       db:
         condition: service_healthy
@@ -85,18 +110,30 @@ services:
   reverb:
     build: ./backend
     command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    restart: unless-stopped
+    logging: *default-logging
     env_file:
       - path: ./backend/.env
         required: false
     ports:
       - "8080:8080"
     environment: *backend-env
+    healthcheck:
+      # Reverb khong phuc vu HTTP thong thuong - chi kiem tra TCP lang nghe.
+      # $$ de escape khoi compose interpolation (=$ trong shell).
+      test: ["CMD-SHELL", "php -r '$$c=@fsockopen(\"127.0.0.1\",8080,$$e,$$m,3);exit($$c?0:1);'"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
     depends_on:
       - backend
 
   queue:
     build: ./backend
     command: php artisan queue:work --tries=3 --timeout=30
+    restart: unless-stopped
+    logging: *default-logging
     env_file:
       - path: ./backend/.env
         required: false
@@ -108,6 +145,8 @@ services:
   scheduler:
     build: ./backend
     command: sh -c "while true; do php artisan schedule:run; sleep 60; done"
+    restart: unless-stopped
+    logging: *default-logging
     env_file:
       - path: ./backend/.env
         required: false
@@ -125,8 +164,17 @@ services:
         VITE_REVERB_HOST: localhost
         VITE_REVERB_PORT: 8080
         VITE_REVERB_SCHEME: http
+    restart: unless-stopped
+    logging: *default-logging
     ports:
       - "5174:80"
+    healthcheck:
+      # nginx:1.27-alpine co busybox wget.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     depends_on:
       - backend
 

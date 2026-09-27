@@ -80,7 +80,7 @@ jobs:
             docker compose -f docker-compose.yml -f docker-compose.tls.yml --profile tls up -d --build
             docker compose ps
 
-      - name: Post-deploy health check
+      - name: Post-deploy smoke
         uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         if: steps.gate.outputs.match == 'true' && steps.secrets.outputs.configured == 'true'
         with:
@@ -91,13 +91,18 @@ jobs:
           script: |
             set -euo pipefail
             cd ${{ secrets.DEPLOY_PATH }}
+            # TLS profile khong publish port backend ra host - smoke phai di
+            # qua Caddy (443). --resolve de neu DNS chua tro ve VPS van test duoc.
+            DOMAIN="$(grep -E '^DOMAIN=' .env | cut -d= -f2- | tr -d '\"')"
+            [ -n "$DOMAIN" ] || { echo "DOMAIN khong co trong .env"; exit 1; }
+            R="--resolve $DOMAIN:443:127.0.0.1"
             for i in $(seq 1 30); do
-              if curl -sf http://localhost:8000/api/health > /dev/null; then
-                echo "API healthy after $i check(s)."
-                exit 0
-              fi
+              if curl -sf $R "https://$DOMAIN/api/health" > /dev/null; then break; fi
+              [ "$i" = 30 ] && { echo "API chua healthy sau 60s"; docker compose logs --tail 50 backend; exit 1; }
               sleep 2
             done
-            echo "API did not become healthy - dumping backend logs:"
-            docker compose logs --tail 50 backend
-            exit 1
+            echo "api/health: OK"
+            CODE_FE="$(curl -s -o /dev/null -w '%{http_code}' $R https://$DOMAIN/)"
+            CODE_API="$(curl -s -o /dev/null -w '%{http_code}' $R https://$DOMAIN/api/cities)"
+            echo "frontend: $CODE_FE - cities: $CODE_API"
+            [ "$CODE_FE" = "200" ] && [ "$CODE_API" = "200" ]

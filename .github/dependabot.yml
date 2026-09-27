@@ -1,0 +1,39 @@
+# Tu dong PR cap nhat dependencies (CVE + phien ban moi). Merge PR do nguoi
+# quyet - khong tu dong merge. Cac package-ecosystem tuong ung CI:
+# composer (backend job), npm (frontend job), docker (images trong compose
+# + Dockerfiles), github-actions (actions da pin SHA trong .github/workflows).
+
+version: 2
+updates:
+  - package-ecosystem: composer
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker
+    directory: /frontend
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

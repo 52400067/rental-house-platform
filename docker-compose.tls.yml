@@ -29,6 +29,12 @@ services:
     image: caddy:2-alpine
     profiles: [tls]
     restart: unless-stopped
+    # Khong dung anchor o day: YAML anchor chi ton tai trong 1 file.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "80:80"     # HTTP-01 challenge + redirect sang HTTPS
       - "443:443"   # TLS cho SPA, API, WebSocket (wss)
