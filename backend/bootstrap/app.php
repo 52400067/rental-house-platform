@@ -46,6 +46,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // api group and shares request_id / user_id with all log channels.
         $middleware->api(prepend: [AddRequestId::class]);
 
+        // Reverse proxy trust (Phase 4 hardening). Default: trust NOTHING -
+        // X-Forwarded-For is attacker-controlled when the app is reached
+        // directly (docker demo publishes :8000), so honoring it would let
+        // anyone rotate IPs and defeat the per-IP rate limiter. Behind Caddy
+        // (TLS profile) set TRUSTED_PROXIES="*": the ONLY route to the backend
+        // is the compose-internal proxy, so request->ip() becomes the real
+        // client IP (rate limiting, logging, signed-URL cookies).
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES') ?: null);
+
         $middleware->alias([
             'role' => EnsureRole::class,
             'throttle.api' => ApiThrottle::class,

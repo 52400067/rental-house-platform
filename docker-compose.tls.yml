@@ -57,6 +57,9 @@ services:
     ports: !override []   # API vao qua caddy: https://$DOMAIN/api/*
     environment:
       FRONTEND_EXTRA_URLS: ""
+      # Backend chi nhan traffic tu Caddy tren mang compose noi bo, nen
+      # tin X-Forwarded-For de rate-limit/ghi log dung IP client that.
+      TRUSTED_PROXIES: "*"
 
   reverb:
     ports: !override []   # WebSocket vao qua caddy: wss://$DOMAIN/app/*
