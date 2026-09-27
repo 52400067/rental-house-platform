@@ -63,7 +63,7 @@ jobs:
 
       - name: Deploy over SSH (docker compose)
         # action-pinned per repo policy (audit run 3): mutable tags are forbidden.
-        uses: appleboy/ssh-action@5684c185046b6c1a3a89f9d6f1a6e1e2f4c1d7ab # v1.0.3
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         if: steps.gate.outputs.match == 'true' && steps.secrets.outputs.configured == 'true'
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -81,7 +81,7 @@ jobs:
             docker compose ps
 
       - name: Post-deploy health check
-        uses: appleboy/ssh-action@5684c185046b6c1a3a89f9d6f1a6e1e2f4c1d7ab # v1.0.3
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         if: steps.gate.outputs.match == 'true' && steps.secrets.outputs.configured == 'true'
         with:
           host: ${{ secrets.DEPLOY_HOST }}
