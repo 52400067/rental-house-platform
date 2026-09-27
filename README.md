@@ -1,5 +1,9 @@
 # Website tìm nhà trọ cho sinh viên: Hướng dẫn nhóm
 
+> **Mới vào nhóm?** Bắt đầu từ [docs/ONBOARDING.md](docs/ONBOARDING.md) —
+> một trang gộp mọi thứ cần biết: chạy local trong 5 phút, đọc gì theo vai
+> trò, quy ước bắt buộc. Trang này là tài liệu tham chiếu chi tiết.
+
 Đây là tài liệu duy nhất mọi người đều phải đọc. Sau đó đọc hợp đồng API của phần mình:
 
 - Frontend: `docs/API_CONTRACT.md`
