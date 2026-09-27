@@ -91,10 +91,11 @@ jobs:
         with:
           fetch-depth: 0 # full history so gitleaks scans past commits too
 
-      # Report only for the first run: findings need triage before they may
-      # fail CI. --redact hides matched secret values from the log.
-      - name: gitleaks (report)
-        continue-on-error: true
+      # Blocking since triage confirmed zero findings across all 157 commits
+      # (baseline run). --redact hides matched secret values from the log. If
+      # a future scan ever fails on a known-acceptable finding, add an inline
+      # allowlist with a justification comment in .gitleaksignore.
+      - name: gitleaks (blocking)
         run: |
           docker run --rm -v "$PWD:/repo" --workdir /repo \
             zricethezav/gitleaks:latest detect --source /repo --redact -v
