@@ -48,3 +48,4 @@ lập kế hoạch**. Con số đáng tin là bảng tinh chỉnh ở trên (~2.
 | Ngày | Items (sau lọc) | Ghi chú |
 |------|-----------------|---------|
 | 2026-09-27 | 1,760 | Baseline đầu tiên sau Phase 4 |
+| 2026-09-27 (run 2) | 1,762 | Sau refactor #5: hardcode trong 5 file mục tiêu **13 → 0**; tổng +2 là noise đo được (19 import `ROUTES` mới tạo block-trùng, 1 comment dài). Dashboard: velocity impact **↑ improving**, health 60/100, density ổn định 7.0%. Debt còn lại đo được: ListingStore↔Update 38 blocks, Login↔Register 26, Favorites↔MyListings 24 |
