@@ -27,7 +27,7 @@ python3 .agents/skills/tech-debt-tracker/scripts/debt_dashboard.py \
 
 | # | Debt | Bằng chứng từ scan | Ảnh hưởng | Hành động đề xuất | Effort |
 |---|------|--------------------|-----------|-------------------|--------|
-| 1 | `ListingStoreRequest` ≈ `ListingUpdateRequest` | 44 block trùng | Sửa rule validation phải sửa 2 nơi → lệch contract | Extract base class `ListingRules` (rules + messages + attributes dùng chung, update chỉ thêm `sometimes` + `status`) | ~0.5 ngày |
+| 1 | `ListingStoreRequest` ≈ `ListingUpdateRequest` | 44 block trùng | Sửa rule validation phải sửa 2 nơi → lệch contract | ✅ **Xong** (`0aeba67`): base class `ListingFormRequest` (rules canonical + `asPartial()` biến đổi `required→sometimes`), dup blocks của cặp `44 → 0`, 22 test contract pass nguyên vẹn | done |
 | 2 | `Login.jsx` ≈ `Register.jsx` | 45 block trùng | Sửa UX auth phải sửa 2 nơi | Hook dùng chung `useAuthForm` (state, lỗi, submit) | ~0.5 ngày |
 | 3 | `Favorites.jsx` ≈ `MyListings.jsx` (và các page grid) | 34 block trùng | Pattern grid listing lặp ở nhiều page | Component `ListingGrid` + `useListingPage` dùng chung | ~1 ngày |
 | 4 | CSS trùng lặp | `page.css` 57 + `components.css` 39 block | Bundle phình, style lệch nhau | Gộp rule trùng; cân nhắc tách `page.css` (982 dòng > 500) | ~0.5 ngày |
