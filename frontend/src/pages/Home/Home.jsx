@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getListings } from "../../api/listingApi";
 import ListingCard from "../../components/ListingCard";
+import ListingGrid from "../../components/ListingGrid";
 import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
 import { AI_CHAT_OPEN_EVENT } from "../../constants/events";
 import { ROUTES } from "../../constants/routes";
@@ -101,17 +102,18 @@ export default function Home() {
 
                     {error && <div className="alert alert-warning">{error}</div>}
 
-                    <div className="row g-4">
-                        {loading ? (
+                    {loading ? (
+                        <div className="row g-4">
                             <ListingGridSkeleton count={6} />
-                        ) : (
-                            listings.map((l, i) => (
-                                <div className="col-lg-4 col-md-6" key={l.id}>
-                                    <ListingCard listing={l} isNew={i === 0} />
-                                </div>
-                            ))
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <ListingGrid
+                            listings={listings}
+                            renderCard={(l, i) => (
+                                <ListingCard listing={l} isNew={i === 0} />
+                            )}
+                        />
+                    )}
                 </div>
             </section>
 

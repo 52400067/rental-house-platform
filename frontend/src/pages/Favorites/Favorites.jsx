@@ -1,48 +1,18 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getFavorites, removeFavorite } from "../../api/socialApi";
 import { errMessage } from "../../api/axiosClient";
 import ListingCard from "../../components/ListingCard";
+import ListingGrid from "../../components/ListingGrid";
 import ListingGridSkeleton from "../../components/ui/ListingGridSkeleton";
 import Pagination from "../../components/Pagination";
 import { useToast } from "../../components/ui/Toast";
 import { ROUTES } from "../../constants/routes";
+import { useListingPage } from "../../hooks/useListingPage";
 
 export default function Favorites() {
     const toast = useToast();
-    const [listings, setListings] = useState([]);
-    const [meta, setMeta] = useState(null);
-    const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
-    // Skeleton again per page change - reset during render via
-    // prev-comparison instead of a synchronous setState in the effect.
-    const [prevPage, setPrevPage] = useState(page);
-    if (prevPage !== page) {
-        setPrevPage(page);
-        setLoading(true);
-    }
-
-    useEffect(() => {
-        let active = true;
-        getFavorites(page)
-            .then(({ data, meta }) => {
-                if (active) {
-                    setListings(data);
-                    setMeta(meta);
-                }
-            })
-            .catch((err) => {
-                if (active) setError(errMessage(err));
-            })
-            .finally(() => {
-                if (active) setLoading(false);
-            });
-        return () => {
-            active = false;
-        };
-    }, [page]);
+    const { listings, setListings, meta, setPage, loading, error } =
+        useListingPage((p) => getFavorites(p));
 
     async function unfavorite(listing) {
         try {
@@ -83,21 +53,14 @@ export default function Favorites() {
                     </div>
                 )}
 
-                <div className="row g-4">
-                    {listings.map((l) => (
-                        <div className="col-lg-4 col-md-6" key={l.id}>
-                            <ListingCard listing={l} onToggleFavorite={unfavorite} />
-                        </div>
-                    ))}
-                </div>
-
-                <Pagination
-                    meta={meta}
-                    onPage={(p) => {
-                        setPage(p);
-                        window.scrollTo(0, 0);
-                    }}
+                <ListingGrid
+                    listings={listings}
+                    renderCard={(l) => (
+                        <ListingCard listing={l} onToggleFavorite={unfavorite} />
+                    )}
                 />
+
+                <Pagination meta={meta} onPage={setPage} />
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
     getMyListings,
@@ -16,57 +16,21 @@ import Pagination from "../../components/Pagination";
 import { useToast } from "../../components/ui/Toast";
 import { ROUTES, route } from "../../constants/routes";
 import ListRowsSkeleton from "../../components/ui/ListRowsSkeleton";
+import { useListingPage } from "../../hooks/useListingPage";
 
 export default function MyListings() {
     const toast = useToast();
-    const [listings, setListings] = useState([]);
-    const [meta, setMeta] = useState(null);
-    const [page, setPage] = useState(1);
     const [status, setStatus] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
-    // Skeleton again on page/status change - reset during render via
-    // prev-comparison instead of a synchronous setState in the effect.
-    const [prevQuery, setPrevQuery] = useState([page, status]);
-    if (prevQuery[0] !== page || prevQuery[1] !== status) {
-        setPrevQuery([page, status]);
-        setLoading(true);
-    }
-
-    const load = useCallback(
-        (p = 1) => {
-            setLoading(true);
-            getMyListings(p, status)
-                .then(({ data, meta }) => {
-                    setListings(data);
-                    setMeta(meta);
-                })
-                .catch((err) => setError(errMessage(err)))
-                .finally(() => setLoading(false));
-        },
-        [status]
-    );
-
-    useEffect(() => {
-        let active = true;
-        getMyListings(page, status)
-            .then(({ data, meta }) => {
-                if (active) {
-                    setListings(data);
-                    setMeta(meta);
-                }
-            })
-            .catch((err) => {
-                if (active) setError(errMessage(err));
-            })
-            .finally(() => {
-                if (active) setLoading(false);
-            });
-        return () => {
-            active = false;
-        };
-    }, [page, status]);
+    const {
+        listings,
+        setListings,
+        meta,
+        setPage,
+        loading,
+        error,
+        refresh,
+    } = useListingPage((p) => getMyListings(p, status), [status]);
 
     async function handleDelete(listing) {
         if (!window.confirm(`Xóa tin "${listing.title}"? Không thể hoàn tác.`))
@@ -74,7 +38,9 @@ export default function MyListings() {
         try {
             await deleteListing(listing.id);
             toast.success("Đã xóa tin đăng.");
-            load(page);
+            // Tải lại trang hiện tại; refresh không bật lại skeleton nên
+            // danh sách chỉ được thay khi dữ liệu mới về (bớt nháy).
+            refresh();
         } catch (err) {
             toast.error(errMessage(err));
         }
@@ -216,13 +182,7 @@ export default function MyListings() {
                     ))}
                 </div>
 
-                <Pagination
-                    meta={meta}
-                    onPage={(p) => {
-                        setPage(p);
-                        window.scrollTo(0, 0);
-                    }}
-                />
+                <Pagination meta={meta} onPage={setPage} />
             </div>
         </div>
     );
