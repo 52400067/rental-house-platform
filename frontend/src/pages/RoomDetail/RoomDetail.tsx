@@ -278,7 +278,14 @@ export default function RoomDetail() {
 
                     {/* RIGHT: landlord + action */}
                     <div className="col-lg-4">
-                        <div className="card sticky-top" style={{ top: "1rem" }}>
+                        {/* top = navbar + khoang cach: card phai dui duoi
+                            navbar sticky (ca hai deu .sticky-top z-1020,
+                            top nho hon navbar-h thi card de chieu len
+                            navbar khi scroll). */}
+                        <div
+                            className="card sticky-top"
+                            style={{ top: "calc(var(--navbar-h) + 1rem)" }}
+                        >
                             <div className="card-body">
                                 <div className="d-flex align-items-center mb-3">
                                     <i

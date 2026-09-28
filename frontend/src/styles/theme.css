@@ -8,6 +8,11 @@
    ========================================================= */
 
 :root {
+    /* Chieu cao sticky navbar (padding 8px x2 + content ~41px). Dung de
+       dat offset `top` cho phan tu sticky khac - tranh viec chieu cua
+       navbar bang con so thu cong roi lech khi doi padding. */
+    --navbar-h: 57px;
+
     /* Palette: 4 values, straight from the reference */
     --ink: #191a23;          /* navy-black: text, chrome, hard shadows */
     --ink-lift: #23242e;     /* one step lighter: the hero panel, so it
