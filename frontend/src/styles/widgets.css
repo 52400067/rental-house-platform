@@ -23,6 +23,23 @@
     z-index: 1050;
 }
 
+/* Shared corner-FAB shape: lime circle, navy icon, hard lime shadow.
+   (Backup vi block nay bi lam roi khi tach theme.css 1873 dong -
+   commit 4065631 - de khong con nut mac dinh Bootstrap.) */
+.corner-fab {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+    background: var(--brand);
+    color: var(--ink);
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-hard-lime);
+}
+
 .ai-widget-launcher {
     transition: transform 0.18s var(--ease), background-color 0.15s;
 }

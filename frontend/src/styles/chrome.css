@@ -249,6 +249,9 @@
     transition: opacity 0.2s var(--ease), transform 0.2s var(--ease),
         background-color 0.15s;
 }
+.back-to-top:hover {
+    background: var(--brand-soft);
+}
 .back-to-top.show {
     opacity: 1;
     transform: translateY(0);
