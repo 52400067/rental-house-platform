@@ -62,3 +62,5 @@ storage/*.key
 .claude/
 skills-lock.json
 .browser-check/
+docker-compose.local-test.yml
+freebuff-chat-*.md
