@@ -64,3 +64,4 @@ skills-lock.json
 .browser-check/
 docker-compose.local-test.yml
 freebuff-chat-*.md
+frontend/src/styles/.css-baseline/

@@ -16,7 +16,7 @@ user-facing behavior.
 - ai-service/ stays a placeholder (no build-out). docker-compose must start cleanly without it.
 - Bearer-token-in-localStorage auth transport stays (contract-level decision; revisit later)
 
-## Baseline (measured 2026-09-26, branch `main` @ 5b4696a)
+## Baseline (measured 2026-09-26, commit `5b4696a` - original default branch, renamed to `unstable`)
 
 | Metric | Value |
 |---|---|
@@ -76,15 +76,14 @@ Full backend + frontend check matrix; docker compose smoke (health, listings, lo
 
 ## Open questions for the user (blocking or decision-needed)
 
-1. **[Blocks tests] Create the test DB** (one-time):
-   ```sql
-   CREATE DATABASE rental_test OWNER rental;
-   ```
-   (`sudo -u postgres psql` or as your local Postgres admin). The suite also needs Postgres running.
-2. **License** for LICENSE file (MIT? proprietary?) - not creating it until you say.
-3. **Sanctum token expiry**: OK to set a finite expiration (e.g. 7-30 days) or must tokens be long-lived for the mobile/demo use case? (Documented decision either way; default: no expiry in this pass, documented.)
-4. **CSP strictness**: start report-only (my default) or enforce from day one?
-5. Anything off-limits besides the docs/ contracts?
+> Trạng thái: tất cả đã chốt. Các quyết định hiện nằm ở `SECURITY.md`,
+> `.github/workflows/ci.yml` và `docs/TECH-DEBT.md`.
+
+1. ~~Create the test DB~~ **Chốt:** CI chạy `php artisan test` với Postgres service container; dev tạo `rental_test` một lần theo `deploy.sh`.
+2. **License** - **Chốt:** MIT (`LICENSE`, commit `f3635d6`).
+3. ~~Sanctum token expiry~~ **Chốt:** 30 ngày qua `SANCTUM_TOKEN_TTL_MINUTES` (SECURITY.md).
+4. ~~CSP strictness~~ **Chốt:** enforcing từ đầu, theo loại response (SECURITY.md + `SecurityHeaders.php`).
+5. ~~Off-limits~~ **Chốt:** chỉ các file hợp đồng trong `docs/` (mục DO NOT TOUCH ở trên).
 
 ## Residual risks (honest)
 

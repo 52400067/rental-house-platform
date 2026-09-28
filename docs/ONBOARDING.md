@@ -23,7 +23,7 @@ trước rồi báo cả nhóm).
 
 ## 2. Chạy local trong 5 phút
 
-Cách nhanh nhất (Fedora/local PHP + Node, không cần Docker):
+Cách nhanh nhất (Debian/Ubuntu - local PHP + Node, không cần Docker):
 
 ```bash
 bash deploy.sh          # deps check + DB mới + backend :8000 + vite :5173 + reverb :8080
@@ -59,7 +59,7 @@ chạy được cả khi AI service tắt) - API xanh là đủ để bắt đ�
 - **Mass assignment**: không bao giờ cho `role` qua request; field sinh
   viên/chủ nhà phân tách bằng FormRequest riêng theo vai trò.
 - **Test trước khi push**: backend
-  `php artisan test` (~207 pass) + `./vendor/bin/pint --test`; frontend
+  `php artisan test` (209 test) + `./vendor/bin/pint --test`; frontend
   `npm run lint && npm run build`. CI (backend/frontend/secrets) phải xanh.
 - **Commit**: conventional, tiếng Việt không dấu, gọn một dòng ý nghĩa
   (`refactor: tach useAuthForm dung chung...`).
@@ -88,13 +88,14 @@ backend/    Laravel API
   app/Http/Middleware     throttle, role, security headers, ...
   app/Models|Policies     Eloquent + quyền (outsider = 404)
   routes/api.php          toàn bộ endpoint + throttle
-  tests/Feature/          207 test, gồm authorization matrix
-frontend/   React SPA (Vite + Bootstrap 5 + Leaflet)
+  tests/Feature/          209 test, gồm authorization matrix
+frontend/   React 18 + TypeScript strict SPA (Vite + Bootstrap 5 + Leaflet,
+            Node 22 theo .nvmrc)
   src/api/                axios client + hàm gọi API theo nhóm
   src/pages/              mỗi trang một thư mục
   src/components/         UI dùng chung (auth/, conversation/, ui/)
   src/hooks/              useAuthForm, useListingForm, useListingPage, ...
-  src/constants/          routes.js (SPA routes), events.js, hobbies.js
+  src/constants/          routes.ts (SPA routes), events.ts, hobbies.ts
   src/styles/             theme → layout → chrome → auth → messages →
                           chat → widgets → components (thứ tự load-bearing)
 docs/       hợp đồng + runbook + sổ tech debt

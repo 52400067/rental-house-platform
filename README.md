@@ -54,10 +54,10 @@ Phân công theo tính năng:
 
 | Phần | Công nghệ |
 |---|---|
-| Backend | PHP 8.2+, Laravel 11, PostgreSQL 16, Laravel Sanctum (xác thực bằng token) |
-| Frontend | Tự chọn: React + Vite + Bootstrap 5 + Axios, hoặc HTML/JS thuần + Bootstrap 5. Dùng Leaflet cho bản đồ |
+| Backend | PHP 8.3, Laravel 11, PostgreSQL 16, Laravel Sanctum (xác thực bằng token) |
+| Frontend | React 18 + TypeScript strict + Vite + Bootstrap 5 + Axios (Node 22 theo `.nvmrc`). Dùng Leaflet cho bản đồ |
 | AI | Python 3.10+, FastAPI. Gọi API LLM bất kỳ hoặc model riêng, tự chọn |
-| Hạ tầng | Docker Compose (tùy chọn) để chạy PostgreSQL + Backend + AI. Không cần Redis, Nginx hay CI |
+| Hạ tầng | Docker Compose với image Debian trixie (`node:22-trixie`, `nginx:1.29-trixie`, `php:8.3-cli-trixie`, `postgres:16-trixie`; Caddy 2 cho TLS ở production). CI GitHub Actions (backend/frontend/secrets) + deploy tự động khi `stable` xanh |
 
 ## 4. Cấu trúc thư mục
 
@@ -65,7 +65,7 @@ Một repo, mỗi người một thư mục cấp 1 riêng, nên ít bị xung �
 
 ```
 rental-house/
-├── docker-compose.yml    # PostgreSQL + Backend + AI (tùy chọn)
+├── docker-compose.yml    # PostgreSQL + Backend + Frontend + AI (AI đằng sau profile `ai`)
 ├── .env.example          # biến cho docker compose (copy thành .env)
 ├── docs/                 # API_CONTRACT.md, AI_CONTRACT.md, ERD.md
 ├── frontend/             # Frontend phụ trách (cấu trúc tự do)
@@ -76,11 +76,8 @@ rental-house/
 │   ├── app/Services/AiClient.php   # gọi sang AI service
 │   ├── database/migrations/  database/seeders/
 │   └── routes/api.php
-├── ai-service/           # FastAPI (AI phụ trách)
-│   ├── Dockerfile  .dockerignore
-│   ├── main.py
-│   ├── knowledge.md      # kiến thức cho chatbot
-│   └── requirements.txt
+├── ai-service/           # FastAPI (AI phụ trách) - hiện là stub, chỉ có HANDOFF.md
+│   │                     # (kế hoạch: main.py, knowledge.md, requirements.txt)
 └── README.md             # chính là file hướng dẫn nhóm này
 ```
 
@@ -88,16 +85,21 @@ Mỗi thư mục có `.gitignore` riêng (`vendor/`, `node_modules/`, `venv/`, `
 
 ## 5. Chạy trên máy
 
-Có hai cách. Frontend luôn chạy ngoài Docker (`npm install`, `npm run dev`).
+Có vài cách: `bash deploy.sh` là nhanh nhất trên Debian/Ubuntu (tự kiểm tra
+deps, seed DB, chạy backend :8000 + Vite :5173 + Reverb :8080 - xem
+[docs/ONBOARDING.md](docs/ONBOARDING.md)). Production chạy bằng Docker; khi
+dev, frontend luôn chạy ngoài Docker (`npm install`, `npm run dev`).
 
 ### Cách A: Docker (khuyên dùng)
 
-Cần cài Docker Desktop. Một lệnh chạy cả PostgreSQL, Backend và AI service.
+Cần cài Docker (trên Linux không root có thể dùng Podman: `systemctl --user
+enable --now podman.socket` rồi thay `docker` bằng `podman compose`). Một lệnh
+chạy cả PostgreSQL, Backend và AI service.
 
 1. Copy `.env.example` thành `.env` ở gốc repo (chứa mật khẩu DB, `FAKE_MODE`, `LLM_API_KEY`).
-2. **Backend (làm một lần, rồi commit):** tạo project Laravel trước khi thêm `Dockerfile` vào `backend/`:
-   `docker run --rm -v "${PWD}:/app" composer:2 create-project laravel/laravel:^11.0 backend`
-   Sau đó đặt `Dockerfile` và `.dockerignore` vào `backend/`. Trong `backend/.env.example`, đặt `DB_CONNECTION=pgsql` và bỏ dấu `#` ở các dòng `DB_*`.
+2. **Backend:** project Laravel, `Dockerfile` và `.dockerignore` đã có sẵn trong
+   `backend/`; `backend/.env.example` đã đặt `DB_CONNECTION=pgsql` và các dòng
+   `DB_*`.
 3. Chạy: `docker compose up -d --build`
 4. Backend làm lần đầu:
    - `cp backend/.env.example backend/.env`
@@ -119,7 +121,8 @@ Lệnh hay dùng:
 
 ### Cách B: Không dùng Docker
 
-Cần PHP 8.2+, Composer, Python 3.10+ và PostgreSQL 16 cài sẵn trên máy.
+Cần PHP 8.3, Composer, Python 3.10+ và PostgreSQL 16 cài sẵn trên máy (Debian:
+`sudo apt-get install -y php-cli php-pgsql php-mbstring php-xml php-zip composer nodejs npm postgresql`).
 
 | Phần | Cổng | Lệnh |
 |---|---|---|

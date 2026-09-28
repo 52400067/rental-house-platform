@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# TROSV - fast demo deploy (Fedora Linux)
+# TROSV - fast demo deploy (Debian Linux)
 #
 # Mot lenh chay toan bo stack demo:
 #   PostgreSQL  -> kiem tra / huong dan start
@@ -59,7 +59,7 @@ echo " TROSV demo deploy - $(date '+%H:%M:%S')"
 echo "=============================================="
 
 # ------------------------------------------------------------
-# 1. Kiem tra dependencies (Fedora)
+# 1. Kiem tra dependencies (Debian/Ubuntu)
 # ------------------------------------------------------------
 MISSING=()
 command -v php      >/dev/null || MISSING+=("php")
@@ -70,9 +70,12 @@ command -v psql     >/dev/null || MISSING+=("postgresql")
 
 if [[ ${#MISSING[@]} -gt 0 ]]; then
     warn "Thieu: ${MISSING[*]}"
-    echo "   Cai tren Fedora:"
-    echo "     sudo dnf install -y php php-pgsql php-mbstring php-xml composer nodejs npm postgresql postgresql-server"
-    echo "     sudo postgresql-setup --initdb   # lan dau tien"
+    echo "   Cai tren Debian/Ubuntu:"
+    echo "     sudo apt-get install -y php-cli php-pgsql php-mbstring php-xml php-zip php-gd curl composer nodejs npm postgresql"
+    echo "   Khoi tao PostgreSQL lan dau:"
+    echo "     sudo systemctl start postgresql"
+    echo "     sudo -u postgres psql -c \"CREATE USER rental WITH PASSWORD 'rental';\""
+    echo "     sudo -u postgres psql -c \"CREATE DATABASE rental OWNER rental;\""
     exit 1
 fi
 ok "Dependencies day du (php $(php -r 'echo PHP_VERSION;') / node $(node -v))"
