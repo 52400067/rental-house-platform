@@ -23,20 +23,27 @@ trước rồi báo cả nhóm).
 
 ## 2. Chạy local trong 5 phút
 
-Cách nhanh nhất (Debian/Ubuntu - local PHP + Node, không cần Docker):
+Cách nhanh nhất (Docker - không cần cài PHP/Node/PostgreSQL trên máy):
+
+```bash
+bash deploy.sh --docker   # tự tạo .env + APP_KEY, build, chờ healthy
+```
+
+Hoặc không Docker (PHP + Node trực tiếp trên Debian/Ubuntu):
 
 ```bash
 bash deploy.sh          # deps check + DB mới + backend :8000 + vite :5173 + reverb :8080
 bash deploy.sh --quick  # lần sau: giữ DB, chỉ khởi động lại
 ```
 
-Hoặc bằng Docker: `docker compose up -d --build` (frontend ở :5174).
-
-- Web: http://localhost:5173 · API: http://localhost:8000/api
+- Web: http://localhost:5174 (Docker) hoặc http://localhost:5173 (Vite dev)
+  · API: http://localhost:8000/api
 - Tài khoản demo (mật khẩu `password`): `student1@example.com` (sinh
-  viên), `landlord1@example.com` (chủ nhà)
-- AI service (:8001) không bắt buộc - backend tự trả 503 lịch sự khi AI
-  chết, mọi tính năng còn lại chạy bình thường.
+  viên), `landlord1@example.com` (chủ nhà). Docker: đặt `SEED_ON_BOOT=1`
+  trong `.env` để có dữ liệu demo khi boot.
+- AI service (:8001, `docker compose --profile ai up -d`) không bắt buộc -
+  là stub FAKE_MODE; backend tự trả 503 lịch sự khi AI chết, mọi tính năng
+  còn lại chạy bình thường.
 
 Smoke test: `bash frontend/e2e-smoke.sh` (~70 check trên mọi API call,
 chạy được cả khi AI service tắt) - API xanh là đủ để bắt đầu code.

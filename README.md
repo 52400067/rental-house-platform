@@ -85,69 +85,75 @@ Mỗi thư mục có `.gitignore` riêng (`vendor/`, `node_modules/`, `venv/`, `
 
 ## 5. Chạy trên máy
 
-Có vài cách: `bash deploy.sh` là nhanh nhất trên Debian/Ubuntu (tự kiểm tra
-deps, seed DB, chạy backend :8000 + Vite :5173 + Reverb :8080 - xem
-[docs/ONBOARDING.md](docs/ONBOARDING.md)). Production chạy bằng Docker; khi
-dev, frontend luôn chạy ngoài Docker (`npm install`, `npm run dev`).
+Có hai cách: **Docker** (khuyên dùng - một file `docker-compose.yml` duy nhất
+dùng cho dev, demo và production) hoặc **không Docker** (PHP + Node trực
+tiếp, nhanh nhất khi code hằng ngày).
 
 ### Cách A: Docker (khuyên dùng)
 
-Cần cài Docker (trên Linux không root có thể dùng Podman: `systemctl --user
-enable --now podman.socket` rồi thay `docker` bằng `podman compose`). Một lệnh
-chạy cả PostgreSQL, Backend và AI service.
+```bash
+bash deploy.sh --docker     # tự tạo .env + APP_KEY, up -d --build, chờ healthy
+# hoặc làm tay:
+cp .env.example .env        # điền APP_KEY (lệnh tạo có sẵn trong file)
+docker compose up -d --build
+```
 
-1. Copy `.env.example` thành `.env` ở gốc repo (chứa mật khẩu DB, `FAKE_MODE`, `LLM_API_KEY`).
-2. **Backend:** project Laravel, `Dockerfile` và `.dockerignore` đã có sẵn trong
-   `backend/`; `backend/.env.example` đã đặt `DB_CONNECTION=pgsql` và các dòng
-   `DB_*`.
-3. Chạy: `docker compose up -d --build`
-4. Backend làm lần đầu:
-   - `cp backend/.env.example backend/.env`
-   - `docker compose exec backend php artisan key:generate`
-   - `docker compose exec backend php artisan migrate --seed`
-   - `docker compose exec backend php artisan storage:link --relative`
+Cần cài Docker (trên Linux không root có thể dùng Podman: `systemctl --user
+enable --now podman.socket` rồi thay `docker` bằng `podman compose`).
 
 | Dịch vụ | Địa chỉ |
 |---|---|
-| Backend | http://localhost:8000 |
-| AI service (có trang thử API) | http://localhost:8001/docs |
-| PostgreSQL | `localhost:5432`, database `rental`, user `rental`, mật khẩu `rental` (kết nối bằng DBeaver hoặc pgAdmin) |
+| Web (SPA) | http://localhost:5174 |
+| API | http://localhost:8000/api (hoặc same-origin http://localhost:5174/api) |
+| WebSocket | ws://localhost:8080 (Reverb) |
+| AI service (stub FAKE_MODE) | http://localhost:8001/docs - bật bằng `docker compose --profile ai up -d` |
+| PostgreSQL | không publish ra host - truy vấn bằng `docker compose exec db psql -U rental -d rental` |
+
+Dữ liệu demo: đặt `SEED_ON_BOOT=1` trong `.env`, hoặc chạy tay
+`docker compose exec backend php artisan migrate:fresh --seed --force`.
 
 Lệnh hay dùng:
 - `docker compose logs -f backend`: xem log.
-- `docker compose down`: tắt (giữ nguyên dữ liệu DB).
-- `docker compose down -v`: tắt và **xóa cả dữ liệu DB** (dùng khi muốn làm lại từ đầu).
-- `docker compose up -d db`: chỉ chạy PostgreSQL, còn Backend và AI chạy trực tiếp trên máy (cách C bên dưới).
+- `docker compose down`: tắt (giữ DB + uploads trong volume).
+- `docker compose down -v`: tắt và **xóa cả DB + uploads** (làm lại từ đầu).
+- Production VPS: xem [docs/DEMO-VPS.md](docs/DEMO-VPS.md) - thêm
+  `--profile tls` và `DOMAIN` vào `.env`, Caddy tự cấp HTTPS.
 
 ### Cách B: Không dùng Docker
 
-Cần PHP 8.3, Composer, Python 3.10+ và PostgreSQL 16 cài sẵn trên máy (Debian:
+Cần PHP 8.3, Composer, Node 22 và PostgreSQL 16 cài sẵn trên máy (Debian:
 `sudo apt-get install -y php-cli php-pgsql php-mbstring php-xml php-zip composer nodejs npm postgresql`).
 
-| Phần | Cổng | Lệnh |
-|---|---|---|
-| Backend | 8000 | `composer install`, copy `.env.example` thành `.env`, `php artisan key:generate`, `php artisan migrate --seed`, `php artisan storage:link --relative`, `php artisan serve` |
-| AI | 8001 | `pip install -r requirements.txt`, sau đó `uvicorn main:app --port 8001` |
-| Frontend | 5173 (hoặc tùy) | `npm install`, `npm run dev` |
+```bash
+bash deploy.sh           # kiểm tra deps, migrate:fresh --seed, chạy
+                         # backend :8000 + reverb :8080 + vite :5173
+bash deploy.sh --quick   # lần sau: giữ DB, chỉ khởi động lại
+```
 
-**Cách C (kết hợp):** chỉ chạy PostgreSQL bằng Docker (`docker compose up -d db`), còn Backend, AI, Frontend chạy trực tiếp như cách B với `DB_HOST=127.0.0.1`.
+AI service chạy kèm (tùy chọn): `pip install -r ai-service/requirements.txt`
+rồi `uvicorn main:app --port 8001` trong `ai-service/`.
 
 ### Biến môi trường
 
-| File | Biến |
+| File | Dùng cho |
 |---|---|
-| `.env` (gốc repo, cho Docker) | `DB_PASSWORD=rental`, `FRONTEND_URL=http://localhost:5173`, `FAKE_MODE=true`, `LLM_API_KEY=` |
-| `backend/.env` | `APP_URL=http://localhost:8000` (dùng để tạo link ảnh), `DB_CONNECTION=pgsql`, `DB_HOST=127.0.0.1` (Docker tự đổi thành `db`), `DB_PORT=5432`, `DB_DATABASE=rental`, `DB_USERNAME=rental`, `DB_PASSWORD=rental`, `FRONTEND_URL=http://localhost:5173` (cho CORS), `AI_URL=http://localhost:8001` |
-| `frontend/.env` | `VITE_API_URL=http://localhost:8000/api` |
-| `ai-service/.env` (chỉ khi chạy không Docker) | `LLM_API_KEY=`, `FAKE_MODE=true` |
+| `.env` (gốc repo, docker compose tự đọc) | `APP_KEY` + `REVERB_APP_*` (bắt buộc), `DOMAIN`/`FRONTEND_URL`/`WS_HOST` (production), `SEED_ON_BOOT`, `DB_PASSWORD`, `FAKE_MODE`. Mẫu đầy đủ: `.env.example` |
+| `backend/.env` | khi chạy backend ngoài Docker: copy từ `backend/.env.example`, `DB_CONNECTION=pgsql`, `DB_HOST=127.0.0.1`, rồi `php artisan key:generate` |
+| `frontend/.env` | dev Vite ngoài Docker: `VITE_API_URL=http://localhost:8000/api` |
+| `ai-service/.env` (tùy chọn) | `FAKE_MODE=true`, `LLM_API_KEY=` |
 
 Không commit file `.env` thật hay API key. Chỉ commit `.env.example`.
 
 ### Lỗi thường gặp
 
-- Backend báo không kết nối được DB khi chạy ngoài Docker: kiểm tra `DB_HOST=127.0.0.1` (không phải `db`) và `docker compose up -d db` đã chạy.
-- Ảnh không hiện: chạy lại `storage:link --relative` ở đúng nơi chạy Backend (trong Docker thì dùng `docker compose exec backend ...`) và kiểm tra `APP_URL`.
-- Trên Linux, file do container tạo ra có thể thuộc về root: chạy `sudo chown -R $USER:$USER backend`.
+- Container `unhealthy`: `docker compose logs backend` - production fail-fast
+  in dòng `Refusing to serve: ...` nếu `APP_DEBUG=true` hoặc thiếu `APP_KEY`.
+- Backend không nối được DB khi chạy ngoài Docker: `DB_HOST=127.0.0.1`
+  (không phải `db`).
+- Ảnh không hiện: kiểm tra `APP_URL` khớp origin đang truy cập
+  (`storage:link` đã chạy tự động khi boot trong Docker).
+- Frontend gọi sai địa chỉ API: bundle bake `VITE_*` lúc **build** - đổi
+  `.env` xong phải `docker compose up -d --build frontend`, restart không đủ.
 
 ## 6. Cách phối hợp
 

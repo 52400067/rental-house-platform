@@ -1,8 +1,8 @@
 # TROSV on a VPS - quick demo guide
 
-Goal: public demo with ~4 commands. Uses the same Docker stack as dev,
-plus `docker-compose.demo.yml` which publishes public ports and bakes
-public URLs into the frontend bundle.
+Goal: public demo with ~4 commands. One `docker-compose.yml` serves dev,
+demo and production: profile `tls` turns on Caddy HTTPS, `DOMAIN` +
+`FRONTEND_URL` in `.env` bake the public URLs.
 
 > This is a DEMO setup: public demo passwords, seeded data. Do not use
 > real data. Option A below is plain HTTP; Option B adds automatic
@@ -31,7 +31,8 @@ git checkout stable
 The GitHub Actions deploy workflow (`.github/workflows/deploy.yml`) runs this
 same sequence on every push to `stable` (only after CI is green on the same
 commit): it resets the checkout to the pushed SHA and runs
-`docker compose up -d --build`, then health-checks the API. Once the
+`docker compose --profile tls up -d --build`, then health-checks the API
+through Caddy. Once the
 `production` environment secrets are configured, manual deploys are only
 needed for the very first boot (`.env` creation).
 
@@ -67,11 +68,12 @@ echo "APP_KEY=$(docker run --rm php:8.3-cli php -r 'echo "base64:".base64_encode
 ## 2. Option A - build and start (one command, plain HTTP)
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+docker compose up -d --build
 ```
 
 First build takes a few minutes. The backend container then runs
-`migrate --force && db:seed --force && storage:link` automatically, so
+`migrate --force` (and `db:seed` when `SEED_ON_BOOT=1` in `.env`)
+automatically, so
 the demo data exists on first boot.
 
 Watch first-boot until you see your seed output:
@@ -122,10 +124,10 @@ docker compose exec backend php artisan migrate:fresh --seed --force
 
 # Update to the latest commit and restart
 git pull
-docker compose -f docker-compose.yml -f docker-compose.demo.yml up -d --build
+docker compose up -d --build
 
 # Full stop and cleanup (removes the database volume too)
-docker compose -f docker-compose.yml -f docker-compose.demo.yml down -v
+docker compose down -v
 ```
 
 ## Option B - automatic HTTPS with Caddy (now the DEFAULT for your server)
@@ -139,7 +141,7 @@ only need a DNS A record and ports **80 + 443** open.
 HTTPS-only is enforced: everything hitting port 80 is 301-redirected to
 HTTPS (explicit `http://{$DOMAIN}` site block in the Caddyfile), and the
 backend bakes `APP_ENV=production` + `APP_DEBUG=false` + `APP_KEY` from
-`.env` directly in the TLS overlay - no demo overlay needed, so there is
+`.env` (required by compose - no defaults). There is
 no HTTP path to accidentally fall back to.
 
 Create `.env` with **HTTPS** values:
@@ -154,12 +156,10 @@ REVERB_APP_KEY=my-app-key
 REVERB_APP_SECRET=my-app-secret
 ```
 
-One command (the extra `-f` and `--profile tls` are the only difference
-from Option A):
+One command (adding `--profile tls` is the only difference from Option A):
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.tls.yml \
-  --profile tls up -d --build
+docker compose --profile tls up -d --build
 sudo ufw allow 80,443/tcp
 ```
 
@@ -171,8 +171,7 @@ The Caddyfile is mounted, not baked, so a domain change is just:
 
 ```bash
 # edit .env, then
-docker compose -f docker-compose.yml -f docker-compose.tls.yml \
-  --profile tls up -d --build frontend backend
+docker compose --profile tls up -d --build frontend backend
 docker compose --profile tls restart caddy
 ```
 
@@ -187,7 +186,7 @@ values - but they change what you see when something is wrong:
   gets a generic 500 (`{"message":"Lỗi máy chủ."}`) and the precise reason
   goes to the log as `Refusing to serve: ...`. Check
   `docker compose logs backend`. Both values are already correct in
-  `docker-compose.demo.yml` (`APP_DEBUG: "false"`, required `APP_KEY`), so
+  `docker-compose.yml` (`APP_DEBUG: "false"`, `APP_KEY` required), so
   if the container boots, the config is safe.
 - **CSP is enforcing.** JSON and file responses carry
   `default-src 'none'; frame-ancestors 'none'`; the backend's one HTML page
@@ -203,7 +202,8 @@ values - but they change what you see when something is wrong:
 - **Reverse-proxy trust is opt-in.** Option B (TLS profile) already sets
   `TRUSTED_PROXIES: "*"` on the backend automatically - rate limiting and
   logs then show the real client IP. On Option A (or any setup where the
-  browser reaches the backend directly) leave it unset: honoring
+  browser reaches the backend directly) export `TRUSTED_PROXIES=` (empty)
+  via compose override: honoring
   `X-Forwarded-For` from direct clients would let anyone rotate IPs past
   the rate limiter.
 
