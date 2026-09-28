@@ -1,5 +1,12 @@
 # TROSV SPA - server {} context is provided by nginx's main config
-# (conf.d/app.conf is included inside http {}).
+# (conf.d/app.conf is rendered from this template by envsubst).
+#
+# THU TU LOCATION CO Y NGHIA (nginx regex = first match wins):
+# 1. Backend prefixes (regex)  - /api /storage /attachments /broadcasting
+# 2. Static asset extensions   - hashed assets + leaflet images/fonts
+# 3. SPA fallback (/)          - moi route con lai tra index.html
+# Neu doi thu tu, /storage/*.jpg se bi nuot boi location (2) va tra 404
+# (bug that da xay ra: anh khong hien khi chay same-origin).
 
 server {
     listen 80;
@@ -9,28 +16,15 @@ server {
     index index.html;
 
     # ---- Security headers (API responses get theirs from Laravel) ----
-    # Included again inside locations that set their own add_header, because
-    # nginx drops inherited headers in that case (see security-headers.conf).
     include security-headers.conf;
 
-    # ---- Hashed assets: immutable, cache forever ----
-    location /assets/ {
-        include security-headers.conf;
-        add_header Cache-Control "public, max-age=31536000, immutable";
-        try_files $uri =404;
-    }
-
-    # ---- Leaflet images: not hashed, cache moderately ----
-    location ~* \.(png|jpg|jpeg|svg|webp|ico|woff2?)$ {
-        include security-headers.conf;
-        add_header Cache-Control "public, max-age=604800";
-        try_files $uri =404;
-    }
-
-    # ---- API same-origin proxy (when VITE_API_URL matches SPA origin) ----
-    # Proxy all methods incl. OPTIONS preflight to the backend, which owns
-    # the Access-Control-* allowlist (config/cors.php). Unused when
-    # VITE_API_URL points directly at :8000 (plain-HTTP demo mode).
+    # ---- (1) Backend-owned prefixes -> proxy --------------------------
+    #   /api/           JSON API
+    #   /storage/       anh tin dang (URL tao tu APP_URL cua backend)
+    #   /attachments/   URL ky 60 phut mo dinh kem trong tab moi
+    #   /broadcasting/  Echo private-channel auth (POST /broadcasting/auth)
+    # Phai dung REGEX location + dat truoc location (2), vi /storage/*.jpg
+    # ket thuc bang ".jpg" - neu location (2) khop truoc se tra 404.
     #
     # nginx resolves a STATIC proxy_pass hostname once at startup - when
     # compose re-creates the backend container (new IP), the frontend would
@@ -44,7 +38,7 @@ server {
     resolver ${NGINX_DNS_RESOLVER} valid=10s ipv6=off;
     set $backend_upstream http://backend:8000;
 
-    location /api/ {
+    location ~ ^/(api|storage|attachments|broadcasting)(/|$) {
         proxy_pass $backend_upstream;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -52,7 +46,22 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # ---- SPA fallback: every route serves index.html ----
+    # ---- (2) Static assets (SPA bundle) -------------------------------
+    # Hashed assets: immutable, cache forever.
+    location /assets/ {
+        include security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # Leaflet images + fonts: not hashed, cache moderately.
+    location ~* \.(png|jpg|jpeg|svg|webp|ico|woff2?)$ {
+        include security-headers.conf;
+        add_header Cache-Control "public, max-age=604800";
+        try_files $uri =404;
+    }
+
+    # ---- (3) SPA fallback: every route serves index.html --------------
     location / {
         include security-headers.conf;
         add_header Cache-Control "no-cache";
