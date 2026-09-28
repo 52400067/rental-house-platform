@@ -2,25 +2,24 @@
 # ============================================================
 # TROSV - fast demo deploy (Debian Linux)
 #
-# Mot lenh chay toan bo stack demo:
-#   PostgreSQL  -> kiem tra / huong dan start
-#   Laravel API -> http://localhost:8000  (migrate:fresh --seed)
-#   Vite web    -> http://localhost:5173
+# Hai che do:
+#   bash deploy.sh --docker  # KHUYEN DUNG: docker compose (1 file duy nhat)
+#                            # up -d --build + doi healthy + kiem tra API
+#   bash deploy.sh           # khong Docker: PHP + Node truc tiep tren may
+#                            # (PostgreSQL local, artisan serve :8000,
+#                            #  vite dev :5173, reverb :8080)
+#   bash deploy.sh --quick   # (che do local) bo qua install, GIU DB
+#   bash deploy.sh --stop    # dung toan bo service
 #
-# Usage:
-#   bash deploy.sh            # day du: kiem tra deps + DB moi + start
-#   bash deploy.sh --quick    # bo qua install, GIU DB hien tai
-#   bash deploy.sh --stop     # dung toan bo service demo
+# Log/PID (che do local): /tmp/trosv-api.log /tmp/trosv-web.log
+#                         /tmp/trosv-demo.pids
 #
-# Log:  /tmp/trosv-api.log  /tmp/trosv-web.log
-# PID:  /tmp/trosv-demo.pids
-#
-# Demo accounts (sau khi seed):
+# Demo accounts (sau khi seed, SEED_ON_BOOT=1 trong .env khi docker):
 #   student1@example.com  /  password   (sinh vien)
 #   landlord1@example.com /  password   (chu nha)
 #
-# AI service (:8001) khong bat buoc - backend tu tra 503 fallback
-# khi AI chet, e2e smoke van xanh.
+# AI service (:8001, docker compose --profile ai) khong bat buoc -
+# backend tu tra 503 fallback khi AI chet, e2e smoke van xanh.
 # ============================================================
 set -euo pipefail
 
@@ -40,6 +39,10 @@ port_open() { (echo > "/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
 stop_all() {
     echo ">> Dung cac service demo..."
+    if command -v docker >/dev/null 2>&1 && docker compose ps -q 2>/dev/null | grep -q .; then
+        docker compose down
+        ok "Docker stack da dung"
+    fi
     if [[ -f "$PID_FILE" ]]; then
         while read -r pid; do kill "$pid" 2>/dev/null || true; done < "$PID_FILE"
         rm -f "$PID_FILE"
@@ -52,7 +55,32 @@ stop_all() {
     exit 0
 }
 
+run_docker() {
+    command -v docker >/dev/null || die "Khong co docker - chay 'bash deploy.sh' (che do local PHP + Node)"
+    docker info >/dev/null 2>&1 || die "Docker daemon chua chay - mo Docker Desktop hoac systemctl start docker"
+    [[ -f .env ]] || { cp .env.example .env; ok "Da tao .env tu .env.example"; }
+    grep -q '^APP_KEY=base64' .env || {
+        echo ">> tao APP_KEY..."
+        echo "APP_KEY=$(docker run --rm php:8.3-cli php -r 'echo "base64:".base64_encode(random_bytes(32));')" >> .env
+        ok "Da tao APP_KEY trong .env"
+    }
+    grep -q '^SEED_ON_BOOT=' .env || echo 'SEED_ON_BOOT=1' >> .env
+    echo ">> docker compose up -d --build (lan dau mat vai phut)..."
+    docker compose up -d --build || die "docker compose that bai"
+    echo ">> doi healthy..."
+    for i in $(seq 1 60); do
+        [[ "$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose ps -q backend)" 2>/dev/null)" == "healthy" ]] && break
+        [[ "$i" = 60 ]] && { docker compose logs --tail 50 backend; die "backend chua healthy sau 60 lan kiem tra"; }
+        sleep 2
+    done
+    curl -sf http://127.0.0.1:8000/api/cities >/dev/null || die "API khong tra loi - xem: docker compose logs backend"
+    curl -sf http://127.0.0.1:5174/ >/dev/null || die "Web khong tra loi - xem: docker compose logs frontend"
+    ok "API: http://localhost:8000/api - Web: http://localhost:5174"
+    ok "Smoke: bash frontend/e2e-smoke.sh"
+}
+
 [[ "${1:-}" == "--stop" ]] && stop_all
+[[ "${1:-}" == "--docker" ]] && run_docker && exit 0
 
 echo "=============================================="
 echo " TROSV demo deploy - $(date '+%H:%M:%S')"

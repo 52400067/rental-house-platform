@@ -20,7 +20,7 @@ GOOD=<sha-tot>
 ## 1. Rollback code (1 lan)
 
 ```bash
-DC="docker compose -f docker-compose.yml -f docker-compose.tls.yml --profile tls"
+DC="docker compose --profile tls"
 cd /opt/trosv
 git fetch origin stable --tags
 git reset --hard $GOOD

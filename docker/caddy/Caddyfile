@@ -1,14 +1,18 @@
 # ============================================================
-# TROSV - Caddy reverse proxy for the demo (automatic HTTPS).
+# TROSV - Caddy reverse proxy (automatic HTTPS).
 #
 # Mot domain duy nhat, browser chi noi 443:
-#   https://$DOMAIN/            -> frontend (nginx, bundle da build)
-#   https://$DOMAIN/api/*       -> backend :8000  (kem /storage va
-#                                  /broadcasting/auth)
-#   https://$DOMAIN/app/*       -> reverb :8080   (WebSocket -> wss)
+#   https://$DOMAIN/                 -> frontend (nginx, bundle da build)
+#   https://$DOMAIN/api/*            -> backend :8000
+#   https://$DOMAIN/broadcasting/*   -> backend :8000  (Echo private-channel
+#                                       auth - SPA goi voi Bearer token)
+#   https://$DOMAIN/attachments/*    -> backend :8000  (URL ky 60 phut,
+#                                       mo truc tiep tu browser)
+#   https://$DOMAIN/storage/*        -> backend :8000  (anh tin dang)
+#   https://$DOMAIN/app/*            -> reverb :8080   (WebSocket -> wss)
 #
-# Chung chi can DNS A record tro ve VPS; Caddy tu lay va gia han
-# chung chi Let's Encrypt. Khong certbot, khong cron.
+# Chung chi can DNS A record tro ve VPS; Caddy tu lay va gia han chung chi
+# Let's Encrypt. Khong certbot, khong cron.
 #
 # FILE NAY DUOC MOUNT, KHONG BAKE: sua $DOMAIN chi can
 #   docker compose --profile tls restart caddy
@@ -29,8 +33,21 @@ http://{$DOMAIN} {
 		reverse_proxy reverb:8080
 	}
 
-	# ---- API + signed uploads + broadcasting/auth ---------------
+	# ---- API + Echo auth + signed attachments + uploads ---------
 	handle /api/* {
+		reverse_proxy backend:8000
+	}
+
+	# Echo gui POST /broadcasting/auth (Bearer token) de vao private
+	# channel. Khong co route nay thi request rot vao SPA (index.html)
+	# va chat realtime khong bao gio auth duoc.
+	handle /broadcasting/* {
+		reverse_proxy backend:8000
+	}
+
+	# URL ky hop le (60 phut) mo anh dinh kem truc tiep trong tab moi -
+	# cung phai den backend, khong phai SPA.
+	handle /attachments/* {
 		reverse_proxy backend:8000
 	}
 
@@ -43,7 +60,7 @@ http://{$DOMAIN} {
 		reverse_proxy frontend:80
 	}
 
-	# Go link giua cac hop (chi can khi demo noi bo).
+	# Go link giua cac hop.
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"

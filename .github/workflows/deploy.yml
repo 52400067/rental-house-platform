@@ -77,7 +77,9 @@ jobs:
             git fetch origin stable --tags
             git checkout stable
             git reset --hard ${{ github.event.workflow_run.head_sha }}
-            docker compose -f docker-compose.yml -f docker-compose.tls.yml --profile tls up -d --build
+            # Single production-tier compose: TLS mode = profile "tls" + DOMAIN
+            # trong .env.
+            docker compose --profile tls up -d --build
             docker compose ps
 
       - name: Post-deploy smoke
