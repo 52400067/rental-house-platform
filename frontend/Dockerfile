@@ -42,7 +42,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/app.conf
+# Template + envsubst: NGINX_DNS_RESOLVER (default = Docker embedded DNS)
+# is substituted at container start -> /etc/nginx/conf.d/app.conf.
+# podman rootless overrides it with the network gateway via compose env.
+ENV NGINX_DNS_RESOLVER=127.0.0.11
+COPY nginx.conf.template /etc/nginx/templates/app.conf.template
 # Relative include paths resolve against the nginx prefix (/etc/nginx),
 # NOT conf.d/ - so the shared snippet lives here.
 COPY security-headers.conf /etc/nginx/security-headers.conf

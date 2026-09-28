@@ -1,34 +1,38 @@
 # ============================================================
-# TROSV - Docker Compose dev stack.
+# TROSV - Docker Compose DU NHAT: dev, demo va production.
 #
-#   docker compose up -d --build        # toan bo stack (khong co AI)
-#   docker compose --profile ai up -d   # them ai-service (can code AI)
+# Moi server chi can file nay (khong con docker-compose.demo.yml /
+# docker-compose.tls.yml). Cau hinh di qua .env + profile:
 #
-# Frontend chay trong nginx (build tu frontend/Dockerfile) tai
-# http://localhost:5174 - VITE_* duoc bake vao bundle luc build.
+#   Dev/demo local (HTTP):
+#     cp .env.example .env   # dat APP_KEY (lenh ben duoi)
+#     docker compose up -d --build
+#     -> web http://localhost:5174 , API same-origin /api qua nginx
 #
-# Ca 4 service backend chay CODE TRONG IMAGE (khong mount ./backend):
-# mount volume se lam vendor trong image bi che boi thu muc tren may,
-# va "composer install" trong container chay voi root -> sinh file
-# root-owned tren host. Sua code backend thi rebuild:
-#   docker compose up -d --build backend reverb queue scheduler
+#   Production (HTTPS-only, Caddy TLS):
+#     # .env: DOMAIN=tenmien.com , FRONTEND_URL=https://tenmien.com ,
+#     #        WS_HOST=tenmien.com , APP_KEY=...
+#     docker compose --profile tls up -d --build
+#     -> https://$DOMAIN (80 -> 301 HTTPS), WebSocket wss://$DOMAIN/app/*
 #
-# APP_KEY lay tu backend/.env tren may (env_file, neu co). Fresh clone:
-#   cp backend/.env.example backend/.env && php artisan key:generate
+#   AI service (stub FAKE_MODE, khong can LLM key):
+#     docker compose --profile ai up -d
 #
-# Database chi chay rieng: docker compose up -d db
+# Production-tier defaults (bat ke profile):
+#   * restart: unless-stopped + log rotation (10MB x 3) tren moi service
+#   * healthcheck moi service (curl tren Debian trixie - khong co wget)
+#   * conection DB noi bo mang compose, khong publish 5432 ra host
+#   * queue + scheduler chay rieng; storage upload nam trong volume
+#   * APP_ENV/APP_DEBUG/APP_KEY bat buoc tu .env - khong co gia tri mac
+#     dinh an toan gia: thieu la compose TU CHOI chay (fail-fast thay vi
+#     boot voi cau hinh yeu). Backend con tu choi serve neu APP_DEBUG=true.
+#   * TLS mode: backend/reverb khong publish port ra host - moi traffic
+#     vao qua Caddy (80/443), TRUSTED_PROXIES de rate-limit thay IP that.
 #
-# REVERB KEY DONG BO: root .env (do compose tu load) giu REVERB_APP_ID/
-# KEY/SECRET giong backend/.env, nen "docker compose up -d --build"
-# khong can --env-file van trung key voi frontend build + reverb +
-# backend broadcast. Neu backend/.env doi key, chay lai:
-#   grep -E '^REVERB_APP_(ID|KEY|SECRET)=' backend/.env > .env
+# Tao APP_KEY khong can PHP tren may:
+#   echo "APP_KEY=$(docker run --rm php:8.3-cli php -r 'echo "base64:".base64_encode(random_bytes(32));')" >> .env
 #
-# PRODUCTION hardening (2026-09-27): moi service co restart policy +
-# gioi han log (json-file 10MB x 3 file - tranh day disk VPS), backend
-# chay PHP_CLI_SERVER_WORKERS=4 (php artisan serve la dev server - 1
-# worker la khong du), va backend/reverb/frontend co healthcheck.
-# ai-service van la stub profile "ai" - khong chay trong production.
+# REVERB key dong bo: root .env va backend/.env phai cung REVERB_APP_*.
 # ============================================================
 
 x-default-logging: &default-logging
@@ -36,6 +40,37 @@ x-default-logging: &default-logging
   options:
     max-size: "10m"
     max-file: "3"
+
+x-backend-env: &backend-env
+  PHP_CLI_SERVER_WORKERS: 4
+  APP_ENV: production
+  APP_DEBUG: "false"
+  # Bat buoc: khong co gia tri mac dinh an toan (fail-fast neu thieu).
+  APP_KEY: ${APP_KEY:?Set APP_KEY=base64:... trong .env}
+  APP_URL: ${FRONTEND_URL:-http://localhost:5174}
+  DB_CONNECTION: pgsql
+  DB_HOST: db
+  DB_PORT: 5432
+  DB_DATABASE: rental
+  DB_USERNAME: rental
+  DB_PASSWORD: ${DB_PASSWORD:-rental}
+  AI_URL: http://ai-service:8001
+  # Origin ma browser dang dung - bat buoc khai bao dung trong .env cho
+  # production (CORS + cookie context). Local dev lay mac dinh ben duoi.
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5174}
+  # Vite dev (5173) va vite preview (4173) khi chay API dockerized.
+  FRONTEND_EXTRA_URLS: ${FRONTEND_EXTRA_URLS:-http://localhost:5173,http://localhost:4173}
+  BROADCAST_CONNECTION: reverb
+  REVERB_APP_ID: ${REVERB_APP_ID:?Set REVERB_APP_ID trong .env}
+  REVERB_APP_KEY: ${REVERB_APP_KEY:?Set REVERB_APP_KEY trong .env}
+  REVERB_APP_SECRET: ${REVERB_APP_SECRET:?Set REVERB_APP_SECRET trong .env}
+  # Server-side broadcast goi Reverb HTTP API tu trong container.
+  REVERB_HOST: reverb
+  REVERB_PORT: 8080
+  REVERB_SCHEME: http
+  # Moi traffic den backend deu qua proxy (nginx/Caddy trong stack nay) -
+  # tin X-Forwarded-For de rate-limit thay IP that cua client.
+  TRUSTED_PROXIES: "*"
 
 services:
   db:
@@ -46,13 +81,8 @@ services:
       POSTGRES_DB: rental
       POSTGRES_USER: rental
       POSTGRES_PASSWORD: ${DB_PASSWORD:-rental}
-    # Khong publish 5432 ra host: tranh cham Postgres local dang chay tren
-    # may, va DB khong lo ra ngoai. Backend noi voi db qua mang rieng cua
-    # compose (host name: db). Neu can DBeaver/pgAdmin tu may:
-    #   docker compose exec db psql -U rental -d rental
-    # hoac bo comment de publish o khac (5433) roi: compose up -d db
-    # ports:
-    #   - "127.0.0.1:5433:5432"
+    # Khong publish 5432 ra host: DB khong lo ra ngoai, tranh dam Postgres
+    # local. Truy van truc tiep: docker compose exec db psql -U rental -d rental
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -63,42 +93,28 @@ services:
 
   backend:
     build: ./backend
-    command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
     restart: unless-stopped
     logging: *default-logging
     env_file:
       - path: ./backend/.env
-        required: false    # APP_KEY + cac gia tri khong ghi de ben duoi
+        required: false # bo sung bien phu (khong ghi de block ben duoi)
+    # migrate luon chay (idempotent, seeder idempotent nen SEED_ON_BOOT=1
+    # chi don gian chay them db:seed - an toan reboot bat ky luc nao).
+    command: >
+      sh -c "php artisan migrate --force
+      && if [ \"$$SEED_ON_BOOT\" = \"1\" ]; then php artisan db:seed --force; fi
+      && php artisan storage:link --relative --force || true
+      && exec php artisan serve --host=0.0.0.0 --port=8000"
+    environment:
+      <<: *backend-env
+      SEED_ON_BOOT: ${SEED_ON_BOOT:-0}
     ports:
-      - "8000:8000"
-    environment: &backend-env
-      PHP_CLI_SERVER_WORKERS: 4
-      DB_CONNECTION: pgsql
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_DATABASE: rental
-      DB_USERNAME: rental
-      DB_PASSWORD: ${DB_PASSWORD:-rental}
-      AI_URL: http://ai-service:8001
-      FRONTEND_URL: http://localhost:5174
-      # Cho phep Vite dev o local (5173) goi API dockerized - mixed posture.
-      FRONTEND_EXTRA_URLS: http://localhost:5173
-      FRONTEND_PREVIEW_URL: http://localhost:4173
-      BROADCAST_CONNECTION: reverb
-      # Server-side broadcast goi Reverb HTTP API tu trong container -
-      # phai la ten service, KHONG phai localhost.
-      REVERB_APP_ID: ${REVERB_APP_ID:-my-app-id}
-      REVERB_APP_KEY: ${REVERB_APP_KEY:-my-app-key}
-      REVERB_APP_SECRET: ${REVERB_APP_SECRET:-my-app-secret}
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
+      - "${API_PORT:-8000}:8000" # TLS mode: traffic that qua Caddy, port nay chi cho local
     volumes:
-      - trosv-storage:/var/www/html/storage/app   # uploads song sot khi recreate
+      - trosv-storage:/var/www/html/storage/app # uploads song sot khi recreate
     healthcheck:
-      # /api/health chay ca PHP-FPM-style request lifecycle; DB die => 500
-      # => container unhealthy (dung, vi app that su khong dung duoc).
-      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://127.0.0.1:8000/api/health\") === false ? 1 : 0);'"]
+      # /api/health chay ca request lifecycle; DB die => 500 => unhealthy.
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8000/api/health >/dev/null || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -115,12 +131,13 @@ services:
     env_file:
       - path: ./backend/.env
         required: false
-    ports:
-      - "8080:8080"
     environment: *backend-env
+    ports:
+      - "${REVERB_PORT:-8080}:8080" # TLS mode: wss qua Caddy, port nay chi cho local
     healthcheck:
-      # Reverb khong phuc vu HTTP thong thuong - chi kiem tra TCP lang nghe.
-      # $$ de escape khoi compose interpolation (=$ trong shell).
+      # Reverb khong phuc vu HTTP thong thuong - chi kiem tra TCP lang nghe
+      # (curl se treo cho den timeout => unhealthy gia). $$ de escape khoi
+      # compose interpolation.
       test: ["CMD-SHELL", "php -r '$$c=@fsockopen(\"127.0.0.1\",8080,$$e,$$m,3);exit($$c?0:1);'"]
       interval: 10s
       timeout: 3s
@@ -159,18 +176,25 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: http://localhost:8000/api
+        # Mac dinh SAME-ORIGIN (/api qua nginx proxy) - dung cho ca dev
+        # lẫn production sau Caddy. Chi dat VITE_API_URL=https://... trong
+        # .env neu browser goi API truc tiep khac origin.
+        VITE_API_URL: ${VITE_API_URL:-/api}
         VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-my-app-key}
-        VITE_REVERB_HOST: localhost
-        VITE_REVERB_PORT: 8080
-        VITE_REVERB_SCHEME: http
+        VITE_REVERB_HOST: ${WS_HOST:-localhost}
+        VITE_REVERB_PORT: ${VITE_REVERB_PORT:-8080}
+        VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-http}
     restart: unless-stopped
     logging: *default-logging
+    environment:
+      # Docker embedded DNS. Podman rootless (aardvark-dns tren gateway IP)
+      # set NGINX_DNS_RESOLVER trong override file - xem nginx.conf.template.
+      NGINX_DNS_RESOLVER: ${NGINX_DNS_RESOLVER:-127.0.0.11}
     ports:
-      - "5174:80"
+      - "${FRONTEND_PORT:-5174}:80" # TLS mode: traffic that qua Caddy
     healthcheck:
       # nginx:1.29-trixie (Debian) khong co wget nhu alpine - dung curl
-      # (Dockerfile runtime stage cai curl). Override nay chi de-dat interval
+      # (Dockerfile runtime stage cai curl). Override chi de-dat interval
       # nhanh hon HEALTHCHECK 30s mac dinh cua image.
       test: ["CMD-SHELL", "curl -sf http://127.0.0.1/ >/dev/null || exit 1"]
       interval: 10s
@@ -180,21 +204,52 @@ services:
     depends_on:
       - backend
 
-  ai-service:
-    # Dich vu AI do ban AI phat trien (ai-service/HANDOFF.md). Chua co code
-    # nen dat sau profile "ai" - lenh compose thuong khong touch den service
-    # nay; backend tu tra 503 fallback khi AI khong co.
-    build: ./ai-service
-    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-    volumes:
-      - ./ai-service:/app
+  caddy:
+    # TLS termination duy nhat - chi chay khi --profile tls.
+    image: caddy:2.11-alpine
+    profiles: [tls]
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      # Khong dung :? o day: mot so ban compose van interpolate ca service
+      # bi profile loai bo, lam `up` thong thuong (local, khong co DOMAIN)
+      # cung bi tu choi. Thieu DOMAIN thi chinh caddy se tu bao loi khi start.
+      DOMAIN: ${DOMAIN:-}
     ports:
-      - "8001:8001"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # chung chi + ACME accounts
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+      - reverb
+
+  ai-service:
+    # AI service (AI_CONTRACT.md). Stub FAKE_MODE du file - chi duoc goi boi
+    # backend, khong co DB. Neu AI chet, backend tu tra 503 lich su.
+    build: ./ai-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001
+    restart: unless-stopped
+    logging: *default-logging
     environment:
       FAKE_MODE: ${FAKE_MODE:-true}
       LLM_API_KEY: ${LLM_API_KEY:-}
+    ports:
+      - "8001:8001"
+    healthcheck:
+      # Image python slim khong co curl - dung urllib (non-2xx/raise => exit 1).
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8001/health\", timeout=3)'"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
     profiles: [ai]
 
 volumes:
   pgdata:
   trosv-storage:
+  caddy_data:
+  caddy_config:

@@ -87,6 +87,107 @@ jobs:
       - name: npm audit (report)
         run: npm audit --omit=dev || true
 
+  # E2E: real browser against a real seeded API + the production bundle.
+  # Runs after the cheap gates; also gates the Deploy workflow (it fires on
+  # CI success on stable), so a red e2e blocks the deploy - intended.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    services:
+      postgres:
+        image: postgres:16-trixie
+        env:
+          POSTGRES_DB: rental_e2e
+          POSTGRES_USER: rental
+          POSTGRES_PASSWORD: rental
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rental"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: rental_e2e
+      DB_USERNAME: rental
+      DB_PASSWORD: rental
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # ---- API: deps, schema, seed data, then serve on :8000 ----
+      - name: Backend dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Backend env + key
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Migrate + seed demo data
+        working-directory: backend
+        run: php artisan migrate:fresh --seed --force
+
+      - name: Serve API on :8000
+        working-directory: backend
+        run: |
+          # CORS must accept the preview origin the browser will use.
+          FRONTEND_URL=http://localhost:4173 nohup php artisan serve \
+            --host=127.0.0.1 --port=8000 > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8000/api/cities > /dev/null && break
+            [ "$i" = 30 ] && { cat /tmp/api.log; exit 1; }
+            sleep 1
+          done
+          echo "API ready"
+
+      # ---- Web: production build (incl. check:css + tsc) on :4173 ----
+      - name: Frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build production bundle
+        working-directory: frontend
+        run: npm run build
+
+      - name: Install Playwright chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Serve bundle on :4173
+        working-directory: frontend
+        run: |
+          nohup npx vite preview --host 127.0.0.1 --port 4173 > /tmp/web.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:4173/ > /dev/null && break
+            [ "$i" = 30 ] && { cat /tmp/web.log; exit 1; }
+            sleep 1
+          done
+          echo "web ready"
+
+      # The bundle bakes VITE_API_URL (defaults to http://localhost:8000/api)
+      # at build time; FRONTEND_URL=4173 on the serve step allows that origin.
+      - name: Playwright tests
+        working-directory: frontend
+        run: npx playwright test
+        env:
+          E2E_BASE_URL: http://localhost:4173
+
   secrets:
     runs-on: ubuntu-latest
     steps:

@@ -18,7 +18,7 @@ ls -lh /opt/trosv-backups/{db-$TS.sql.gz,uploads-$TS.tar.gz,env-$TS.bak}
 Moi lenh duoi day dung mot bien chung:
 
 ```bash
-DC="docker compose -f docker-compose.yml -f docker-compose.tls.yml --profile tls"
+DC="docker compose --profile tls"
 ```
 
 Ten volume co tien to ten project (ten thu muc repo), nen resolve dong thay vi doan:
