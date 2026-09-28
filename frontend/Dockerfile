@@ -1,6 +1,10 @@
 # ============================================================
 # TROSV frontend - multi-stage build: node build -> nginx serve.
 #
+# Base images: Debian 13 "trixie" (latest stable) - glibc-based, khop voi
+# moi truong dev/CI Linux. Nginx tren Debian khong co wget -> healthcheck
+# dung curl (cai o runtime stage).
+#
 # VITE_* variables are baked into the bundle at BUILD time (import.meta.env
 # is replaced by Vite, not read at runtime). Pass them as build args when
 # the defaults do not match your deployment:
@@ -8,11 +12,12 @@
 # ============================================================
 
 # ---- Build stage ----------------------------------------------------------
-FROM node:20-alpine AS build
+# Node 22 = LTS dang duoc support (Node 20 het EOL 4/2026).
+FROM node:22-trixie AS build
 
 # Declared so compose build args actually reach `npm run build`. Docker
 # silently drops undeclared args, which would bake the localhost fallbacks
-# from src/config/env.js into the bundle - fine for the dev stack only.
+# from src/config/env.ts into the bundle - fine for the dev stack only.
 ARG VITE_API_URL=http://localhost:8000/api
 ARG VITE_REVERB_APP_KEY=my-app-key
 ARG VITE_REVERB_HOST=localhost
@@ -29,7 +34,12 @@ COPY . .
 RUN npm run build
 
 # ---- Runtime stage: nginx serving the SPA ---------------------------------
-FROM nginx:1.27-alpine
+FROM nginx:1.29-trixie
+
+# Healthcheck dung curl (nginx Debian khong kem wget nhu alpine).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/app.conf
@@ -41,4 +51,4 @@ COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD wget -qO- http://127.0.0.1/ >/dev/null || exit 1
+    CMD curl -sf http://127.0.0.1/ >/dev/null || exit 1

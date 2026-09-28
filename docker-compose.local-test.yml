@@ -1,0 +1,10 @@
+services:
+  frontend:
+    ports: !override
+      - "5174:80"
+    build:
+      args:
+        VITE_API_URL: http://localhost:5174/api
+  backend:
+    environment:
+      FRONTEND_EXTRA_URLS: "http://localhost:5199,http://localhost:5173"
