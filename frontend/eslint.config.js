@@ -15,10 +15,13 @@ export default tseslint.config(
         languageOptions: { globals: { ...globals.node } },
     },
     {
-        files: ["**/*.{js,jsx,ts,tsx}"],
+        // "e2e/**" o day de spec .ts dung TS parser: block type-aware ben
+        // duoi chi gan parser cho src/**, khong keo theo project cho e2e.
+        files: ["**/*.{js,jsx,ts,tsx}", "e2e/**"],
         languageOptions: {
             ecmaVersion: 2022,
             globals: globals.browser,
+            parser: tseslint.parser,
         },
         plugins: {
             "@typescript-eslint": tseslint.plugin,
