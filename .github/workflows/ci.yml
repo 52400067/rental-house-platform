@@ -138,6 +138,9 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate --force
+          # public/storage la symlink gitignored - khong co no thi /storage/*
+          # rot vao index.php cua Laravel (403/404) thay vi tra anh that.
+          php artisan storage:link
 
       - name: Migrate + seed demo data
         working-directory: backend
