@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run check:css && tsc --noEmit && vite build",
+    "check:css": "node scripts/check-css-parity.mjs",
     "preview": "vite preview",
     "test": "python3 .browser-check/e2e-journey.py",
     "test:e2e": "python3 .browser-check/e2e-journey.py",
