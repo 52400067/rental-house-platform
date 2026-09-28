@@ -1,10 +1,18 @@
-FROM php:8.3-cli-alpine
+# ============================================================
+# TROSV backend - PHP 8.3 CLI, Debian 13 "trixie" (latest stable).
+# ============================================================
+FROM php:8.3-cli-trixie
 
 # libpng/jpeg/freetype are required for the GD extension (seeder sample images).
 # pcntl is required by Laravel Reverb (SIGINT/SIGTERM constants + signal
-# handlers) and is NOT compiled into the alpine PHP images by default -
-# without it "reverb:start" dies with "Undefined constant SIGINT".
-RUN apk add --no-cache libpq-dev icu-dev oniguruma-dev libzip-dev libpng-dev jpeg-dev freetype-dev \
+# handlers) and is NOT compiled into the PHP images by default - without it
+# "reverb:start" dies with "Undefined constant SIGINT".
+# Debian (apt) package names khac Alpine (apk): libicu-dev (khong phai
+# icu-dev), libonig-dev (khong phai oniguruma-dev), libjpeg-dev, libfreetype6-dev.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libpq-dev libicu-dev libonig-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
+    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-jpeg --with-freetype \
     && docker-php-ext-install pdo_pgsql pgsql bcmath intl zip gd pcntl
 

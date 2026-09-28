@@ -26,7 +26,7 @@
 
 services:
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2.11-alpine
     profiles: [tls]
     restart: unless-stopped
     # Khong dung anchor o day: YAML anchor chi ton tai trong 1 file.
