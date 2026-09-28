@@ -1,6 +1,8 @@
 # TROSV - Frontend
 
-React 18 + Vite + Bootstrap 5. Gọi toàn bộ API qua Backend (`docs/API_CONTRACT.md`).
+React 18 + TypeScript strict + Vite + Bootstrap 5 (Node 22 theo `.nvmrc`).
+Build luôn chạy `tsc --noEmit` trước - TypeScript lỗi thì không build được. Gọi
+toàn bộ API qua Backend (`docs/API_CONTRACT.md`).
 
 ## Chạy
 
@@ -89,4 +91,8 @@ npm run test:prod        # smoke test bản build production (vite preview :4173
 
 - Token lưu `localStorage` (`token`, `user`); tự xóa khi nhận 401.
 - Màu thương hiệu nằm ở `src/styles/theme.css` (biến `--brand`) - đổi một chỗ là đổi cả app.
-- Design system "sổ tay thuê trọ": giấy ấm + rust book-cloth, Noto Sans (tiêu đề & UI), Noto Serif (văn bản dài & heading lớn) theo lối Anthropic serif/sans - tự host qua Fontsource, đủ subset tiếng Việt, không CDN. Toàn bộ style nằm trong `theme.css`.
+- Style tách theo lớp trong `src/styles/`: theme → layout → chrome → auth →
+  messages → chat → widgets → components. Thứ tự import là **load-bearing**
+  (cascade phụ thuộc nó - đã từng mất selector khi tách, xem
+  `scripts/check-css-parity.mjs`); không đổi trục thứ tự, chạy
+  `npm run check:css` sau mọi sửa đổi style.
