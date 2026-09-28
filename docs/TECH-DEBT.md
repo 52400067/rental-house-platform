@@ -1,24 +1,36 @@
 # Sổ theo dõi nợ kỹ thuật (Tech Debt Register)
 
-Sinh bằng skill `tech-debt-tracker` (scan → prioritize → dashboard).
-Snapshot ngày 2026-09-27: quét 285 file / 25,090 dòng code app, **1,760 item sau lọc**
-(boilerplate cấu trúc và noise regex `BUG`/`APP_DEBUG` đã loại).
+Sinh bằng skill `tech-debt-tracker` (scan → filter → prioritize → dashboard).
+Snapshot mới nhất 2026-09-28: **1,901 item** sau lọc, mật độ **10.22%**
+(so với 1,635 @ 10.48% ngày 09-27: tổng tăng do mã mới - ai-service stub,
+spec e2e, script parity - nhưng mật độ giảm). Bước lọc app-only đã được
+commit thành `scripts/filter-debt-app-only.py` (trước đó là ad-hoc):
+chỉ giữ `backend/` + `frontend/` + `ai-service/`, loại tests (assert URL
+thật là đúng phong cách test) và noise regex `BUG`/`APP_DEBUG` - script
+reproduce đúng 1,635 trên snapshot 09-27 nên trend so sánh được.
 
 ## Cách tái tạo snapshot
 
 ```bash
-# 1. Scan (exclude vendor/node_modules/storage qua config)
+# 1. Scan (exclude vendor/node_modules/storage qua config; config = metadata
+của snapshot trước + ignore thêm: freebuff-chat-*, .css-baseline,
+css-selectors.json, test-results, playwright-report)
 python3 .agents/skills/tech-debt-tracker/scripts/debt_scanner.py . \
   --config /tmp/debt-config.json --format json \
   --output ~/tech-debt-tracker/rental-house-platform/debt_$(date +%F).json
 
-# 2. Prioritize (framework wsjf)
+# 2. Loc app-only (script commit trong repo - quy tắc cố định)
+python3 scripts/filter-debt-app-only.py \
+  ~/tech-debt-tracker/rental-house-platform/debt_<ngay>.json \
+  --output ~/tech-debt-tracker/rental-house-platform/debt_<ngay>.app-only.json
+
+# 3. Prioritize (framework wsjf)
 python3 .agents/skills/tech-debt-tracker/scripts/debt_prioritizer.py \
   ~/tech-debt-tracker/rental-house-platform/debt_<ngay>.app-only.json \
   --framework wsjf --team-size 6 --sprint-capacity 20 \
   --format json --output ~/tech-debt-tracker/rental-house-platform/debt_priorities_<ngay>.json
 
-# 3. Sau mỗi sprint dọn: quét lại + so trend bằng dashboard
+# 4. Sau mỗi sprint dọn: quét lại + so trend bằng dashboard
 python3 .agents/skills/tech-debt-tracker/scripts/debt_dashboard.py \
   --input-dir ~/tech-debt-tracker/rental-house-platform/ --period monthly --format both
 ```
@@ -50,5 +62,6 @@ lập kế hoạch**. Con số đáng tin là bảng tinh chỉnh ở trên (~2.
 | 2026-09-27 | 1,760 | Baseline đầu tiên sau Phase 4 |
 | 2026-09-27 (run 2) | 1,762 | Sau refactor #5: hardcode trong 5 file mục tiêu **13 → 0**; tổng +2 là noise đo được (19 import `ROUTES` mới tạo block-trùng, 1 comment dài) |
 | 2026-09-27 (final) | **1,635 (−125)** | Sau refactor #1-#4: **large_file = 0** (page.css 982 → 5 file ≤ 500 dòng), density 7.0 → **6.5%**, dashboard báo **"Good progress on debt reduction"**, density trend ↑ improving (−0.335/period, forecast 5.2) |
+| 2026-09-28 | 1,901 (+266) | Mã mới (ai-service stub FAKE_MODE, spec e2e, script parity + filter, compose mới) làm tổng tăng nhưng **density 10.48 → 10.22** (tính lại trên scope app-only nhất quán). Chốt pipeline tái tạo được; hai large_file còn lại là test feature (đã ghi ở trên - không phải debt) |
 
 **Kết quả 5 mục targeted (baseline → final):** #1 FormRequests 44→0 block rules thật (10 còn lại là boilerplate `}`/docblock khớp chéo) · #2 auth 45→30 (30 = coincidental line-match sau khi tách hết hook/layout) · #3 Fv↔ML 34→6 (6 = khung import/div) · #4 large_file CSS 2→0 · #5 hardcode 13→0. Mọi refactor giữ hành vi: 209 test backend + e2e + CI xanh xuyên suốt |
