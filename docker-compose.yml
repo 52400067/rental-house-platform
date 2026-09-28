@@ -169,8 +169,10 @@ services:
     ports:
       - "5174:80"
     healthcheck:
-      # nginx:1.27-alpine co busybox wget.
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      # nginx:1.29-trixie (Debian) khong co wget nhu alpine - dung curl
+      # (Dockerfile runtime stage cai curl). Override nay chi de-dat interval
+      # nhanh hon HEALTHCHECK 30s mac dinh cua image.
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1/ >/dev/null || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 3
