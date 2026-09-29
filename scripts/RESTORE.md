@@ -1,24 +1,23 @@
 # Restore - TROSV production
 
-Quy trinh restore cho stack `docker compose --profile tls`. Doc het file nay
-TRUOC khi lam. Diem khong-duong-lui duy nhat la buoc 2 (xoa volume `pgdata`)
-- hay chac chan ban backup muon restore da nam trong thu muc backup (mac
-dinh `./backups` trong repo, co the o dia khac neu dat `BACKUP_DIR`) truoc
-khi bat dau.
+Quy trình restore cho stack `docker compose --profile tls`. Đọc hết file
+này TRƯỚC khi làm. Điểm không-đường-lùi duy nhất là bước 2 (xóa volume
+`pgdata`) - hãy chắc chắn bản backup muốn restore đã nằm trong thư mục
+backup (mặc định `./backups` trong repo, có thể ở đĩa khác nếu đặt
+`BACKUP_DIR`) trước khi bắt đầu.
 
-Chay tren may chu Debian, trong thu muc repo (vi du `/srv/trosv`).
+Chạy trên máy chủ Debian, trong thư mục repo (ví dụ `/srv/trosv`).
 
-## 0. Chon ban backup
+## 0. Chọn bản backup
 
 ```bash
 ls -1t backups/db-*.sql.gz | head -5
-TS=20260927-023000   # ts cua ban muon restore
+TS=20260927-023000   # ts của bản muốn restore
 ls -lh backups/{db-$TS.sql.gz,uploads-$TS.tar.gz,env-$TS.bak}
 ```
 
-Moi lenh duoi day dung hai bien chung (runtime: Docker hoac Podman -
-podman rootless chay duoc nho cac buoc stream, khong dung bind mount
-host):
+Mọi lệnh dưới đây dùng hai biến chung (runtime: Docker hoặc Podman -
+podman rootless chạy được nhờ các bước stream, không dùng bind mount host):
 
 ```bash
 # Docker rootful:
@@ -27,54 +26,54 @@ DC="docker compose --profile tls"; DOCKER="docker"
 DC="podman compose --profile tls"; DOCKER="podman"
 ```
 
-Ten volume co tien to ten project (ten thu muc repo), nen resolve dong
-thay vi doan:
+Tên volume có tiền tố tên project (tên thư mục repo), nên resolve động
+thay vì đoán:
 
 ```bash
-VOL_PG="$(docker volume ls -q | grep -E 'pgdata$' | head -1)"
-VOL_STORAGE="$(docker volume ls -q | grep -E 'trosv-storage$' | head -1)"
-echo "$VOL_PG / $VOL_STORAGE"   # phai in ra dung 2 ten, khong duoc trong
+VOL_PG="$($DOCKER volume ls -q | grep -E 'pgdata$' | head -1)"
+VOL_STORAGE="$($DOCKER volume ls -q | grep -E 'trosv-storage$' | head -1)"
+echo "$VOL_PG / $VOL_STORAGE"   # phải in ra đúng 2 tên, không được trống
 ```
 
-## 1. Dung toan bo stack
+## 1. Dừng toàn bộ stack
 
 ```bash
 $DC stop caddy backend reverb queue scheduler db
 ```
 
-## 2. Xoa + tao lai volume Postgres (KHONG DUONG LUI)
+## 2. Xóa + tạo lại volume Postgres (KHÔNG ĐƯỜNG LÙI)
 
-`$DC down` bo container nhung GIU nguyen volume; ta xoa volume rong roi
-tao lai:
+`$DC down` bỏ container nhưng GIỮ nguyên volume; ta xóa volume rỗng rồi
+tạo lại:
 
 ```bash
 $DC down
-docker volume rm "$VOL_PG"
-docker volume create "$VOL_PG"
+$DOCKER volume rm "$VOL_PG"
+$DOCKER volume create "$VOL_PG"
 ```
 
-## 3. Khoi dong db rong + doi healthy
+## 3. Khởi động db rỗng + đợi healthy
 
-POSTGRES_* env se tao lai user/db `rental` tren volume moi:
+POSTGRES_* env sẽ tạo lại user/db `rental` trên volume mới:
 
 ```bash
 $DC up -d db
 $DC exec db sh -c 'until pg_isready -U rental -d rental >/dev/null 2>&1; do sleep 1; done'
 ```
 
-## 4. Nap dump (plain SQL, gzip)
+## 4. Nạp dump (plain SQL, gzip)
 
 ```bash
 gunzip -c "backups/db-$TS.sql.gz" | $DC exec -T db psql -U rental -d rental -q
 ```
 
-Loi thuong gap:
-- `role "rental" does not exist` = buoc 3 chua xong (volume chua duoc khoi
-  tao boi POSTGRES_* env) - doi `pg_isready` xong roi nap lai.
-- `relation ... already exists` = volume KHONG rong - quay lai buoc 2 xoa
-  volume dung, khong nap dump vao DB da co du lieu.
+Lỗi thường gặp:
+- `role "rental" does not exist` = bước 3 chưa xong (volume chưa được khởi
+  tạo bởi POSTGRES_* env) - đợi `pg_isready` xong rồi nạp lại.
+- `relation ... already exists` = volume KHÔNG rỗng - quay lại bước 2 xóa
+  volume đúng, không nạp dump vào DB đã có dữ liệu.
 
-Kiem tra nhanh so bang duoc nap:
+Kiểm tra nhanh số bảng được nạp:
 
 ```bash
 $DC exec db psql -U rental -d rental -c "\dt" | head -15
@@ -82,11 +81,11 @@ $DC exec db psql -U rental -d rental -tAc \
   "SELECT 'users='||(SELECT count(*) FROM users)||' listings='||(SELECT count(*) FROM listings);"
 ```
 
-## 5. Khoi phuc uploads (anh tin dang)
+## 5. Khôi phục uploads (ảnh tin đăng)
 
-Volume `trosv-storage` bi backend mount vao; stop backend truoc khi thay
-the du lieu. Stream tar qua stdin (khong bind mount thu muc host ra
-container - cach nay chay duoc ca Docker rootful lan Podman rootless):
+Volume `trosv-storage` bị backend mount vào; dừng backend trước khi thay
+thế dữ liệu. Stream tar qua stdin (không bind mount thư mục host ra
+container - cách này chạy được cả Docker rootful lẫn Podman rootless):
 
 ```bash
 $DC stop backend
@@ -95,23 +94,23 @@ cat "backups/uploads-$TS.tar.gz" | $DOCKER run --rm -i -v "$VOL_STORAGE":/data a
 $DC start backend
 ```
 
-Doi lai sau khi nap:
+Đối lại sau khi nạp:
 
 ```bash
 $DOCKER run --rm -v "$VOL_STORAGE":/data:ro alpine:3.20 \
-    sh -c "ls /data/public/listings | wc -l"   # phai = so anh trong ban backup
+    sh -c "ls /data/public/listings | wc -l"   # phải = số ảnh trong bản backup
 ```
 
-## 6. Khoi phuc `.env` (neu mat / doi may chu)
+## 6. Khôi phục `.env` (nếu mất / đổi máy chủ)
 
-`.env` chua APP_KEY - neu khong khoi phuc dung ban cu, cookie/session +
-token Reverb bi doi, moi nguoi phai dang nhap lai:
+`.env` chứa APP_KEY - nếu không khôi phục đúng bản cũ, cookie/session +
+token Reverb bị đổi, mọi người phải đăng nhập lại:
 
 ```bash
 cp "backups/env-$TS.bak" .env
 ```
 
-## 7. Khoi dong lai toan bo + kiem tra
+## 7. Khởi động lại toàn bộ + kiểm tra
 
 ```bash
 $DC up -d
@@ -122,12 +121,12 @@ curl -s -o /dev/null -w 'frontend: %{http_code}\n' "https://$DOMAIN/"
 curl -s -o /dev/null -w 'cities:   %{http_code}\n' "https://$DOMAIN/api/cities"
 ```
 
-Cuoi cung smoke thu nhan: dang nhap 1 tai khoan that tu DB da restore tren
+Cuối cùng smoke thủ công: đăng nhập 1 tài khoản thật từ DB đã restore trên
 UI.
 
 ## Sau restore
 
-- Kiem tra `docker compose logs -f --tail 50 backend queue reverb` trong
-  vai phut dau.
-- Neu cron backup da ton tai, no se tu chay buoc toi - khong can lam gi
-  them.
+- Kiểm tra `docker compose logs -f --tail 50 backend queue reverb` trong
+  vài phút đầu.
+- Nếu cron backup đã tồn tại, nó sẽ tự chạy bước tới - không cần làm gì
+  thêm.
