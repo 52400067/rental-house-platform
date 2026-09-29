@@ -41,10 +41,11 @@ test.describe("rooms ward -> school cascade", () => {
         await expect(schoolSelect).toHaveValue("");
         await expect(schoolSelect).toContainText("Chọn trường trong phường này");
 
-        // Choosing a school in that ward refetches with ward_id set; every
-        // returned listing belongs to the ward (API-level assert).
+        // Choosing a school in that ward refetches with school_id set (the
+        // hook keeps ward_id too); every returned listing belongs to the
+        // school's ward.
         const listingsWithWard = page.waitForResponse((r) =>
-            r.url().includes("/listings") && r.url().includes("ward_id="),
+            r.url().includes("/listings") && r.url().includes("school_id="),
         );
         await schoolSelect.selectOption({ label: "UIT" });
         const res = await listingsWithWard;

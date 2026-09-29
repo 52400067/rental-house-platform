@@ -12,12 +12,10 @@ export default function AuthVisual({
   points: [string, string][];
 }) {
     return (
-        <>
-            <h2 className="mb-2">{heading}</h2>
-            <p className="mb-4" style={{ color: "#b5bcd2", maxWidth: 420 }}>
-                {blurb}
-            </p>
-            <div className="d-flex flex-column gap-2" style={{ maxWidth: 420 }}>
+        <div className="auth-visual-body">
+            <h2 className="mb-3">{heading}</h2>
+            <p className="auth-visual-blurb mb-4">{blurb}</p>
+            <div className="d-flex flex-column gap-2">
                 {points.map(([icon, text]: [string, string]) => (
                     <div className="auth-point" key={icon}>
                         <i className={`bi bi-${icon}`} />
@@ -25,6 +23,6 @@ export default function AuthVisual({
                     </div>
                 ))}
             </div>
-        </>
+        </div>
     );
 }

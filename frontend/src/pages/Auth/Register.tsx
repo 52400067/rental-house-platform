@@ -50,6 +50,7 @@ export default function Register() {
     return (
         <AuthLayout
             title="Tạo tài khoản"
+            subtitle="Miễn phí - mất chưa đầy một phút."
             visual={
                 <AuthVisual
                     heading={
@@ -61,8 +62,8 @@ export default function Register() {
                     }
                     blurb={
                         <>
-                            Tạo tài khoản miễn phí để lưu phòng yêu thích, nhắn tin
-                            với chủ trọ hoặc đăng tin cho thuê.
+                            Tạo tài khoản để lưu phòng yêu thích, nhắn tin với chủ
+                            trọ hoặc đăng tin cho thuê.
                         </>
                     }
                     points={[
@@ -72,10 +73,9 @@ export default function Register() {
                 />
             }
             footer={
-                <div className="text-center mt-3 small">
-                    <span className="text-secondary">Đã có tài khoản? </span>
-                    <Link to={ROUTES.LOGIN}>Đăng nhập</Link>
-                </div>
+                <span>
+                    Đã có tài khoản? <Link to={ROUTES.LOGIN}>Đăng nhập</Link>
+                </span>
             }
         >
             <form onSubmit={handleSubmit}>
