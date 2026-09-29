@@ -11,6 +11,13 @@
     background: var(--ink);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     transition: box-shadow 0.25s var(--ease);
+    /* Navbar la sticky => tao stacking context rieng; toan bo submenu,
+       tooltip... ben trong chieu o layer cua navbar. Dat o day (khong
+       phai .dropdown-menu) moi thuc su sua bug menu nguoi dung bi the
+       contact card sticky phia sau - mot khi dat z-index cho sticky
+       navbar thi z-index 1000 cua .dropdown-menu khong con quan trong
+       khi so voi cac phan tu ben ngoai navbar. */
+    z-index: var(--z-chrome);
 }
 .navbar.is-scrolled {
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);

@@ -279,9 +279,9 @@ export default function RoomDetail() {
                     {/* RIGHT: landlord + action */}
                     <div className="col-lg-4">
                         {/* top = navbar + khoang cach: card phai dui duoi
-                            navbar sticky (ca hai deu .sticky-top z-1020,
-                            top nho hon navbar-h thi card de chieu len
-                            navbar khi scroll). */}
+                            navbar sticky (navbar co z-index --z-chrome,
+                            card chi la .sticky-top z-1020; top nho hon
+                            navbar-h thi card de cham navbar khi scroll). */}
                         <div
                             className="card sticky-top"
                             style={{ top: "calc(var(--navbar-h) + 1rem)" }}
