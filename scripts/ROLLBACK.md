@@ -7,9 +7,9 @@ phai quay lai du lieu).
 
 ## 0. Tim SHA tot cuoi cung
 
-Moi deploy run ghi lai SHA cua no - xem lich su: GitHub -> tab Actions -> workflow
-"Deploy" -> run gan nhat con tot -> xem buoc "Resolve deploy ref" (in ra
-`Deploying stable @ <sha>`). Hoac tren may chu:
+Moi deploy run gan voi mot SHA cu the - xem: GitHub -> tab Actions ->
+workflow "Deploy" -> run gan nhat con tot -> commit duoc deploy
+(`head_sha`). Hoac tren may chu:
 
 ```bash
 cd /srv/trosv

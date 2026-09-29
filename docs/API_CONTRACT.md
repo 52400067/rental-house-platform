@@ -5,7 +5,7 @@ Backend xây dựng, Frontend sử dụng. Nếu cần thay đổi, hãy sửa f
 ## 1. Quy ước chung
 
 - Base URL: `http://localhost:8000/api`. Mọi body là JSON (`Content-Type: application/json`), trừ upload tệp dùng `multipart/form-data`. Luôn gửi header `Accept: application/json`.
-- Xác thực: `POST /login` trả về một token. Gửi `Authorization: Bearer {token}` ở mọi request cần đăng nhập. Frontend lưu token (dùng localStorage là đủ cho đồ án này) và xóa token khi đăng xuất hoặc khi nhận bất kỳ `401` nào.
+- Xác thực: `POST /login` trả về một token. Gửi `Authorization: Bearer {token}` ở mọi request cần đăng nhập. Frontend lưu token (dùng localStorage là đủ cho đồ án này) và xóa token khi đăng xuất hoặc khi nhận `401` mất phiên (request có Bearer token bị từ chối; 401 từ chính endpoint đăng nhập không tính).
 - Tên trường dùng `snake_case`. Ngày giờ theo chuẩn ISO 8601. Tiền là số nguyên đơn vị VND. Khoảng cách tính bằng km.
 - Thành công: `{ "data": ... }`. Danh sách có phân trang thêm `"meta": { "current_page", "last_page", "per_page", "total" }` và nhận `?page=`, `?per_page=` (mặc định 12, tối đa 50).
 - Lỗi: `{ "message": "nội dung tiếng Việt" }`. Lỗi validate có thêm `"errors": { "field": ["thông báo"] }`.
