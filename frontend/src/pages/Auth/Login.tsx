@@ -30,6 +30,7 @@ export default function Login() {
     return (
         <AuthLayout
             title="Đăng nhập"
+            subtitle="Chào mừng trở lại - tiếp tục tìm phòng phù hợp cho bạn."
             error={error}
             visual={
                 <AuthVisual
@@ -53,10 +54,9 @@ export default function Login() {
                 />
             }
             footer={
-                <div className="text-center mt-3 small">
-                    <span className="text-secondary">Chưa có tài khoản? </span>
-                    <Link to={ROUTES.REGISTER}>Đăng ký ngay</Link>
-                </div>
+                <span>
+                    Chưa có tài khoản? <Link to={ROUTES.REGISTER}>Đăng ký ngay</Link>
+                </span>
             }
         >
             <form onSubmit={handleSubmit}>

@@ -11,12 +11,15 @@ import { ROUTES } from "../../constants/routes";
  */
 export default function AuthLayout({
     title,
+    subtitle,
     visual,
     error = "",
     footer,
     children,
 }: {
     title: string;
+    /** Một dòng dưới tiêu đề, ví dụ "Chào mừng trở lại". */
+    subtitle?: string;
     visual: React.ReactNode;
     error?: string;
     footer?: React.ReactNode;
@@ -34,26 +37,29 @@ export default function AuthLayout({
                 <div className="auth-page-mobile d-flex align-items-center justify-content-center">
                     <div className="w-100">
                         <div className="auth-card">
-                            <div className="text-center mb-3">
+                            <header className="auth-card-head text-center">
                                 <Link to={ROUTES.HOME} className="auth-logo-link">
                                     TROSV
                                 </Link>
-                                <p className="text-secondary small mb-0">
-                                    Nền tảng tìm trọ dành cho sinh viên
-                                </p>
-                            </div>
-
-                            <h1 className="auth-title text-center">{title}</h1>
+                                <h1 className="auth-title">{title}</h1>
+                                {subtitle && (
+                                    <p className="auth-subtitle">{subtitle}</p>
+                                )}
+                            </header>
 
                             {error && (
-                                <div className="alert alert-danger py-2 small">
+                                <div
+                                    className="alert alert-danger auth-error"
+                                    role="alert"
+                                >
+                                    <i className="bi bi-exclamation-triangle-fill me-2" />
                                     {error}
                                 </div>
                             )}
 
                             {children}
 
-                            {footer}
+                            {footer && <div className="auth-footer">{footer}</div>}
                         </div>
                     </div>
                 </div>
