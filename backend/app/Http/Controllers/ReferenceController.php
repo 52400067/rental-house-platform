@@ -45,8 +45,10 @@ class ReferenceController extends Controller
     /** GET /api/schools?city_id= - optional city filter. */
     public function schools(Request $request): AnonymousResourceCollection
     {
+        // ward eager-loaded de FE loc phong theo phuong cua truong
+        // (GET /listings?ward_id=...) ma khong them request nao.
         $schools = School::query()
-            ->with('city')
+            ->with(['city', 'ward'])
             ->when(
                 $request->filled('city_id'),
                 fn ($q) => $q->where('city_id', $request->integer('city_id'))

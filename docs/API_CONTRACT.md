@@ -113,7 +113,7 @@ rồi lọc phường/xã và trường theo `city_id`.
 |---|---|---|
 | `GET /cities` | Công khai | `data: [{ id, name, type: "city\|"province", latitude, longitude }]` (xếp theo tên A-Z) |
 | `GET /wards?city_id=` | Công khai | `data: [{ id, name, city: { id, name, type }, latitude, longitude }]` |
-| `GET /schools?city_id=` | Công khai | `data: [{ id, name, city: { id, name, type }, latitude, longitude }]` |
+| `GET /schools?city_id=` | Công khai | `data: [{ id, name, city: { id, name, type }, ward: { id, name } \| null, latitude, longitude }]` - `ward` la phuong chua truong, dung `ward.id` de goi `GET /listings?ward_id=` |
 | `GET /amenities` | Công khai | `data: [{ id, name }]` |
 
 ### Duyệt tin đăng
