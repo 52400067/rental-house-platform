@@ -23,6 +23,7 @@ export default function Rooms() {
         filters,
         setFilter,
         setCity,
+        setWard,
         toggleAmenity,
         resetFilters,
         listings,
@@ -103,6 +104,7 @@ export default function Rooms() {
                             filters={filters}
                             setFilter={setFilter}
                             setCity={setCity}
+                            setWard={setWard}
                             toggleAmenity={toggleAmenity}
                             resetFilters={resetFilters}
                             cities={cities}
