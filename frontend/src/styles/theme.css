@@ -41,6 +41,16 @@
     --radius-xl: 28px;
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
+    /* Lop chome: navbar luon tren moi phan tu .sticky-top trong trang
+       (contact card z-1020), nhung duoi Bootstrap modal-backdrop (1050)
+       de modal va dropdown khong danh nhau. Navbar la mot stacking
+       context (sticky + z-index), nen dropdown-menu ben trong ke thua
+       layer nay - z-index rieng cua dropdown (Bootstrap: 1000) khong
+       giam truyen ra ngoai.
+       1000 dropdown (Bootstrap) < 1020 sticky < 1030 fixed < 1040
+       back-to-top < 1045 Z-CHROME < 1050 modal < 1080 chat < 1090 toast */
+    --z-chrome: 1045;
+
     /* Shadows: flat gray OR hard navy offset - never soft black.
        Hard offsets ALWAYS carry negative spread so the corner arcs
        stay inside the element silhouette (offset-only shadows read
