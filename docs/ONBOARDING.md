@@ -56,7 +56,7 @@ chạy được cả khi AI service tắt) - API xanh là đủ để bắt đ�
 | Backend | [docs/API_CONTRACT.md](API_CONTRACT.md) + [docs/ERD.md](ERD.md) | [docs/TECH-DEBT.md](TECH-DEBT.md), [PROMPTS.md](../PROMPTS.md) (bối cảnh từng bước dựng) |
 | Frontend | [docs/API_CONTRACT.md](API_CONTRACT.md) + [frontend/README.md](../frontend/README.md) | [docs/TECH-DEBT.md](TECH-DEBT.md) |
 | AI | [docs/AI_CONTRACT.md](AI_CONTRACT.md) | [docs/ERD.md](ERD.md) (backend gửi những gì) |
-| Triển khai/demo | [docs/DEMO-VPS.md](DEMO-VPS.md) (chạy VPS bằng Docker) | [SECURITY.md](../SECURITY.md) |
+| Triển khai/demo | [docs/DEPLOY.md](DEPLOY.md) (deploy Debian bằng Docker) | [SECURITY.md](../SECURITY.md) |
 
 ## 4. Quy ước bắt buộc (đọc 1 lần, tránh review Iterate)
 
@@ -74,8 +74,8 @@ chạy được cả khi AI service tắt) - API xanh là đủ để bắt đ�
 
 ## 5. Bảo mật & production (tóm tắt 1 màn hình)
 
-Chi tiết đầy đủ: [SECURITY.md](../SECURITY.md) + section hardening trong
-[docs/DEMO-VPS.md](DEMO-VPS.md). Những gì bạn sẽ gặp:
+Chi tiết đầy đủ: [SECURITY.md](../SECURITY.md) + section gotchas trong
+[docs/DEPLOY.md](DEPLOY.md). Những gì bạn sẽ gặp:
 
 - Backend production **từ chối phục vụ** (500 chung, lý do trong log dòng
   `Refusing to serve: ...`) nếu `APP_DEBUG=true` hoặc thiếu `APP_KEY`.
