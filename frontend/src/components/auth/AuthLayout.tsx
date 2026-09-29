@@ -6,18 +6,18 @@ import { ROUTES } from "../../constants/routes";
  * docs/TECH-DEBT.md): auth-split (visual + card), header TROSV, tiêu đề,
  * alert lỗi chuỗi (nếu có) và footer. Nội dung form là `children`; phần
  * minh họa bên trái dựng bằng AuthVisual (file riêng - react-refresh).
+ * Độ rộng card cố định ở .auth-card trong auth.css - hai trang luôn cùng
+ * kích thước vì width không phải prop mỗi page tự đặt.
  */
 export default function AuthLayout({
     title,
     visual,
-    maxWidth = 460,
     error = "",
     footer,
     children,
 }: {
     title: string;
     visual: React.ReactNode;
-    maxWidth?: number;
     error?: string;
     footer?: React.ReactNode;
     children: React.ReactNode;
@@ -32,7 +32,7 @@ export default function AuthLayout({
 
                 {/* Form pane */}
                 <div className="auth-page-mobile d-flex align-items-center justify-content-center">
-                    <div className="w-100" style={{ maxWidth }}>
+                    <div className="w-100">
                         <div className="auth-card">
                             <div className="text-center mb-3">
                                 <Link to={ROUTES.HOME} className="auth-logo-link">
