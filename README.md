@@ -116,7 +116,7 @@ Lệnh hay dùng:
 - `docker compose logs -f backend`: xem log.
 - `docker compose down`: tắt (giữ DB + uploads trong volume).
 - `docker compose down -v`: tắt và **xóa cả DB + uploads** (làm lại từ đầu).
-- Production VPS: xem [docs/DEMO-VPS.md](docs/DEMO-VPS.md) - thêm
+- Production (Debian): xem [docs/DEPLOY.md](docs/DEPLOY.md) - thêm
   `--profile tls` và `DOMAIN` vào `.env`, Caddy tự cấp HTTPS.
 
 ### Cách B: Không dùng Docker
@@ -159,7 +159,7 @@ Không commit file `.env` thật hay API key. Chỉ commit `.env.example`.
 
 **Git** - mô hình 2 nhánh (stable/unstable)
 - `unstable` là nhánh tích hợp: làm việc trên nhánh riêng (`be/...`, `fe/...`, `ai/...`) rồi merge vào `unstable`. Không push code lỗi.
-- `stable` là nhánh release: chỉ cập nhật qua PR từ `unstable` sau khi CI xanh. Push vào `stable` sẽ tự động deploy lên VPS (xem `.github/workflows/deploy.yml`).
+- `stable` là nhánh release: chỉ cập nhật qua PR từ `unstable` sau khi CI xanh. Push vào `stable` sẽ tự động deploy lên máy chủ (xem `.github/workflows/deploy.yml`, docs/DEPLOY.md).
 - Hotfix: sửa trên nhánh phụ, merge vào `unstable`, rồi PR sang `stable`. Không sửa trực tiếp trên `stable`.
 - Commit theo dạng: `feat(be): thêm đăng nhập`, `fix(fe): sửa reset bộ lọc`.
 

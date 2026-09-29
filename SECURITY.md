@@ -21,7 +21,7 @@ Phản hồi trong vòng **72 giờ**; cam kết không truy cứu người báo
 - Frontend SPA (React/Vite)
 - Cấu hình Docker / Reverb / Caddy trong repo này
 
-Ngoài phạm vi: dịch vụ AI chạy riêng (`AI_URL`), hạ tầng VPS bên ngoài repo.
+Ngoài phạm vi: dịch vụ AI chạy riêng (`AI_URL`), hạ tầng máy chủ bên ngoài repo.
 
 ## Biện pháp đã có (tóm tắt audit Phase 4)
 

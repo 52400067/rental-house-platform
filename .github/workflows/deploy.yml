@@ -55,7 +55,7 @@ jobs:
         if: steps.gate.outputs.match == 'true'
         run: |
           if [ -z "$HOST" ] || [ -z "$USER" ] || [ -z "$KEY" ]; then
-            echo "::warning::Deploy secrets (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY) are not set on the 'production' environment - skipping deploy. Configure them to enable automatic deploys (see docs/DEMO-VPS.md)."
+            echo "::warning::Deploy secrets (DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY) are not set on the 'production' environment - skipping deploy. Configure them to enable automatic deploys (see docs/DEPLOY.md)."
             echo "configured=false" >> "$GITHUB_OUTPUT"
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
@@ -94,7 +94,7 @@ jobs:
             set -euo pipefail
             cd ${{ secrets.DEPLOY_PATH }}
             # TLS profile khong publish port backend ra host - smoke phai di
-            # qua Caddy (443). --resolve de neu DNS chua tro ve VPS van test duoc.
+            # qua Caddy (443). --resolve de neu DNS chua tro ve may chu van test duoc.
             DOMAIN="$(grep -E '^DOMAIN=' .env | cut -d= -f2- | tr -d '\"')"
             [ -n "$DOMAIN" ] || { echo "DOMAIN khong co trong .env"; exit 1; }
             R="--resolve $DOMAIN:443:127.0.0.1"

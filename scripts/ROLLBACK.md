@@ -1,17 +1,18 @@
 # Rollback - TROSV production
 
-Khi 1 deployment tren `stable` bi loi va can quay lai ban truoc. Doc khop voi
-`.github/workflows/deploy.yml` (deploy = `git reset --hard <sha>` + `docker compose
-up -d --build`) va `scripts/RESTORE.md` (khi phai quay lai du lieu).
+Khi 1 deployment tren `stable` bi loi va can quay lai ban truoc. Doc khop
+voi `.github/workflows/deploy.yml` (deploy = `git reset --hard <sha>` +
+`docker compose --profile tls up -d --build`) va `scripts/RESTORE.md` (khi
+phai quay lai du lieu).
 
 ## 0. Tim SHA tot cuoi cung
 
 Moi deploy run ghi lai SHA cua no - xem lich su: GitHub -> tab Actions -> workflow
 "Deploy" -> run gan nhat con tot -> xem buoc "Resolve deploy ref" (in ra
-`Deploying stable @ <sha>`). Hoac tren VPS:
+`Deploying stable @ <sha>`). Hoac tren may chu:
 
 ```bash
-cd /opt/trosv
+cd /srv/trosv
 git fetch origin stable --tags
 git log --oneline -5 origin/stable   # sha can quay ve nam ngay tren commit loi
 GOOD=<sha-tot>
@@ -21,7 +22,7 @@ GOOD=<sha-tot>
 
 ```bash
 DC="docker compose --profile tls"
-cd /opt/trosv
+cd /srv/trosv
 git fetch origin stable --tags
 git reset --hard $GOOD
 $DC up -d --build
@@ -54,5 +55,5 @@ bash scripts/backup.sh
 - Doan tot: commit fix tren nhanh feature -> merge `unstable` -> PR sang `stable`
   nhu thuong. KHONG force-push de "ghi de" lich su `stable` (branch protection
   da chan force-push).
-- Neu nghien cuu nguyen nhan: keo log VPS ve may
+- Neu nghien cuu nguyen nhan: keo log may chu ve may
   `docker compose logs --since 1h backend > /tmp/trosv-rollback.log`.
