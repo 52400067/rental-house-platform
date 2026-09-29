@@ -95,6 +95,27 @@
     ".auth-card-head": [
       "auth.css"
     ],
+    ".auth-demo-note": [
+      "auth.css"
+    ],
+    ".auth-demo-note code": [
+      "auth.css"
+    ],
+    ".auth-demo-note-hint": [
+      "auth.css"
+    ],
+    ".auth-demo-note-row": [
+      "auth.css"
+    ],
+    ".auth-demo-note-row span": [
+      "auth.css"
+    ],
+    ".auth-demo-note-title": [
+      "auth.css"
+    ],
+    ".auth-demo-note-title i": [
+      "auth.css"
+    ],
     ".auth-error": [
       "auth.css"
     ],
