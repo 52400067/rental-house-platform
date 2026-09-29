@@ -117,10 +117,22 @@ export default function Login() {
                 </button>
             </form>
 
-            <div className="alert alert-light small mt-4 mb-0">
-                <strong>Tài khoản demo</strong> (mật khẩu <code>password</code>):
-                <div>student1@example.com - sinh viên</div>
-                <div>landlord1@example.com - chủ nhà</div>
+            <div className="auth-demo-note mt-4 mb-0">
+                <div className="auth-demo-note-title">
+                    <i className="bi bi-lightning-charge-fill me-1" />
+                    Tài khoản demo
+                </div>
+                <div className="auth-demo-note-row">
+                    <span>Sinh viên</span>
+                    <code>student1@example.com</code>
+                </div>
+                <div className="auth-demo-note-row">
+                    <span>Chủ nhà</span>
+                    <code>landlord1@example.com</code>
+                </div>
+                <div className="auth-demo-note-hint">
+                    Mật khẩu chung: <code>password</code>
+                </div>
             </div>
         </AuthLayout>
     );

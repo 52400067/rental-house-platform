@@ -19,7 +19,9 @@
 }
 @media (min-width: 992px) {
     .auth-split {
-        grid-template-columns: 5fr 7fr;
+        /* 50/50: pane hinh chiem dung mot nua, card dat giua nua phai
+           - khong con vung trang lon ben phai nhu 5fr/7fr truoc day */
+        grid-template-columns: 1fr 1fr;
     }
     .auth-visual {
         position: sticky;
@@ -35,59 +37,60 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start;
     position: relative;
-    /* Lambert chấm lime góc trên phải - điểm nhấn thương hiệu, không quá 1 elem */
 }
 .auth-visual::after {
     content: "";
     position: absolute;
-    top: -70px;
-    right: -70px;
-    width: 220px;
-    height: 220px;
+    top: -90px;
+    right: -90px;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
     background: radial-gradient(
         circle,
-        rgba(185, 255, 102, 0.16) 0%,
+        rgba(185, 255, 102, 0.22) 0%,
         rgba(185, 255, 102, 0) 70%
     );
     pointer-events: none;
 }
 .auth-visual h2 {
     color: #fff;
-    font-size: 2rem;
+    font-size: 1.9rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    line-height: 1.2;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
 }
 .auth-visual .auth-point {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.8rem 1rem;
+    padding: 0.85rem 1.1rem;
     border: 1px solid rgba(255, 255, 255, 0.18);
     background: rgba(255, 255, 255, 0.05);
     border-radius: var(--radius);
-    font-size: 0.92rem;
+    font-size: 0.95rem;
 }
 .auth-visual .auth-point i {
     color: var(--brand);
-    font-size: 1.15rem;
+    font-size: 1.2rem;
 }
 .auth-visual-body {
-    max-width: 440px;
+    max-width: 460px;
 }
 .auth-visual-blurb {
     color: #b5bcd2;
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.65;
 }
 .auth-card {
     background: var(--paper-raised);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
-    padding: 2.75rem 2.5rem;
+    padding: 2.5rem;
     /* Cung kich thuoc cho MOI trang auth (login/register/...): width
        khong phai prop moi page tu dat - sua o mot cho duy nhat nay. */
     max-width: 520px;
@@ -99,7 +102,7 @@
     }
 }
 .auth-card-head {
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.5rem;
 }
 .auth-logo-link {
     display: inline-block;
@@ -118,16 +121,16 @@
     /* Thanh lime nho duoi logo - nhan thuong hieu nhe nhang */
     content: "";
     display: block;
-    width: 2rem;
-    height: 0.2rem;
+    width: 2.25rem;
+    height: 0.22rem;
     border-radius: 999px;
     background: var(--brand);
-    margin: 0.35rem auto 0;
+    margin: 0.4rem auto 0;
 }
 .auth-title {
-    font-size: 1.6rem;
+    font-size: 1.55rem;
     font-weight: 700;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.35rem;
     letter-spacing: -0.02em;
 }
 .auth-subtitle {
@@ -143,19 +146,19 @@
     margin-bottom: 1.25rem;
 }
 .auth-card form .mb-3 {
-    margin-bottom: 1.1rem;
+    margin-bottom: 1.15rem;
 }
 .auth-card form .form-label {
-    font-size: 0.86rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
 }
 .auth-card form .form-control {
-    padding: 0.6rem 0.85rem;
+    padding: 0.62rem 0.85rem;
 }
 .auth-card form .btn[type="submit"] {
-    margin-top: 0.35rem;
-    padding: 0.65rem 1rem;
+    margin-top: 0.5rem;
+    padding: 0.7rem 1rem;
     font-size: 1rem;
 }
 .auth-footer {
@@ -167,6 +170,42 @@
 }
 .auth-footer a {
     font-weight: 600;
+}
+/* O tai khoan demo: kieu note nhe nhang, khong giong alert loi */
+.auth-demo-note {
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    background: var(--gray);
+}
+.auth-demo-note-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+}
+.auth-demo-note-title i {
+    color: var(--ink);
+}
+.auth-demo-note-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.15rem 0;
+}
+.auth-demo-note-row span {
+    color: var(--muted);
+}
+.auth-demo-note-hint {
+    margin-top: 0.4rem;
+    color: var(--muted);
+}
+/* Email demo mau ink - mac dinh Bootstrap code mau hong, le thuong hieu */
+.auth-demo-note code {
+    color: var(--ink);
+    background: transparent;
+    padding: 0;
 }
 .auth-page-mobile {
     padding: 2.5rem 1rem;
