@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import * as authApi from "../api/authApi";
-import { clearToken, getToken } from "../api/axiosClient";
-import { disconnectEcho } from "../api/echo";
+import { clearSession, getToken } from "../api/axiosClient";
 import type { RegisterPayload, User } from "../types/api";
 
 export interface AuthContextValue {
@@ -16,6 +15,12 @@ export interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function readStoredUser(): User | null {
+  // User ma khong token la du lieu stale (sau reseed server/401 truoc do) -
+  // bo qua de tranh vong lap 401 -> redirect -> reload (bug da xay ra).
+  if (!getToken()) {
+    localStorage.removeItem("user");
+    return null;
+  }
   try {
     const raw = localStorage.getItem("user");
     if (!raw) return null;
@@ -64,9 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // token may already be invalid - clearing locally is enough
     }
-    clearToken();
-    localStorage.removeItem("user");
-    disconnectEcho();
+    clearSession();
     setUser(null);
   }
 
