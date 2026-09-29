@@ -2,36 +2,18 @@ import { TYPE_OPTIONS } from "./options";
 import type { Amenity, City, ListingFilters, School, Ward } from "../../types/hooks";
 
 /**
- * Ward dropdown options cho truong da chon: ward cua truong (moi truong
- * gan dung 1 phuong tu PR #28) + cac phuong cung thanh pho de mo rong
- * vung tim khi phuong truong het phong. Rong neu truong chua gan phuong.
- */
-function wardOptionsForSchool(
-    school: School | undefined,
-    wards: Ward[],
-): Array<Pick<Ward, "id" | "name">> {
-    if (!school?.ward) return [];
-    const cityWards = wards.filter(
-        (w) => String(w.city?.id) === String(school.city?.id)
-    );
-    // Ward cua truong dau tien, sau do cac phuong khac cung tinh/TP.
-    return [
-        { id: school.ward.id, name: school.ward.name },
-        ...cityWards
-            .filter((w) => w.id !== school.ward?.id)
-            .map((w) => ({ id: w.id, name: w.name })),
-    ];
-}
-
-/**
- * Filter sidebar for /rooms. Controlled entirely by useListingSearch -
- * renders filters, cascaded ward/school options (filtered by the chosen
- * city), the price range and amenity checkboxes. "Đặt lại" resets.
+ * Filter sidebar for /rooms. Controlled entirely by useListingSearch.
+ *
+ * Cascade (the smart direction): Tỉnh/TP -> phường -> trường. Danh sách
+ * "Gần trường" CHỈ hiện các trường thuộc phường đã chọn ở "Khu vực"
+ * (mỗi trường được gán 1 phường, xem schools.ward_id). Đổi phường thì
+ * reset trường + bán kính - giống cascade đổi Tỉnh/TP.
  */
 export default function FilterSidebar({
     filters,
     setFilter,
     setCity,
+    setWard,
     toggleAmenity,
     resetFilters,
     cities,
@@ -42,6 +24,7 @@ export default function FilterSidebar({
     filters: ListingFilters;
     setFilter: (key: keyof ListingFilters, value: string) => void;
     setCity: (cityId: string) => void;
+    setWard: (wardId: string) => void;
     toggleAmenity: (id: number) => void;
     resetFilters: () => void;
     cities: City[];
@@ -49,11 +32,18 @@ export default function FilterSidebar({
     schools: School[];
     amenities: Amenity[];
 }) {
-    // Truong dang chon - de hien ward chua truong va dropdown phuong gan.
-    const selectedSchool = schools.find(
-        (s) => String(s.id) === String(filters.school_id)
-    );
-    const wardOptions = wardOptionsForSchool(selectedSchool, wards);
+    // Trường khả dụng: đúng Tỉnh/TP (nếu đã chọn) VÀ đúng phường (nếu đã
+    // chọn). Trường chưa gán phường chỉ mất đi khi người dùng lọc theo
+    // phường cụ thể.
+    const visibleSchools = schools.filter((s) => {
+        if (filters.city_id && String(s.city?.id) !== String(filters.city_id)) {
+            return false;
+        }
+        if (filters.ward_id && String(s.ward?.id ?? "") !== String(filters.ward_id)) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <div className="card">
@@ -92,8 +82,11 @@ export default function FilterSidebar({
                 </div>
 
                 <div className="mb-3">
-                    <label className="form-label small fw-semibold">Tỉnh/Thành phố</label>
+                    <label className="form-label small fw-semibold" htmlFor="filter-city">
+                        Tỉnh/Thành phố
+                    </label>
                     <select
+                        id="filter-city"
                         className="form-select form-select-sm"
                         value={filters.city_id}
                         onChange={(e) => setCity(e.target.value)}
@@ -108,11 +101,14 @@ export default function FilterSidebar({
                 </div>
 
                 <div className="mb-3">
-                    <label className="form-label small fw-semibold">Khu vực</label>
+                    <label className="form-label small fw-semibold" htmlFor="filter-ward">
+                        Khu vực
+                    </label>
                     <select
+                        id="filter-ward"
                         className="form-select form-select-sm"
                         value={filters.ward_id}
-                        onChange={(e) => setFilter("ward_id", e.target.value)}
+                        onChange={(e) => setWard(e.target.value)}
                         disabled={!filters.city_id}
                     >
                         <option value="">
@@ -155,83 +151,48 @@ export default function FilterSidebar({
                 </div>
 
                 <div className="mb-3">
-                    <label className="form-label small fw-semibold" htmlFor="filter-school">Gần trường</label>
+                    <label className="form-label small fw-semibold" htmlFor="filter-school">
+                        Gần trường
+                    </label>
                     <select
                         id="filter-school"
                         className="form-select form-select-sm mb-2"
                         value={filters.school_id}
                         onChange={(e) => {
                             setFilter("school_id", e.target.value);
-                            if (!e.target.value) {
-                                setFilter("max_km", "");
-                                setFilter("ward_id", "");
-                            }
+                            if (!e.target.value) setFilter("max_km", "");
                         }}
                     >
-                        <option value="">Chọn trường</option>
-                        {schools
-                            .filter(
-                                (s) =>
-                                    !filters.city_id ||
-                                    String(s.city?.id) === String(filters.city_id)
-                            )
-                            .map((s: School) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.name}
+                        <option value="">
+                            {filters.ward_id
+                                ? "Chọn trường trong phường này"
+                                : "Chọn trường"}
+                        </option>
+                        {visibleSchools.map((s: School) => (
+                            <option key={s.id} value={s.id}>
+                                {s.name}
+                            </option>
+                        ))}
+                    </select>
+                    {filters.ward_id && (
+                        <div className="form-text">
+                            Chỉ hiện trường thuộc phường đã chọn.
+                        </div>
+                    )}
+                    {filters.school_id && (
+                        <select
+                            id="filter-radius"
+                            className="form-select form-select-sm"
+                            value={filters.max_km}
+                            onChange={(e) => setFilter("max_km", e.target.value)}
+                        >
+                            <option value="">Mọi khoảng cách</option>
+                            {[1, 2, 3, 5, 10].map((km: number) => (
+                                <option key={km} value={km}>
+                                    Trong bán kính {km} km
                                 </option>
                             ))}
-                    </select>
-                    {filters.school_id && (
-                        <>
-                            {/* Phuong chua truong: 1 click loc phong trong
-                                phuong do (ward_id -> GET /listings?ward_id=).
-                                Voi truong chua gan phuong thi an khoi nay. */}
-                            {selectedSchool?.ward && (
-                                <div className="form-text mb-2">
-                                    <i className="bi bi-geo-alt me-1" />
-                                    {selectedSchool.ward.name}{" "}
-                                    <button
-                                        type="button"
-                                        className="btn btn-link btn-sm p-0 align-baseline"
-                                        onClick={() =>
-                                            setFilter("ward_id", String(selectedSchool.ward?.id))
-                                        }
-                                    >
-                                        - loc phong trong phuong nay
-                                    </button>
-                                </div>
-                            )}
-                            <select
-                                className="form-select form-select-sm"
-                                value={filters.max_km}
-                                onChange={(e) => setFilter("max_km", e.target.value)}
-                            >
-                                <option value="">Mọi khoảng cách</option>
-                                {[1, 2, 3, 5, 10].map((km: number) => (
-                                    <option key={km} value={km}>
-                                        Trong bán kính {km} km
-                                    </option>
-                                ))}
-                            </select>
-                            {/* Ward dropdown hien ward truong truoc + cac
-                                phuong cung TP de mo rong vung tim. */}
-                            {selectedSchool?.ward && (
-                                <select
-                                    className="form-select form-select-sm mt-2"
-                                    value={filters.ward_id}
-                                    onChange={(e) => setFilter("ward_id", e.target.value)}
-                                >
-                                    <option value="">Tất cả phường/xã</option>
-                                    {wardOptions.map((w) => (
-                                        <option key={w.id} value={w.id}>
-                                            {w.id === selectedSchool.ward?.id
-                                                ? `${w.name} (trường nằm đây)`
-                                                : w.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </>
+                        </select>
                     )}
                 </div>
 

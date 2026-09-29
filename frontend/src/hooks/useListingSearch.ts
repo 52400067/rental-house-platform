@@ -137,6 +137,18 @@ export function useListingSearch() {
     }));
   };
 
+  // Đổi phường: reset school/radius - danh sách trường chỉ hiện trường
+  // thuộc phường đã chọn (schools.ward_id), cascade ward -> school.
+  const setWard = (wardId: string): void => {
+    setPage(1);
+    setFilters((f) => ({
+      ...f,
+      ward_id: wardId,
+      school_id: "",
+      max_km: "",
+    }));
+  };
+
   const toggleAmenity = (id: number): void => {
     setPage(1);
     setFilters((f) => ({
@@ -162,6 +174,7 @@ export function useListingSearch() {
     filters,
     setFilter,
     setCity,
+    setWard,
     toggleAmenity,
     resetFilters,
     // results
