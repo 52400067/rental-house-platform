@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\City;
 use App\Models\Conversation;
 use App\Models\Listing;
 use App\Models\Message;
 use App\Models\Review;
+use App\Models\School;
 use App\Models\User;
+use App\Models\Ward;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -37,6 +40,27 @@ class SeedAndRelationsTest extends TestCase
 
         // Seeded prices stay in the 1.5M..6M VND range.
         $this->assertTrue(Listing::whereBetween('price', [1_500_000, 6_000_000])->count() === 30);
+    }
+
+    public function test_hcmc_schools_are_pinned_to_wards(): void
+    {
+        $this->seed();
+
+        $hcmc = City::where('name', 'TP.HCM')->firstOrFail();
+        $schools = School::where('city_id', $hcmc->id)->get();
+
+        $this->assertCount(20, $schools);
+
+        // Every HCMC school sits in a ward OF THE SAME CITY (not just any ward).
+        $hcmcWardIds = Ward::where('city_id', $hcmc->id)->pluck('id');
+        foreach ($schools as $school) {
+            $this->assertNotNull($school->ward_id, "{$school->name} must have a ward");
+            $this->assertTrue($hcmcWardIds->contains($school->ward_id));
+        }
+
+        // Shared campuses are legal: UIT, UEL and NLU all map to Phường Linh Xuân.
+        $linhXuan = Ward::where('name', 'Phường Linh Xuân')->where('city_id', $hcmc->id)->firstOrFail();
+        $this->assertSame(3, School::where('ward_id', $linhXuan->id)->count());
     }
 
     public function test_listing_ward_and_amenity_relations_work(): void

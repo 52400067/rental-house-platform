@@ -32,4 +32,10 @@ class School extends Model
     {
         return $this->belongsTo(City::class);
     }
+
+    /** Phuong/xa chua truong (nullable - chi TP.HCM dang gan day du). */
+    public function ward(): BelongsTo
+    {
+        return $this->belongsTo(Ward::class);
+    }
 }

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\City;
 use App\Models\School;
+use App\Models\Ward;
 use Illuminate\Database\Seeder;
 
 class SchoolSeeder extends Seeder
@@ -12,7 +13,9 @@ class SchoolSeeder extends Seeder
     {
         // Các trường ĐH lớn ở 10 thành phố nhiều sinh viên nhất,
         // mỗi trường thuộc một Tỉnh/TP để lọc cascade. Riêng TP.HCM dung
-        // ten rut gon (HCMUT, UEH, TDTU...) de dropdown/filter gon gang.
+        // ten rut gon (HCMUT, UEH, TDTU...) de dropdown/filter gon gang,
+        // va moi truong duoc gan 1 phuong/xa cu the (ward_id) - FE loc
+        // phong theo phuong cua truong duoc ngay.
         $schoolsByCity = [
             'Hà Nội' => [
                 ['name' => 'ĐH Bách Khoa Hà Nội',  'latitude' => 21.0056, 'longitude' => 105.8339],
@@ -68,11 +71,43 @@ class SchoolSeeder extends Seeder
             ],
         ];
 
+        // Truong -> phuong chua truong (TP.HCM, theo toa do trong bang
+        // tren). Khoa: ten truong => ten phuong trong WardSeeder.
+        $wardsBySchool = [
+            'HCMUT' => 'Phường Diên Hồng',
+            'HCMUS' => 'Phường Chợ Quán',
+            'USSH' => 'Phường Sài Gòn',
+            'HCMIU' => 'Phường Đông Hòa',
+            'UIT' => 'Phường Linh Xuân',
+            'UEL' => 'Phường Linh Xuân',
+            'TDTU' => 'Phường Tân Hưng',
+            'UEH' => 'Phường Xuân Hòa',
+            'HUTECH' => 'Phường Thạnh Mỹ Tây',
+            'VLU' => 'Phường Bình Lợi Trung',
+            'HCMUTE' => 'Phường Thủ Đức',
+            'HCMUE' => 'Phường Chợ Quán',
+            'UMP' => 'Phường Chợ Lớn',
+            'HCMULAW' => 'Phường Xóm Chiếu',
+            'HUB' => 'Phường Sài Gòn',
+            'NLU' => 'Phường Linh Xuân',
+            'RMIT' => 'Phường Tân Hưng',
+            'SGU' => 'Phường Chợ Quán',
+            'IUH' => 'Phường Hạnh Thông',
+            'HCMCOU' => 'Phường Xuân Hòa',
+        ];
+
         foreach ($schoolsByCity as $cityName => $schools) {
             $city = City::where('name', $cityName)->firstOrFail();
 
             foreach ($schools as $school) {
-                School::create($school + ['city_id' => $city->id]);
+                $wardId = null;
+                if (isset($wardsBySchool[$school['name']])) {
+                    $wardId = Ward::where('city_id', $city->id)
+                        ->where('name', $wardsBySchool[$school['name']])
+                        ->value('id');
+                }
+
+                School::create($school + ['city_id' => $city->id, 'ward_id' => $wardId]);
             }
         }
     }
