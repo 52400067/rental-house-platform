@@ -72,6 +72,8 @@ export interface School {
   latitude?: number | null;
   longitude?: number | null;
   city?: { id: number; name: string };
+  /** Phường chứa trường (null với trường chưa gán) - API_CONTRACT §4. */
+  ward?: { id: number; name: string } | null;
 }
 
 export interface Amenity {
