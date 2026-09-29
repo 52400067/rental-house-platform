@@ -53,11 +53,12 @@ export default function Register() {
             subtitle="Miễn phí - mất chưa đầy một phút."
             visual={
                 <AuthVisual
+                    eyebrow="Tham gia TROSV miễn phí"
                     heading={
                         <>
-                            Một trang<br />
-                            cho sinh viên,<br />
-                            một trang cho chủ trọ.
+                            Một nơi cho{" "}
+                            <em className="auth-visual-em">sinh viên</em>
+                            {" "}& chủ trọ.
                         </>
                     }
                     blurb={
@@ -69,6 +70,11 @@ export default function Register() {
                     points={[
                         ["mortarboard", "Sinh viên: lưu phòng, tìm bạn ở cùng, hỏi AI"],
                         ["house-add", "Chủ trọ: đăng tin, quản lý trạng thái, nhận tin nhắn"],
+                    ]}
+                    stats={[
+                        ["168", "Phường ở TP.HCM"],
+                        ["20", "Trường ĐH, CĐ"],
+                        ["30+", "Phòng đang mở"],
                     ]}
                 />
             }
@@ -156,16 +162,14 @@ export default function Register() {
 
                 <div className="mb-3">
                     <label className="form-label">Loại tài khoản</label>
-                    <div className="d-flex gap-2">
+                    <div className="d-flex gap-3">
                         {[
                             ["student", "Sinh viên", "mortarboard"],
                             ["landlord", "Chủ trọ", "house-add"],
                         ].map(([value, label, icon]) => (
                             <label
                                 key={value}
-                                className={`btn btn-outline-primary flex-fill ${
-                                    form.role === value ? "active" : ""
-                                }`}
+                                className={`auth-role-btn${form.role === value ? " active" : ""}`}
                             >
                                 <input
                                     type="radio"
@@ -175,7 +179,7 @@ export default function Register() {
                                     checked={form.role === value}
                                     onChange={set("role")}
                                 />
-                                <i className={`bi bi-${icon} me-1`} />
+                                <i className={`bi bi-${icon}`} />
                                 {label}
                             </label>
                         ))}

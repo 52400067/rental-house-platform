@@ -32,12 +32,13 @@ export default function Login() {
             title="Đăng nhập"
             subtitle="Chào mừng trở lại - tiếp tục tìm phòng phù hợp cho bạn."
             error={error}
-            visual={
+        visual={
                 <AuthVisual
+                    eyebrow="Thuê trọ dành cho sinh viên"
                     heading={
                         <>
-                            Sổ tay thuê trọ<br />
-                            của bạn.
+                            Sổ tay thuê trọ{" "}
+                            <em className="auth-visual-em">của bạn.</em>
                         </>
                     }
                     blurb={
@@ -50,6 +51,11 @@ export default function Login() {
                         ["geo-alt", "Tin đăng kèm khoảng cách tới trường của bạn"],
                         ["chat-dots", "Nhắn tin trực tiếp với chủ trọ, không qua trung gian"],
                         ["robot", "Gợi ý khu vực và bạn cùng phòng do AI tham khảo"],
+                    ]}
+                    stats={[
+                        ["168", "Phường ở TP.HCM"],
+                        ["20", "Trường ĐH, CĐ"],
+                        ["30+", "Phòng đang mở"],
                     ]}
                 />
             }

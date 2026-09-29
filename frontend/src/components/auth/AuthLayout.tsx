@@ -39,6 +39,7 @@ export default function AuthLayout({
                         <div className="auth-card">
                             <header className="auth-card-head text-center">
                                 <Link to={ROUTES.HOME} className="auth-logo-link">
+                                    <span className="auth-logo-dot" />
                                     TROSV
                                 </Link>
                                 <h1 className="auth-title">{title}</h1>
