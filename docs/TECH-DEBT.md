@@ -17,22 +17,22 @@ của snapshot trước + ignore thêm: freebuff-chat-*, .css-baseline,
 css-selectors.json, test-results, playwright-report)
 python3 .agents/skills/tech-debt-tracker/scripts/debt_scanner.py . \
   --config /tmp/debt-config.json --format json \
-  --output ~/tech-debt-tracker/rental-house-platform/debt_$(date +%F).json
+  --output ~/tech-debt-tracker/trosv/debt_$(date +%F).json
 
 # 2. Loc app-only (script commit trong repo - quy tắc cố định)
 python3 scripts/filter-debt-app-only.py \
-  ~/tech-debt-tracker/rental-house-platform/debt_<ngay>.json \
-  --output ~/tech-debt-tracker/rental-house-platform/debt_<ngay>.app-only.json
+  ~/tech-debt-tracker/trosv/debt_<ngay>.json \
+  --output ~/tech-debt-tracker/trosv/debt_<ngay>.app-only.json
 
 # 3. Prioritize (framework wsjf)
 python3 .agents/skills/tech-debt-tracker/scripts/debt_prioritizer.py \
-  ~/tech-debt-tracker/rental-house-platform/debt_<ngay>.app-only.json \
+  ~/tech-debt-tracker/trosv/debt_<ngay>.app-only.json \
   --framework wsjf --team-size 6 --sprint-capacity 20 \
-  --format json --output ~/tech-debt-tracker/rental-house-platform/debt_priorities_<ngay>.json
+  --format json --output ~/tech-debt-tracker/trosv/debt_priorities_<ngay>.json
 
 # 4. Sau mỗi sprint dọn: quét lại + so trend bằng dashboard
 python3 .agents/skills/tech-debt-tracker/scripts/debt_dashboard.py \
-  --input-dir ~/tech-debt-tracker/rental-house-platform/ --period monthly --format both
+  --input-dir ~/tech-debt-tracker/trosv/ --period monthly --format both
 ```
 
 ## Debt thật sự cần xử lý (tinh chỉnh từ output máy)
