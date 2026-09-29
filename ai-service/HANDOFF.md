@@ -1,66 +1,39 @@
-# AI Service - Handoff cho người phụ trách AI
+# AI Service - Handoff
 
-Backend đã xong 8/10 bước + bước 10 phần backend. Việc của bạn: tạo **AI service (Python/FastAPI)** trong thư mục này. Hợp đồng đầu-cuối: `docs/API_CONTRACT.md` (mục **AI** ở §4, shapes ở §3).
+Trạng thái: stub FAKE_MODE hoàn thành (5 endpoint trả đúng shape hợp đồng).
+Việc còn lại: thay logic mẫu bằng LLM thật bên trong `main.py` khi có
+`LLM_API_KEY`. Hợp đồng đầu-cuối: [docs/AI_CONTRACT.md](../docs/AI_CONTRACT.md).
 
-## 1. Bạn cần tạo gì (trong thư mục `ai-service/` này)
+## Bối cảnh
 
-```
-ai-service/
-├── main.py            # FastAPI app - bắt buộc tên file này
-├── requirements.txt   # fastapi, uvicorn, (+ thư viện AI của bạn)
-└── Dockerfile         # tùy chọn - compose mount thư mục này vào /app
-```
+- `docker-compose.yml` đã có service `ai-service` (profile `ai`): build từ
+  thư mục này, chạy `uvicorn main:app --port 8001`, env `FAKE_MODE` +
+  `LLM_API_KEY` đọc từ `.env` gốc repo.
+- Backend làm proxy: `POST /api/ai/*` (hợp đồng §4) → forward JSON sang
+  `AI_URL` (docker: `http://ai-service:8001`). Lỗi/không 2xx/sai shape →
+  backend trả 503 "Dịch vụ AI tạm thời không khả dụng."
+- Frontend không bao giờ gọi service này trực tiếp.
 
-`docker-compose.yml` ở gốc repo **đã trỏ sẵn** vào thư mục này:
+## Yêu cầu khi thay logic thật
 
-```
-command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
-volumes: ./ai-service:/app
-ports: 8001:8001
-environment:
-  FAKE_MODE: true          # mặc định - chạy không cần LLM key
-  LLM_API_KEY: (để trống)
-```
+- Giữ nguyên 5 endpoint và response shape theo hợp đồng §4 - backend và
+  frontend đang phụ thuộc chính xác các trường này.
+- **Stateless**: backend gửi đủ ngữ cảnh trong body. Cần thêm dữ liệu DB
+  thì đề nghị backend bổ sung vào body, không tự kết nối PostgreSQL.
+- Thời gian phản hồi ≤ 30 giây; lỗi nào cũng trả JSON có nghĩa.
+- Không đưa name/email/phone vào output ngoài các trường hợp đồng cho phép.
+- Không sửa `backend/` hay `docs/` - cần đổi interface thì đề xuất sửa hợp
+  đồng trước, cả nhóm đồng thuận rồi mới code.
 
-Chỉ cần `docker compose up -d --build ai-service` là chạy.
-
-## 2. Interface nội bộ (Backend → AI service)
-
-Backend sẽ làm phần proxy: `POST /api/ai/*` (hợp đồng §4) → forward JSON body sang `AI_URL` (docker: `http://ai-service:8001`, chạy local: `http://localhost:8001`).
-
-Vì vậy bạn expose **5 endpoint cùng tên, không tiền tố `/api`**:
-
-| Endpoint | Request (JSON) | Phải trả về (JSON, đúng shape hợp đồng §4) |
-|---|---|---|
-| `POST /roommates` | profile sinh viên (backend gửi sẵn) | `{ user_id, name, school, phone, interests: string[], interests_shared: string[], score, reason }[]` - tối đa 5, score 0-100 giảm dần |
-| `POST /price-advice` | dữ liệu tin + stats | `{ listing_price, verdict, fair_min, fair_max, tips[], message, stats{count,min,median,max} }` - verdict: `high`/`fair`/`low` |
-| `POST /area-suggestions` | budget + school + priorities | `{ ward_id, name, reason, stats{...} }[]` - tối đa 3 |
-| `POST /chat` | `message`, `history[]`, `listing_id?` | `{ reply }` |
-| `POST /description` | thông tin tin đăng | `{ description }` |
-
-Shape chi tiết từng trường: đọc `docs/API_CONTRACT.md` §4 mục AI - đây là chuẩn để frontend gọi qua backend.
-
-## 3. FAKE_MODE (quan trọng cho integration)
-
-Với `FAKE_MODE=true` (mặc định trong compose): **không cần LLM key**, trả dữ liệu mẫu hợp lý đủ shape - để backend + frontend tích hợp được ngay từ ngày đầu. Khi `FAKE_MODE=false` và có `LLM_API_KEY` mới gọi LLM thật.
-
-## 4. Quy tắc làm việc
-
-- **Stateless khuyến nghị**: backend gửi đủ ngữ cảnh trong body; nếu buộc cần dữ liệu DB thì báo backend team gửi thêm vào body (đơn giản hơn việc bạn kết nối PostgreSQL).
-- Thời gian phản hồi **≤ 30 giây** (hợp đồng cho phép tối đa ~30s; frontend sẽ hiện loading).
-- Lỗi nào cũng trả JSON có nghĩa (vd `{"error": "..."}`); backend sẽ chuyển mọi lỗi khác 200 thành **503** `"Dịch vụ AI tạm thời không khả dụng."` theo hợp đồng - bạn không cần dịch tiếng Việt.
-- **Đừng sửa** `backend/` hay `docs/API_CONTRACT.md` - cần đổi interface thì báo nhóm backend, sửa hợp đồng theo §5 rồi cả nhóm đồng thuận.
-- Test nhanh sau khi tạo xong:
+## Kiểm tra sau khi thay
 
 ```bash
-docker compose up -d --build ai-service
-curl -X POST http://localhost:8001/chat -H "Content-Type: application/json" \
-  -d '{"message": "cho hỏi giá phòng phường Thủ Đức"}'
+docker compose --profile ai up -d --build ai-service
+curl localhost:8001/health
+curl -X POST localhost:8001/chat -H "Content-Type: application/json" \
+  -d '{"message": "cho hỏi giá phòng gần UIT"}'
 ```
 
-## 5. Definition of done
-
-- [ ] 5 endpoint trả đúng shape hợp đồng với FAKE_MODE=true
-- [ ] `docker compose up -d --build` chạy được service (không cần key)
-- [ ] Response time < 30s cho mọi endpoint
-- [ ] Báo lại nhóm: backend sẽ thêm proxy routes + integration test (bước 9)
+Rồi chạy lại backend test (`php artisan test`) - các test AI dùng
+`Http::fake` nên vẫn phải xanh; cuối cùng thử thật qua backend:
+`POST /api/ai/chat` với Bearer token.
