@@ -1,24 +1,24 @@
 # Rollback - TROSV production
 
-Khi 1 deployment tren `stable` bi loi va can quay lai ban truoc. Doc khop
-voi `.github/workflows/deploy.yml` (deploy = `git reset --hard <sha>` +
-`docker compose --profile tls up -d --build`) va `scripts/RESTORE.md` (khi
-phai quay lai du lieu).
+Khi 1 deployment trên `stable` bị lỗi và cần quay lại bản trước. Đáp ứng
+khớp với `.github/workflows/deploy.yml` (deploy = `git reset --hard <sha>` +
+`docker compose --profile tls up -d --build`) và `scripts/RESTORE.md` (khi
+phải quay lại dữ liệu).
 
-## 0. Tim SHA tot cuoi cung
+## 0. Tìm SHA tốt cuối cùng
 
-Moi deploy run gan voi mot SHA cu the - xem: GitHub -> tab Actions ->
-workflow "Deploy" -> run gan nhat con tot -> commit duoc deploy
-(`head_sha`). Hoac tren may chu:
+Mỗi deploy run gắn với một SHA cụ thể - xem: GitHub → tab Actions →
+workflow "Deploy" → run gần nhất còn tốt → commit được deploy
+(`head_sha`). Hoặc trên máy chủ:
 
 ```bash
 cd /srv/trosv
 git fetch origin stable --tags
-git log --oneline -5 origin/stable   # sha can quay ve nam ngay tren commit loi
-GOOD=<sha-tot>
+git log --oneline -5 origin/stable   # sha cần quay về nằm ngay trên commit lỗi
+GOOD=<sha-tot>   # thay bằng sha thật
 ```
 
-## 1. Rollback code (1 lan)
+## 1. Rollback code (1 lần)
 
 ```bash
 DC="docker compose --profile tls"
@@ -28,32 +28,33 @@ git reset --hard $GOOD
 $DC up -d --build
 ```
 
-Smoke nhanh (giong post-deploy smoke cua deploy.yml):
+Smoke nhanh (giống post-deploy smoke của deploy.yml):
 
 ```bash
-DOMAIN="$(grep -E '^DOMAIN=' .env | cut -d= -f2- | tr -d '\"')"
+DOMAIN="$(grep -E '^DOMAIN=' .env | cut -d= -f2- | tr -d '"')"
 R="--resolve $DOMAIN:443:127.0.0.1"
-curl -sf $R https://$DOMAIN/api/health
-curl -s -o /dev/null -w 'frontend: %{http_code}\n' $R https://$DOMAIN/
-curl -s -o /dev/null -w 'cities:   %{http_code}\n' $R https://$DOMAIN/api/cities
+curl -sf $R "https://$DOMAIN/api/health"
+curl -s -o /dev/null -w 'frontend: %{http_code}\n' $R "https://$DOMAIN/"
+curl -s -o /dev/null -w 'cities:   %{http_code}\n' $R "https://$DOMAIN/api/cities"
 ```
 
-## 2. Quan trong: migration chi di xuoi
+## 2. Quan trọng: migration chỉ đi xuôi
 
-`php artisan migrate --force` trong backend container khong tu roll back. Neu
-commit loi CHAY migration lam hong du lieu/schema thi rollback code khong du -
-phai restore DB tu backup: xem `scripts/RESTORE.md` (buoc 2 la khong-duong-lui).
+`php artisan migrate --force` trong backend container không tự roll back.
+Nếu commit lỗi CHẠY migration làm hỏng dữ liệu/schema thì rollback code
+không đủ - phải restore DB từ backup: xem `scripts/RESTORE.md` (bước 2 là
+không-đường-lùi).
 
-Neu commit loi chua migration: tu sao luu DB hien tai TRUOC khi reset:
+Nếu commit lỗi chứa migration: tự sao lưu DB hiện tại TRƯỚC khi reset:
 
 ```bash
 bash scripts/backup.sh
 ```
 
-## 3. Sau khi da rollback
+## 3. Sau khi đã rollback
 
-- Doan tot: commit fix tren nhanh feature -> merge `unstable` -> PR sang `stable`
-  nhu thuong. KHONG force-push de "ghi de" lich su `stable` (branch protection
-  da chan force-push).
-- Neu nghien cuu nguyen nhan: keo log may chu ve may
+- Đoán đúng: commit fix trên nhánh feature → merge `unstable` → PR sang
+  `stable` như thường. KHÔNG force-push để "ghi đè" lịch sử `stable`
+  (branch protection đã chặn force-push).
+- Nếu nghiên cứu nguyên nhân: kéo log máy chủ về máy
   `docker compose logs --since 1h backend > /tmp/trosv-rollback.log`.

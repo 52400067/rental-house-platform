@@ -1,35 +1,38 @@
-# Kien thuc thue tro cho chatbot (nguon tra loi /chat)
+# Kiến thức thuê trọ cho chatbot (nguồn trả lời /chat)
 
-## Tien coc va hop dong
-- Tien coc pho bien bang 1 den 2 thang tien phong. Yeu cau bien nhan lien he
-  hoac hop dong viet tay co chu ky hai ben.
-- Hop dong nen ghi ro: gia thue, ky han (6/12 thang), tien coc va dieu kien
-  hoan tra, gia dien nuoc (dong ho hay khoan cu), quy dinh khach, ve sinh,
-  luu hoan sua chua, thoi bao truoc khi rau phong.
-- Doc ky dieu khoan ve sua chua va tang gia truoc khi ky. Xin giu mot ban
-  sao hop dong va bien ban phong khi nhan phong.
-- Thong tin mang tinh tham khao, khong thay the tu van phap ly.
+## Tiền cọc và hợp đồng
+- Tiền cọc phổ biến bằng 1 đến 2 tháng tiền phòng. Yêu cầu biên nhận liên
+  hệ hoặc hợp đồng viết tay có chữ ký hai bên.
+- Hợp đồng nên ghi rõ: giá thuê, kỳ hạn (6/12 tháng), tiền cọc và điều kiện
+  hoàn trả, giá điện nước (đồng hồ hay khoản cố định), quy định khách, vệ
+  sinh, lưu khoản sửa chữa, thời báo trước khi rời phòng.
+- Đọc kỹ điều khoản về sửa chữa và tăng giá trước khi ký. Xin giữ một bản
+  sao hợp đồng và biên bản phòng khi nhận phòng.
+- Thông tin mang tính tham khảo, không thay thế tư vấn pháp lý.
 
-## Kiem tra an toan truoc khi thue
-- Xem phong ban ngay: kiem tra cua so, cong tac dien, nuoc, hoa sen, WC.
-- Hoi xem phong co chong thau am, chong nong, va duoc sang doi khong.
-- Kiem tra khu vuc giu xe, camera/hanh lang, gioi nghiem thu cung.
-- Anh tin dang co the cu - hay hen xem phong that truoc khi coc.
-- Khong chuyen tien coc truoc khi da xem phong va gap chu nha truc tiep.
+## Kiểm tra an toàn trước khi thuê
+- Xem phòng ban ngày: kiểm tra cửa sổ, công tắc điện, nước, hoa sen, WC.
+- Hỏi xem phòng có chống ồn, chống nóng, và được sáng tốt không.
+- Kiểm tra khu vực giữ xe, camera/hành lang, giờ nghiêm túc cùng.
+- Ảnh tin đăng có thể cũ - hãy hẹn xem phòng thật trước khi cọc.
+- Không chuyển tiền cọc trước khi đã xem phòng và gặp chủ nhà trực tiếp.
 
-## Gia thue tham khao
-- Phong tro gan khu dai hoc thuong 1,5 - 4 trieu/thang tuy dien tich va tien ich.
-- Can ho mini thuong 5 - 9 trieu/thang. Gia thap bat thuong can kiem tra ky.
-- Nen so sanh voi cac tin cung phuong cung loai bang tinh nang Tu van gia AI.
+## Giá thuê tham khảo
+- Phòng trọ gần khu đại học thường 1,5 - 4 triệu/tháng tùy diện tích và
+  tiện ích.
+- Căn hộ mini thường 5 - 9 triệu/tháng. Giá thấp bất thường cần kiểm tra
+  kỹ.
+- Nên so sánh với các tin cùng phường cùng loại bằng tính năng Tư vấn giá
+  AI.
 
-## Nhung cau hoi nen hoi chu nha
-- Gia dien/nuoc/internet tinh the nao? Ai dong khi thieu gioi han?
-- Ai quan ly khi co su co (onu dien, may lanh, nuoc)? Phan hoi bao lau?
-- Quy dinh ve khach trong va nua dem, thu cung, hut thuoc?
-- Chinh sach hoan coc khi ra phong som giua ky han?
+## Những câu hỏi nên hỏi chủ nhà
+- Giá điện/nước/internet tính thế nào? Ai đóng khi thiếu giới hạn?
+- Ai quản lý khi có sự cố (ổn điện, máy lạnh, nước)? Phản hồi bao lâu?
+- Quy định về khách trong và nửa đêm, thú cưng, hút thuốc?
+- Chính sách hoàn cọc khi rời phòng sớm giữa kỳ hạn?
 
-## Quyen va nghia vu co ban
-- Hai ben co trach nhiem thuc hien dung hop dong da ky.
-- Chu nha khong duoc tu y vao phong khi chua bao truoc (truoc khong khan cap).
-- Khau tru tien coc cho hu hao binh thuong (ma son, mai moi) thuong khong
-  duoc chap nhan neu khong ghi trong hop dong.
+## Quyền và nghĩa vụ cơ bản
+- Hai bên có trách nhiệm thực hiện đúng hợp đồng đã ký.
+- Chủ nhà không được tự ý vào phòng khi chưa báo trước (trừ khẩn cấp).
+- Khấu trừ tiền cọc cho hao mòn bình thường (ma sơn, mài mờ) thường không
+  được chấp nhận nếu không ghi trong hợp đồng.
