@@ -61,12 +61,12 @@ export default function Login() {
         >
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                    <label htmlFor="email" className="form-label">
+                    <label htmlFor="login-email" className="form-label">
                         Email
                     </label>
                     <input
                         type="email"
-                        id="email"
+                        id="login-email"
                         className="form-control"
                         placeholder="nhap@email.com"
                         value={email}
@@ -77,13 +77,13 @@ export default function Login() {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="password" className="form-label">
+                    <label htmlFor="login-password" className="form-label">
                         Mật khẩu
                     </label>
                     <div className="input-group">
                         <input
                             type={showPassword ? "text" : "password"}
-                            id="password"
+                            id="login-password"
                             className="form-control"
                             placeholder="••••••••"
                             value={password}

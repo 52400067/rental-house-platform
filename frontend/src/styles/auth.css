@@ -58,6 +58,10 @@
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
     padding: 2.5rem;
+    /* Cung kich thuoc cho MOI trang auth (login/register/...): width
+       khong phai prop moi page tu dat - sua o mot cho duy nhat nay. */
+    max-width: 520px;
+    margin-inline: auto;
 }
 .auth-logo-link {
     font-family: var(--font-display);

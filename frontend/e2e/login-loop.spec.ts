@@ -41,8 +41,8 @@ test.describe("stale credentials on /login", () => {
         expect(loads, "page must not reload in a loop").toBeLessThanOrEqual(2);
 
         // The login form must actually be usable.
-        await expect(page.locator("#email")).toBeVisible();
-        await expect(page.locator("#password")).toBeVisible();
+        await expect(page.locator("#login-email")).toBeVisible();
+        await expect(page.locator("#login-password")).toBeVisible();
     });
 
     test("login succeeds and lands on the app despite stale storage", async ({ page }) => {
@@ -59,8 +59,8 @@ test.describe("stale credentials on /login", () => {
         });
 
         await page.goto("/login");
-        await page.locator("#email").fill("student1@example.com");
-        await page.locator("#password").fill("password");
+        await page.locator("#login-email").fill("student1@example.com");
+        await page.locator("#login-password").fill("password");
         await page.getByRole("button", { name: "Đăng nhập" }).click();
 
         // Successful login replaces the stale user and shows the app chrome.
